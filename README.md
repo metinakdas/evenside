@@ -22,7 +22,54 @@ Kartını çıkar, takımını kur, kurayı çek — takımlar iki dakikada tara
 - **Skorlar kurayı öğretir** — girilen maç sonuçları oyuncunun formunu düzeltir, bir sonraki kura daha isabetli olur.
 - **4v4'ten 11v11'e**, altı dil (Türkçe, İngilizce, Almanca, Fransızca, İspanyolca, Arapça), telefonda da çalışır.
 
-## Ekranlar
+## Uygulamadan
+
+> Görüntülerdeki oyuncular örnek isimlerdir.
+
+### Ana menü ve kendi kartın
+
+<table>
+  <tr>
+    <td><img src="docs/ekranlar/uygulama-menu.jpg" alt="Ana menü"></td>
+    <td><img src="docs/ekranlar/uygulama-kartim.jpg" alt="Kendi oyuncu kartın"></td>
+  </tr>
+</table>
+
+### Kadro kurma
+
+Kadroyu kart ya da liste görünümünde kur; her oyuncunun reytingi ve altı istatistiği beceri puanlarından hesaplanır.
+
+<table>
+  <tr>
+    <td><img src="docs/ekranlar/uygulama-kadro.jpg" alt="Kadro — kart görünümü"></td>
+    <td><img src="docs/ekranlar/uygulama-liste.jpg" alt="Kadro — liste görünümü"></td>
+  </tr>
+  <tr>
+    <td colspan="2"><img src="docs/ekranlar/uygulama-oyuncu-formu.jpg" alt="Oyuncu formu — altı adımda 20 beceri"></td>
+  </tr>
+</table>
+
+### Kura töreni
+
+Kura önceden hesaplanır; tören oyuncuları düşükten yükseğe tek tek açar ve takımına gönderir.
+
+<table>
+  <tr>
+    <td><img src="docs/ekranlar/uygulama-kura-acilis.jpg" alt="Oyuncu kartı açılıyor"></td>
+    <td><img src="docs/ekranlar/uygulama-kura-takim.jpg" alt="Oyuncunun takımı açıklanıyor"></td>
+  </tr>
+  <tr>
+    <td colspan="2"><img src="docs/ekranlar/uygulama-kura-bitis.jpg" alt="Kura tamamlandı — iki takım karşı karşıya"></td>
+  </tr>
+</table>
+
+### Saha
+
+Diziliş seç, oyuncuları takas et, maçı kaydet ve saha görselini indir.
+
+![Saha görünümü](docs/ekranlar/uygulama-saha.jpg)
+
+## Tanıtım sayfası
 
 <table>
   <tr>
@@ -33,18 +80,7 @@ Kartını çıkar, takımını kur, kurayı çek — takımlar iki dakikada tara
     <td><img src="docs/ekranlar/tanitim-adil-kura.jpg" alt="Adil kura nasıl kurulur"></td>
     <td><img src="docs/ekranlar/tanitim-uc-adim.jpg" alt="Üç adımda takım"></td>
   </tr>
-  <tr>
-    <td colspan="2"><img src="docs/ekranlar/tanitim-sss.jpg" alt="Sıkça sorulanlar"></td>
-  </tr>
 </table>
-
-### Telefonda
-
-<p align="center">
-  <img src="docs/ekranlar/mobil-tanitim.jpg" alt="Telefonda tanıtım" width="280">
-  &nbsp;&nbsp;
-  <img src="docs/ekranlar/mobil-giris.jpg" alt="Telefonda giriş" width="280">
-</p>
 
 ## Teknoloji
 

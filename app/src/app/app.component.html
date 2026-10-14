@@ -1,0 +1,37 @@
+<!--
+  DİL SEÇİCİ — sağ üstte, rotaların DIŞINDA: seçim uygulamanın TAMAMINI etkiler
+  (tanıtım, yasal metinler, menü ve oyun ekranları aynı sözlüğü okur).
+-->
+<!-- Tema seçimi KALDIRILDI (11 Ekim 2026, kullanıcı isteği): uygulama yalnızca koyu temadır. -->
+<div class="genel-ust">
+  <!--
+    "Giriş yap": dil seçiciyle AYNI boyut ve yüzey. Yalnızca oturum yokken ve giriş ekranının
+    kendisi dışında (tanıtım, yasal sayfalar).
+  -->
+  @if (girisGorunur()) {
+    <a class="genel-giris" routerLink="/login">{{ t('ust.girisYap') }}</a>
+  }
+  <app-language-switcher />
+</div>
+
+<router-outlet></router-outlet>
+
+<!-- Silme/çıkarma onayı: tek pencere, rotaların dışında (bkz. ConfirmService). -->
+<app-confirm-host />
+
+<!--
+  Sayfa geçişi uzun sürerse (koruma veri bekliyor) gösterge. Önce /kura ve /saha, havuz yüklenene
+  kadar 12 saniyeye kadar BOMBOŞ siyah ekran gösteriyordu (QA 9 Ekim 2026).
+-->
+@if (gecisSuruyor()) {
+  <div class="gecis" role="status" aria-live="polite">
+    <span class="gecis__top" aria-hidden="true"></span>
+    <span class="gecis__metin">{{ t('ust.yukleniyor') }}</span>
+  </div>
+}
+
+<!-- Bildirim yığını rotaların DIŞINDA: ekran değişse de ayakta kalır. -->
+<app-toast-host />
+
+<!-- Çerez/veri bilgilendirmesi: rotaların DIŞINDA, her ekranda aynı yerde. -->
+<app-cookie-banner />

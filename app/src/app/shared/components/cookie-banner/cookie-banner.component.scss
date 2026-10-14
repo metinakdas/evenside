@@ -1,0 +1,116 @@
+/*
+ * Şerit ekranın ALT ORTASINDA ve yüzen eylem şeridinin (`.yuzen-cta`) ÜSTÜNDE durur;
+ * ikisi aynı anda görünebilir, bu yüzden çakışmasınlar diye burası daha yukarıda değil
+ * daha ÖNCE kapanır (kullanıcı yanıt verir vermez şerit gider).
+ */
+:host {
+  position: fixed;
+  z-index: 70;
+  left: 50%;
+  bottom: clamp(12px, 2.4vw, 22px);
+  transform: translateX(-50%);
+  width: min(94vw, 880px);
+  pointer-events: none;
+}
+
+.cerez {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2vw, 26px);
+  padding: 14px clamp(14px, 2vw, 22px);
+  border: 1px solid light-dark(rgba(18, 18, 22, 0.14), rgba(255, 255, 255, 0.14));
+  border-radius: 16px;
+  background: light-dark(rgba(255, 255, 255, 0.94), rgba(16, 17, 19, 0.94));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 20px 48px light-dark(rgba(20, 20, 30, 0.15), rgba(0, 0, 0, 0.5));
+  pointer-events: auto;
+}
+
+.cerez__baslik {
+  margin: 0 0 4px;
+  font-family: var(--font-display, 'Barlow Condensed', system-ui, sans-serif);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 17px;
+  text-transform: uppercase;
+  color: light-dark(#121216, #fff);
+}
+
+.cerez__metin {
+  margin: 0 0 6px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: light-dark(rgba(18, 18, 22, 0.78), rgba(255, 255, 255, 0.78));
+}
+
+.cerez__baglanti {
+  display: flex;
+  gap: 14px;
+}
+
+.cerez__baglanti a {
+  font-size: 13px;
+  color: light-dark(rgba(18, 18, 22, 0.6), rgba(255, 255, 255, 0.6));
+  text-decoration: underline;
+}
+
+.cerez__baglanti a:hover,
+.cerez__baglanti a:focus-visible {
+  color: light-dark(#121216, #fff);
+}
+
+.cerez__eylem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-inline-start: auto;
+}
+
+/* Dokunma hedefi 44px (proje kuralı). */
+.cerez__birincil,
+.cerez__ikincil {
+  min-height: 44px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  font-family: var(--font-body, 'Barlow', system-ui, sans-serif);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* Yeşil = basılabilir eylem: önerilen yanıt. */
+.cerez__birincil {
+  border: 0;
+  background: #00f57a;
+  color: #05130a;
+}
+
+.cerez__ikincil {
+  border: 1px solid light-dark(rgba(18, 18, 22, 0.24), rgba(255, 255, 255, 0.24));
+  background: transparent;
+  color: light-dark(rgba(18, 18, 22, 0.86), rgba(255, 255, 255, 0.86));
+}
+
+.cerez__ikincil:hover,
+.cerez__ikincil:focus-visible {
+  border-color: light-dark(rgba(18, 18, 22, 0.5), rgba(255, 255, 255, 0.5));
+  color: light-dark(#121216, #fff);
+}
+
+@media (max-width: 720px) {
+  .cerez {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cerez__eylem {
+    margin-inline-start: 0;
+  }
+
+  .cerez__birincil,
+  .cerez__ikincil {
+    flex: 1;
+  }
+}

@@ -1,0 +1,42 @@
+<article class="yasal">
+  <header class="yasal__ust">
+    <a class="yasal__geri" routerLink="/welcome">{{ t('yasal.geri') }}</a>
+    <h1 class="yasal__baslik">{{ doc().title }}</h1>
+    <p class="yasal__tarih">{{ t('yasal.guncelleme', { tarih: doc().updated }) }}</p>
+    <p class="yasal__giris">{{ doc().intro }}</p>
+  </header>
+
+  @for (bolum of doc().sections; track bolum.heading) {
+    <section class="yasal__bolum">
+      <h2>{{ bolum.heading }}</h2>
+      @for (satir of bolum.body; track $index) {
+        @if (madde(satir)) {
+          <!--
+            Madde satırları listeye girer. Metindeki **kalın** işaretlemesi parçalara ayrılıp
+            basılır: ham HTML basmak (innerHTML) bu projede yasak — XSS yüzeyi.
+          -->
+          <ul class="yasal__liste">
+            <li>
+              @for (parca of parcala(satir); track $index) {
+                @if (parca.kalin) { <strong>{{ parca.metin }}</strong> } @else { {{ parca.metin }} }
+              }
+            </li>
+          </ul>
+        } @else {
+          <p>
+            @for (parca of parcala(satir); track $index) {
+              @if (parca.kalin) { <strong>{{ parca.metin }}</strong> } @else { {{ parca.metin }} }
+            }
+          </p>
+        }
+      }
+    </section>
+  }
+
+  <nav class="yasal__diger" [attr.aria-label]="t('yasal.belgeler')">
+    <a routerLink="/privacy">{{ t('yasal.gizlilik') }}</a>
+    <a routerLink="/data-protection">{{ t('yasal.kvkk') }}</a>
+    <a routerLink="/cookies">{{ t('yasal.cerez') }}</a>
+    <a routerLink="/terms">{{ t('yasal.kosullar') }}</a>
+  </nav>
+</article>

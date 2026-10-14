@@ -1,0 +1,199 @@
+<div class="auth-page">
+  <div class="auth-page__bg"></div>
+  <div class="auth-page__scrim"></div>
+
+  <div class="auth-content">
+    <!-- Amblem: kart kalkanı iki EŞİT yarıya bölünmüş (even sides), orta saha çizgisi ve yuvarlağı birleştiriyor. -->
+    <svg class="auth-badge" viewBox="0 0 64 72" aria-hidden="true">
+      <defs>
+        <clipPath id="es-kalkan"><path d="M5 0H59L64 5V57.6L32 72L0 57.6V5Z" /></clipPath>
+      </defs>
+      <g clip-path="url(#es-kalkan)">
+        <rect class="auth-badge__sol" x="0" y="0" width="32" height="72" fill="#f4f4f1" />
+        <rect class="auth-badge__sag" x="32" y="0" width="32" height="72" fill="#00f57a" />
+        <path d="M32 0V72" stroke="#08080a" stroke-width="3" />
+        <circle cx="32" cy="31" r="11" fill="none" stroke="#08080a" stroke-width="3" />
+        <circle cx="32" cy="31" r="2.6" fill="#08080a" />
+      </g>
+    </svg>
+    <h1 class="auth-content__wordmark"><a class="marka-link" routerLink="/">EVEN<span class="accent">SIDE</span></a></h1>
+    <p class="auth-content__tagline">
+      {{ t('giris.slogan') }}<br />
+      {{ t('giris.devam') }}
+    </p>
+
+    <!-- Buzlu cam panel: sekme, bildirim, sosyal giriş, form. -->
+    <section class="panel">
+      <!-- Giriş / Kayıt: kayan yeşil göstergeli anahtar. -->
+      <div class="sekme" role="tablist" [attr.aria-label]="t('giris.sekmeEtiket')" [class.sekme--kayit]="mode() === 'signup'">
+        <span class="sekme__gosterge" aria-hidden="true"></span>
+        <button
+          type="button"
+          role="tab"
+          class="sekme__dugme"
+          [class.sekme__dugme--secili]="mode() === 'signin'"
+          [attr.aria-selected]="mode() === 'signin'"
+          (click)="setMode('signin')"
+        >
+          {{ t('giris.girisYap') }}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="sekme__dugme"
+          [class.sekme__dugme--secili]="mode() === 'signup'"
+          [attr.aria-selected]="mode() === 'signup'"
+          (click)="setMode('signup')"
+        >
+          {{ t('giris.kayitOl') }}
+        </button>
+      </div>
+
+      <!--
+        Bildirim "hakem kararı" dilinde (tanıtım sayfasındaki dert kartlarıyla aynı): hata kırmızı
+        kartla, bilgi yeşil onayla. Metin değişince yeniden oynasın diye @for ile anahtarlanıyor.
+      -->
+      @if (error(); as hata) {
+        @for (k of [hata]; track k) {
+          <div class="karar karar--hata" role="alert">
+            <span class="karar__kart" aria-hidden="true"></span>
+            <div class="karar__metin">
+              <strong>{{ hataTuru() === 'sifirlama' ? t('giris.sifirlamaHataBaslik') : hataTuru() === 'giris' ? t('giris.hataBaslik') : t('giris.kayitHataBaslik') }}</strong>
+              <span>{{ hata }}</span>
+            </div>
+          </div>
+        }
+      }
+      @if (info(); as bilgi) {
+        <div class="karar karar--bilgi" role="status">
+          <span class="karar__onay" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+          </span>
+          <div class="karar__metin">
+            <strong>{{ t('giris.bilgiBaslik') }}</strong>
+            <span>{{ bilgi }}</span>
+          </div>
+        </div>
+      }
+
+      <!-- Sosyal giriş yalnızca Supabase'de AÇIK olan sağlayıcılar için (bkz. AuthService.oauthProviders). -->
+      @if (oauth(); as s) {
+        @if (s.google || s.twitter) {
+      <div class="oauth-row">
+        @if (s.google) {
+          <button type="button" class="oauth-btn" (click)="continueWithGoogle()">
+            <svg class="oauth-btn__icon" viewBox="0 0 20 20" aria-hidden="true">
+              <path fill="#4285F4" d="M19.6 10.23c0-.68-.06-1.36-.18-2.02H10v3.83h5.38a4.6 4.6 0 0 1-2 3.02v2.5h3.23c1.9-1.75 2.99-4.32 2.99-7.33Z" />
+              <path fill="#34A853" d="M10 20c2.7 0 4.96-.89 6.62-2.42l-3.23-2.5c-.9.6-2.06.95-3.39.95-2.6 0-4.8-1.76-5.59-4.12H1.06v2.59A10 10 0 0 0 10 20Z" />
+              <path fill="#FBBC05" d="M4.41 11.91a6 6 0 0 1 0-3.82V5.5H1.06a10 10 0 0 0 0 9l3.35-2.59Z" />
+              <path fill="#EA4335" d="M10 3.98c1.47 0 2.79.5 3.83 1.5l2.87-2.87A9.6 9.6 0 0 0 10 0 10 10 0 0 0 1.06 5.5l3.35 2.59C5.2 5.74 7.4 3.98 10 3.98Z" />
+            </svg>
+            {{ t('giris.google') }}
+          </button>
+        }
+        @if (s.twitter) {
+          <button type="button" class="oauth-btn" (click)="continueWithX()">
+            <svg class="oauth-btn__icon" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
+              <path d="M14.1 10.2 22 1h-2l-6.9 8-5.4-8H1l8.4 12.3L1 23h2l7.3-8.5L16 23h7.4L14.1 10.2Zm-2.6 3-.9-1.2L3.9 2.5h3l5.4 7.7.9 1.2 7 10h-3l-5.7-8.2Z" />
+            </svg>
+            {{ t('giris.x') }}
+          </button>
+        }
+      </div>
+
+      <div class="oauth-divider"><span>{{ t('giris.veyaEposta') }}</span></div>
+        }
+      }
+
+      <form class="auth-form" novalidate (submit)="$event.preventDefault(); submit()">
+        <div class="auth-field" [class.auth-field--hata]="emailError()">
+          <div class="auth-field__control">
+            <svg class="auth-field__icon" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="5.5" width="18" height="13" rx="2.5" />
+              <path d="m4 7.5 8 5.5 8-5.5" />
+            </svg>
+            <input
+              class="auth-input"
+              [class.auth-input--invalid]="emailError()"
+              type="email"
+              autocomplete="email"
+              [value]="email()"
+              (input)="onEmailInput($event)"
+              [attr.placeholder]="t('giris.eposta')"
+              [attr.aria-label]="t('giris.eposta')"
+              [attr.aria-invalid]="emailError() ? 'true' : null"
+              [attr.aria-describedby]="emailError() ? 'email-error' : null"
+            />
+          </div>
+          @if (emailError()) {
+            <p class="auth-field__error" id="email-error">{{ emailError() }}</p>
+          }
+        </div>
+
+        <div class="auth-field" [class.auth-field--hata]="passwordError()">
+          <div class="auth-field__control">
+            <svg class="auth-field__icon" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="5" y="10.5" width="14" height="10" rx="2.5" />
+              <path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" />
+            </svg>
+            <input
+              class="auth-input auth-input--with-action"
+              [class.auth-input--invalid]="passwordError()"
+              [type]="passwordVisible() ? 'text' : 'password'"
+              [autocomplete]="mode() === 'signin' ? 'current-password' : 'new-password'"
+              [value]="password()"
+              (input)="onPasswordInput($event)"
+              [placeholder]="mode() === 'signup' ? t('giris.sifreKural') : t('giris.sifre')"
+              [attr.aria-label]="t('giris.sifre')"
+              [attr.aria-invalid]="passwordError() ? 'true' : null"
+              [attr.aria-describedby]="passwordError() ? 'password-error' : null"
+            />
+            <button
+              type="button"
+              class="auth-field__toggle"
+              (click)="togglePasswordVisible()"
+              [attr.aria-label]="passwordVisible() ? t('giris.sifreGizle') : t('giris.sifreGoster')"
+              [attr.aria-pressed]="passwordVisible()"
+            >
+              @if (passwordVisible()) {
+                <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7">
+                  <path d="M3 3l18 18" stroke-linecap="round" />
+                  <path d="M10.6 6.2A9.9 9.9 0 0 1 12 6c5 0 9 6 9 6a16 16 0 0 1-3 3.4M6.4 8.4A16 16 0 0 0 3 12s4 6 9 6c1.2 0 2.3-.3 3.3-.8" />
+                  <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+                </svg>
+              } @else {
+                <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7">
+                  <path d="M3 12s4-6 9-6 9 6 9 6-4 6-9 6-9-6-9-6Z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              }
+            </button>
+          </div>
+          @if (passwordError()) {
+            <p class="auth-field__error" id="password-error">{{ passwordError() }}</p>
+          }
+        </div>
+
+        @if (mode() === 'signin') {
+          <button type="button" class="auth-forgot" [disabled]="submitting()" (click)="forgotPassword()">
+            {{ t('giris.sifremiUnuttum') }}
+          </button>
+        }
+
+        <button type="submit" class="auth-submit" [class.auth-submit--bekliyor]="submitting()" [disabled]="submitting()">
+          @if (submitting()) {
+            <span class="auth-submit__donen" aria-hidden="true"></span>
+          }
+          <span>{{ submitting() ? t('giris.bekleyin') : mode() === 'signin' ? t('giris.girisYap') : t('giris.kayitOl') }}</span>
+          @if (!submitting()) {
+            <span class="auth-submit__ok" aria-hidden="true">→</span>
+          }
+        </button>
+      </form>
+    </section>
+
+    <button type="button" class="auth-switch" (click)="setMode(mode() === 'signin' ? 'signup' : 'signin')">
+      {{ mode() === 'signin' ? t('giris.hesapYok') : t('giris.hesapVar') }}
+    </button>
+  </div>
+</div>

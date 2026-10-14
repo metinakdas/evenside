@@ -1,0 +1,16 @@
+IMLEC IZI NESNELERI (public/iz/)
+
+1) kart-altin.png · kart-mor.png
+   Uygulamanin KENDI oyuncu karti bilesenidir (app-player-card). Calisan uygulamadan
+   saydam zeminle ekran goruntusune alindi. Telif: Evenside.
+
+2) top.png · top2.png · kupa.png · kronometre.png
+   Kaynak : rawpixel (Openverse API ile bulundu) — kupa.png elendi (saplarinin icinde
+            dama artigi kaliyordu; kapali bolgelere tasma ulasmiyor).
+   Lisans : CC0 1.0 — kamu malina birakilmis, atif zorunlu degil
+   Islem  : indirilen JPEG'in beyaz zemini yerel olarak kesildi (headless Chrome + canvas),
+            nesnenin sinir kutusuna kirpildi ve 512px'e indirildi.
+
+NOT: "saydam PNG" diye sunulan kaynaklar guvenilir degil — Openverse'in thumb ucu
+saydamligi damali zemine duzlestiriyor, rawpixel .png adreste JPEG servis ediyor
+(ikisi de olculdu). Bu yuzden kesit burada uretiliyor.

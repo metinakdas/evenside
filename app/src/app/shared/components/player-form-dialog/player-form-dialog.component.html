@@ -1,0 +1,76 @@
+@if (store.formOpen()) {
+  <div class="form-overlay" (click)="closeForm()">
+    <div
+      class="form-drawer"
+      appFocusTrap
+      (keydown.escape)="closeForm()"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="player-form-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="form-drawer__head">
+        <!-- Başlık + adımın ne istediği: gövdede ayrı bir açıklama satırı yer yemesin. -->
+        <div class="form-drawer__title">
+          <span class="text-heading" id="player-form-title">{{
+            store.editingPlayerId() ? t('ui.oyuncuyuDuzenle') : t('ui.yeniOyuncuEkle')
+          }}</span>
+          <span class="form-drawer__sub">{{ playerFormRef.stepCaption() }}</span>
+        </div>
+        <button type="button" class="form-drawer__close" (click)="closeForm()" [attr.aria-label]="t('oyun.kapat')">×</button>
+      </div>
+      <div class="form-drawer__body">
+        <app-player-form #playerFormRef />
+      </div>
+
+      <!-- Modalın AYAĞI: 64px, her sekmede aynı yerde, birincil eylem hep sağ altta. -->
+      <div class="form-drawer__foot">
+        @if (confirmingDiscard()) {
+          <span class="form-drawer__foot-msg">{{ t('form.kaydedilmemis') }}</span>
+          <button type="button" class="btn btn--md btn--ghost" (click)="keepEditing()">{{ t('form.duzenlemeyeDon') }}</button>
+          <button type="button" class="btn btn--md btn--danger" (click)="discardChanges()">{{ t('form.evetKapat') }}</button>
+        } @else {
+          @if (playerFormRef.isEditing()) {
+            <!-- Yıkıcı eylem en solda ve tek başına: "Formu temizle"nin 10px yanında
+                 duruyordu, yanlışlıkla basma riski vardı (Tur 5 · M5). -->
+            <button
+              type="button"
+              class="btn btn--md btn--ghost btn--danger-ghost"
+              [disabled]="playerFormRef.saving()"
+              (click)="playerFormRef.askDelete()"
+            >
+              {{ t('form.oyuncuyuSil') }}
+            </button>
+          } @else {
+            <button type="button" class="form-drawer__text-btn" [disabled]="playerFormRef.saving()" (click)="clearForm()">
+              {{ t('form.temizle') }}
+            </button>
+          }
+          <span class="form-drawer__foot-spacer"></span>
+          <!-- Adımlar arasında gezinme: adım çubuğuna tıklamak da mümkün ama "sırada ne var"
+               sorusunun cevabı ayakta durmalı. Birincil eylem her adımda çalışır. -->
+          @if (!playerFormRef.isFirstStep()) {
+            <button type="button" class="btn btn--md btn--ghost" (click)="playerFormRef.prevStep()">{{ t('form.geri') }}</button>
+          }
+          <!-- Yeni oyuncuda: son adıma kadar birincil eylem "İleri", son adımda "Kaydet".
+               Düzenlemede "Güncelle" her adımda (kartın verisi zaten tam). -->
+          @if (!playerFormRef.isLastStep()) {
+            <button
+              type="button"
+              class="btn btn--md"
+              [class.btn--primary]="!playerFormRef.canSubmitHere()"
+              [class.btn--ghost]="playerFormRef.canSubmitHere()"
+              [class.form-drawer__next]="playerFormRef.canSubmitHere()"
+              (click)="playerFormRef.nextStep()"
+            >{{ t('form.ileri') }}</button>
+          }
+          @if (playerFormRef.canSubmitHere()) {
+            <button type="button" class="btn btn--md btn--primary" [disabled]="playerFormRef.saving()" (click)="playerFormRef.submit()">
+              {{ playerFormRef.saving() ? t('ui.kaydediliyor') : playerFormRef.isEditing() ? t('ui.guncelle') : t('form.kaydet') }}
+            </button>
+          }
+        }
+      </div>
+    </div>
+  </div>
+}

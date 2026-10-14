@@ -1,0 +1,26 @@
+<svg class="star-ball" viewBox="0 0 860 900" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+    <defs>
+      <radialGradient [attr.id]="gradyanId" cx="0.36" cy="0.3" r="0.78">
+        <stop offset="0%" stop-color="currentColor" stop-opacity="0.14" />
+        <stop offset="62%" stop-color="currentColor" stop-opacity="0.04" />
+        <stop offset="100%" stop-color="currentColor" stop-opacity="0" />
+      </radialGradient>
+    </defs>
+    <circle cx="430" cy="430" r="300" [attr.fill]="'url(#' + gradyanId + ')'" />
+    <circle cx="430" cy="430" r="300" fill="none" stroke="currentColor" stroke-width="2" opacity="0.28" />
+    <!--
+      Yüzey ayrı grupta: dönen yalnızca yıldızlar. Siluet çemberi ve hare sabit kalır —
+      dönen bir topun da silueti yerinde durur, yüzeyi akar.
+    -->
+    <g class="star-ball__surface">
+      <!-- İçteki grup yalnızca hover'da döner; dıştaki hep yavaşça döner. -->
+      <g class="star-ball__boost">
+        <polygon points="403.3,722.7 475.6,725.8 567.1,695.3 519.4,708.3 582.2,651.0 485.3,697.4 427.8,651.0 420.4,708.3 317.2,695.3 414.4,725.8" fill="currentColor" opacity="0.25" />
+        <polygon points="632.2,642.9 697.2,558.1 699.2,547.6 720.6,497.1 727.8,393.5 715.5,459.3 678.4,393.5 689.0,497.1 619.3,547.6 677.7,558.1" fill="currentColor" opacity="0.26" />
+        <polygon points="280.6,673.0 238.6,598.2 316.5,583.3 226.2,540.7 230.2,438.1 183.3,505.2 141.0,438.1 169.1,540.7 172.1,583.3 203.3,598.2" fill="currentColor" opacity="0.36" />
+        <polygon points="639.2,362.6 632.9,268.8 687.5,288.3 617.0,221.2 574.5,168.1 560.5,191.7 456.5,168.1 541.4,221.2 496.4,288.3 586.1,268.8" fill="currentColor" opacity="0.38" />
+        <polygon points="245.8,396.4 291.0,298.4 388.6,315.0 329.9,246.3 404.7,183.5 301.3,214.1 271.7,183.5 244.7,246.3 173.5,315.0 238.4,298.4" fill="currentColor" opacity="0.44" />
+        <polygon points="460.6,622.5 500.3,532.7 598.7,525.0 522.5,470.3 551.1,367.3 469.8,431.7 383.5,367.3 415.1,470.3 327.6,525.0 434.0,532.7" fill="currentColor" opacity="0.61" />
+      </g>
+    </g>
+  </svg>

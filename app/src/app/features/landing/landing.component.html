@@ -1,0 +1,609 @@
+<!--
+  AÇILIŞ SAYFASI — klasik yedi bölüm: giriş → sosyal kanıt → problem → çözüm →
+  nasıl çalışıyor → SSS → son çağrı. Her bölüm TEK bir iş yapar.
+
+  Görseller SAHTE EKRAN GÖRÜNTÜSÜ DEĞİL: kart, uygulamanın gerçek `app-player-card`
+  bileşeni (gerçek reyting formülüyle hesaplanmış demo oyuncu), diğerleri uygulamanın
+  kendi çizim diliyle kurulu. Pazarlama için "olduğundan iyi" bir şey göstermiyoruz.
+-->
+<div class="page" appScrollPulse>
+  <span class="ground" aria-hidden="true"></span>
+  <!--
+    Menünün zemin deseni. Giriş ekranının arkasında ama HERO'nun değil SAYFANIN çocuğu:
+    hero kutusu ray payı + kendi dolgusu yüzünden ekranın sol kenarına oturmuyordu.
+  -->
+  <app-ribbon-art class="hero__kurdele" />
+  <!-- İmlecin arkasından gelen nokta (sayfanın tamamında, tıklamayı yutmaz). -->
+  <app-cursor-dot />
+  <!-- Sayfa ilerlemesi: sağ kenarda 0'→90' maç saati (telefonda tepede ince çizgi). -->
+  <app-mac-saati />
+  <!--
+    ZEMIN YILDIZLARI — iki kopya ayni noktalar: sonuk taban + imlecin cevresinde acilan
+    maskeyle gorunen PARLAK kopya. Noktaya tek tek olay baglanmiyor (katman dekoratif ve
+    pointer-events: none); imlecin yeri PointerGlowDirective ile --mx/--my'ye yaziliyor.
+  -->
+  <span class="yildizlar" aria-hidden="true" appPointerGlow glowKapsam="#giris">
+    <span class="yildizlar__kat">
+      @for (y of yildizlar; track $index) {
+        <i [class.yildiz--dort]="y.tur === 1" [style.--x.%]="y.x" [style.--y.%]="y.y" [style.--b.px]="y.b" [style.--g.s]="y.gec"></i>
+      }
+    </span>
+    <span class="yildizlar__kat yildizlar__kat--parlak">
+      @for (y of yildizlar; track $index) {
+        <i [class.yildiz--dort]="y.tur === 1" [style.--x.%]="y.x" [style.--y.%]="y.y" [style.--b.px]="y.b"></i>
+      }
+    </span>
+  </span>
+  <!-- Kale filesi: yalnızca kaydırırken belirir (ScrollPulseDirective). -->
+  <span class="mesh" aria-hidden="true"></span>
+  <app-star-ball class="ball" />
+
+  <!--
+    SOL RAY MENÜ (referans: Brand Appart). Üst çubuk kaldırıldı: uzun bir tanıtım
+    sayfasında menü ekranın üstünü yiyordu ve mobilde hamburger arkasına saklanıyordu.
+    Ray her zaman görünür, her düğme bir bölüm; üzerine gelince etiketi yanda açılır,
+    bulunulan bölümün düğmesi DOLU (beyaz) olur — "neredesin" sorusu cevapsız kalmasın.
+
+    Etiket bir `title` balonu DEĞİL, kendi katmanımız: gecikmesiz ve sayfanın dilinde.
+    Ekran okuyucuya aynı metin `aria-label` ile veriliyor.
+  -->
+  <a class="brand brand--sabit" [class.brand--koyu]="acikZemin()" href="#giris" (click)="bolumeKaydir('giris', $event)">EVEN<span class="brand__accent">SIDE</span></a>
+
+  <nav class="ray" [class.ray--acik]="acikZemin()" [attr.aria-label]="t('tanitim.bolumler')">
+    <!--
+      Rayda sayfanın YEDİ ekranının hepsi var (11 Ekim 2026, kullanıcı: "soldaki menü tüm ekranları
+      karşılamalı"). Etiketler sağdaki maç saatiyle aynı (`saat.*`): iki gezinme aynı adları kullanır.
+      Telefonda alt şeride sekiz düğme sığmaz: `ray__dugme--genis` olanlar orada gizli.
+    -->
+    @for (b of rayBolumleri; track b.id) {
+      <button
+        type="button"
+        class="ray__dugme"
+        [class.ray__dugme--genis]="b.genis"
+        [class.ray__dugme--aktif]="aktifBolum() === b.id"
+        [attr.aria-current]="aktifBolum() === b.id ? 'true' : null"
+        [attr.aria-label]="t(b.etiket)"
+        (click)="bolumeKaydir(b.id, $event)"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          @switch (b.id) {
+            @case ('giris') {
+              <path d="M4 11 12 4l8 7" /><path d="M6 10v9h12v-9" /><path d="M10 19v-5h4v5" />
+            }
+            @case ('kanit') {
+              <path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" /><path d="M9 8h6" /><path d="M9 12h6" />
+            }
+            @case ('problem') {
+              <path d="M4 5h16v11H9l-5 4z" /><path d="M12 8.2v3.6" /><path d="M12 14.4h.01" />
+            }
+            @case ('cozum') {
+              <path d="M12 4v16" /><path d="M8 20h8" /><path d="M5 8h14" />
+              <path d="M5 8l-2.5 5h5zM19 8l-2.5 5h5z" />
+            }
+            @case ('nasil') {
+              <circle cx="6" cy="7" r="2.2" /><circle cx="6" cy="17" r="2.2" />
+              <path d="M6 9.2v5.6" /><path d="M11 7h9" /><path d="M11 17h9" />
+            }
+            @case ('sss') {
+              <circle cx="12" cy="12" r="8.4" />
+              <path d="M9.6 9.6a2.5 2.5 0 1 1 3.2 2.4c-.6.2-.9.7-.9 1.3v.4" />
+              <path d="M12 16.6h.01" />
+            }
+            @case ('son') {
+              <path d="M5 21V4" /><path d="M5 4h11l-2 4 2 4H5" />
+            }
+          }
+        </svg>
+        <span class="ray__etiket">{{ t(b.etiket) }}</span>
+      </button>
+    }
+
+    <!-- Girişin yeri: rayın DİBİ, diğerlerinden ayrık. Bölüm değil EYLEM olduğu için yeşil. -->
+    <button type="button" class="ray__dugme ray__dugme--giris" [attr.aria-label]="t('ray.giris')" (click)="girisYap()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="10.5" cy="8.6" r="3.6" />
+        <path d="M3.8 19.4c0-3.2 3-5.4 6.7-5.4 1.2 0 2.3.2 3.3.6" />
+        <path d="M17.6 14.4v5.2M15 17h5.2" />
+      </svg>
+      <span class="ray__etiket">{{ t('ray.giris') }}</span>
+    </button>
+  </nav>
+
+  <!-- Sayfa EKRANLARA bölünür: tek hareket = bir ekran (bkz. ScreenStepperDirective). -->
+  <main appEkranlar appEkranDisiDuraklat>
+    <!-- 1 · GİRİŞ: kullanıcının istediği SONUÇ yazılır, ürünün özelliği değil. -->
+    <section class="hero" id="giris" data-ekran>
+      <!-- İmleç izi: gezindikçe futbol nesneleri belirip söner (dekoratif, tıklamayı yutmaz). -->
+      <app-hero-trail />
+      <div class="hero__text">
+        <h1 class="hero__title">
+          {{ t('hero.satir1') }}<br />{{ t('hero.satir2') }}<br />
+          <!--
+            Son kelime bir vaat listesi: adil / dengeli / tartışmasız. Yazan yüzey
+            `aria-hidden`; ekran okuyucu harf harf değişen metni değil, alttaki duran
+            cümleyi okur.
+          -->
+          <span class="hero__accent" aria-hidden="true" [appTypeCycle]="vaatler()">{{ vaatler()[0] }}</span>
+          <span class="sr-only">{{ vaatler()[0] }}</span><br />
+          {{ t('hero.satir3') }}
+        </h1>
+        <p class="hero__lead">
+          {{ t('hero.metin') }}
+          <strong>{{ t('hero.metinVurgu') }}</strong>
+        </p>
+        <div class="hero__actions">
+          <button type="button" class="ui-btn ui-btn--primary hero__cta" (click)="girisYap()">
+            {{ t('hero.cta') }} <span class="ok-ileri" aria-hidden="true">→</span>
+          </button>
+          <a class="ui-btn ui-btn--ghost hero__alt" href="#nasil" (click)="bolumeKaydir('nasil', $event)">{{ t('hero.alt') }}</a>
+        </div>
+      </div>
+
+      <div class="hero__visual" aria-hidden="true">
+        <span class="hero__card hero__card--back">
+          <app-player-card [player]="ikinciKart()" size="large" />
+        </span>
+        <span class="hero__card hero__card--front">
+          <app-player-card [player]="vitrinKart()" size="large" />
+        </span>
+        <span class="hero__vs">VS</span>
+      </div>
+
+      <!--
+        VAAT ŞERİDİ — giriş ekranının alt kenarı. İlk ekranda görünür ve altındaki "Hesap sana
+        gelmez" bölümünü önden duyurur. Kesintisiz akış için iki eş kopya; her kopyada maddeler
+        ÜÇ tur basılır ki kopya en geniş ekrandan (2560px) da uzun olsun — iki kısa kopya döngü
+        sonunda sağda boşluk bırakıyordu (ölçüldü). Ekran okuyucu her maddeyi BİR kez okur:
+        yalnızca ilk kopyanın ilk turu erişilebilir, kalan her şey `aria-hidden`.
+      -->
+      <div class="serit" role="region" [attr.aria-label]="t('serit.etiket')">
+        <div class="serit__iz">
+          @for (kopya of [0, 1]; track kopya) {
+            <ul class="serit__liste" [attr.aria-hidden]="kopya === 1 ? 'true' : null">
+              @for (tur of [0, 1, 2]; track tur) {
+                @for (madde of seritMaddeleri; track madde) {
+                  <li class="serit__madde" [attr.aria-hidden]="tur > 0 ? 'true' : null">{{ t(madde) }}</li>
+                }
+              }
+            </ul>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!--
+      2 · SOSYAL KANIT. Uydurma yorum ve kullanıcı sayısı YOK: burada duranlar ürünün
+      ÖLÇÜLEBİLİR gerçekleri. Gerçek rakamlar ve kullanıcı sözleri geldiğinde bu kutular
+      onlarla değiştirilir (bkz. landing.component.ts başlığı).
+    -->
+    <section class="proof" id="kanit" data-ekran [attr.aria-label]="t('tanitim.rakamlarla')">
+      <!-- Zemin: silik saha çizimi + kontur "0" (kaydırmayla çizilir / kayar). -->
+      <app-proof-backdrop />
+
+      <!-- Ekranın başlığı: ekran boş kalmasın, konu ilk bakışta okunsun. -->
+      <header class="proof__head">
+        <div>
+          <h2 class="proof__title">
+            <!-- Ekrana gelince harf harf yazılır (ilk sayfadaki yazma efektinin dili). -->
+            <span class="proof__title-ana" aria-hidden="true" [appTypeOn]="t('kanit.devBaslik')">{{ t('kanit.devBaslik') }}</span>
+            <span class="sr-only">{{ t('kanit.devBaslik') }}</span>
+            <span class="proof__title-alt">{{ t('kanit.devBaslik2') }}</span>
+          </h2>
+        </div>
+      </header>
+      <div class="proof__free receipt" appReveal tabindex="0" [attr.aria-label]="t('tanitim.ucretsizEtiket')">
+        <div class="receipt__money" aria-hidden="true">
+          <span class="pay pay--bill" style="--x:-150px;--y:-140px;--r:-18deg;--i:0">FREE</span>
+          <span class="pay pay--coin" style="--x:-60px;--y:-165px;--r:10deg;--i:1">₺0</span>
+          <span class="pay pay--bill" style="--x:30px;--y:-158px;--r:14deg;--i:2">{{ t('kanit.fisDamga') }}</span>
+          <span class="pay pay--coin" style="--x:120px;--y:-140px;--r:-8deg;--i:3">$0</span>
+          <span class="pay pay--coin" style="--x:-185px;--y:150px;--r:20deg;--i:4">₺0</span>
+          <span class="pay pay--bill" style="--x:-170px;--y:-40px;--r:-26deg;--i:5">FREE</span>
+          <span class="pay pay--coin" style="--x:95px;--y:-168px;--r:0deg;--i:6">0</span>
+          <span class="pay pay--bill" style="--x:230px;--y:-150px;--r:22deg;--i:7">₺0</span>
+        </div>
+        <div class="receipt__paper">
+          <div class="receipt__head">
+            <b>EVENSIDE</b>
+            <span>{{ t('kanit.fisUst') }}</span>
+          </div>
+          <ul class="receipt__lines">
+            <li><span>{{ t('kanit.fisKurulum') }}</span><span>₺0</span></li>
+            <li><span>{{ t('kanit.fisUyelik') }}</span><span><s>₺99</s> ₺0</span></li>
+            <li><span>{{ t('kanit.fisKura') }}</span><span>₺0</span></li>
+            <li><span>{{ t('kanit.fisReklam') }}</span><span>{{ t('kanit.fisYok') }}</span></li>
+          </ul>
+          <div class="receipt__total">
+            <span>{{ t('kanit.fisToplam') }}</span>
+            <span class="receipt__sum">₺0,00</span>
+          </div>
+          <span class="receipt__stamp" aria-hidden="true">{{ t('kanit.fisDamga') }}</span>
+        </div>
+        <div class="receipt__copy">
+          <span class="proof__badge">{{ t('kanit.etiket') }}</span>
+          <b>{{ t('kanit.baslik') }}</b>
+          <span>{{ t('kanit.metin') }}</span>
+        </div>
+      </div>
+      <!-- Üç kart kendi bileşeninde: hareketli çizimler, geri sayan sayaç, hover'da motivasyon sözü. -->
+      <app-proof-stats class="proof__stats" />
+    </section>
+
+    <!-- 3 · PROBLEM: neyle uğraştığını anladığını göster, sonra bedelini hissettir. -->
+    <section class="problem" id="problem" data-ekran="ust" aria-labelledby="problem-baslik">
+      <!--
+        Soyunma odası: biri kramponunu bağlıyor, arkada takım bekliyor — "hâlâ hazırlanıyoruz,
+        ortada kadro yok". Fotoğraf dekor değil, metnin kendisi. Karartılıp doygunluğu düşürülüyor (sayfanın
+        paleti yeşil, fotoğraflar turuncu) ve aşağı doğru siyaha eriyor ki kartlar temiz
+        zeminde dursun.
+      -->
+      <!--
+        TAM EKRAN SAHNE (10 Ekim 2026, kullanıcı: "yarım kalmış gibi, iki ayrı ekran olsun").
+        Başlık + bedel bandı kendi ekranını alır; fotoğraf ekranın tamamına yayılır. Deste
+        ("Tanıdık geldi mi?") bir sonraki ekranda tek başına başlar.
+      -->
+      <div class="problem__sahne">
+        <span class="photo photo--hazirlik" aria-hidden="true"></span>
+        <!-- Fener: fotoğrafın AYDINLIK kopyası, yalnız imlecin çevresinde görünür (--mx/--my). -->
+        <span class="photo photo--hazirlik photo--fener" aria-hidden="true" appPointerGlow></span>
+        <div class="problem__head">
+          <!-- Maçın saati. Üzerine gelince ilk sayfadaki yazma efektiyle silinir, yerine
+               "KAOS BİTTİ." yazılır; imleç çekilince geri 21:00 olur. Görünmez iskelet kutunun
+               ölçüsünü sabit tutar (yoksa metin kısalınca imleç kutudan düşüp efekt titrer). -->
+          <span class="problem__saat" aria-hidden="true" [appHoverType]="['21:00', t('kanit.devBaslik')]">
+            <span class="saat__iskelet">21:00</span>
+            <span class="saat__yazi"><span class="saat__metin" data-yazi>21:00</span></span>
+          </span>
+          <h2 class="section-title from-left" appReveal id="problem-baslik">{{ t('problem.baslik') }}</h2>
+          <p class="section-lead fill-text">
+            {{ t('problem.metin') }}
+          </p>
+        </div>
+
+        <!--
+          BEDEL BANDI — hakem kararı. Solda sahne: durgunken eğik bir kırmızı kart; üzerine gelince
+          hakem yükselir, kolunu kaldırıp kartı gösterir. Hakem SVG ile çizildi (dış görsel yok).
+        -->
+        <div class="bedel" tabindex="0">
+          <span class="bedel__sahne" aria-hidden="true">
+            <span class="bedel__kart"></span>
+            <svg class="bedel__hakem" viewBox="0 0 120 150" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <!-- bacaklar + krampon -->
+              <path d="M47 106 L43 140 M61 106 L66 140" stroke="#f5f5f5" stroke-width="7" />
+              <path d="M38 142 h10 M62 142 h10" stroke="#111" stroke-width="5" />
+              <!-- şort -->
+              <path d="M38 92 h33 l2 18 h-15 l-2-8 l-2 8 h-15 z" fill="#111" stroke="#fff" stroke-width="2" />
+              <!-- sol kol (aşağıda) -->
+              <path d="M39 52 L27 86" stroke="#111" stroke-width="9" />
+              <path d="M39 52 L27 86" stroke="#ffd400" stroke-width="3" />
+              <!-- gövde: siyah forma, sarı yaka -->
+              <path d="M36 48 q18 -8 36 0 l3 46 h-42 z" fill="#111" stroke="#fff" stroke-width="2" />
+              <path d="M48 46 l6 8 l6 -8" stroke="#ffd400" stroke-width="3" />
+              <!-- kafa + düdük ipi -->
+              <circle cx="54" cy="30" r="13" fill="#f2c9a1" stroke="#fff" stroke-width="2" />
+              <path d="M42 26 q12 -14 24 0" fill="#2b1d12" />
+              <path d="M50 54 q4 10 8 0" stroke="#ff3b3b" stroke-width="1.6" />
+              <!-- sağ kol: omuzdan döner, elinde kırmızı kart -->
+              <g class="hakem__kol">
+                <path d="M70 52 L92 74" stroke="#111" stroke-width="9" />
+                <path d="M70 52 L92 74" stroke="#ffd400" stroke-width="3" />
+                <rect class="hakem__kart" x="86" y="72" width="16" height="22" rx="2" fill="#e81919" stroke="#fff" stroke-width="1.5" transform="rotate(-10 94 83)" />
+              </g>
+            </svg>
+          </span>
+          <!-- Üzerine gelince cümle YANAR: kelimeler soldan sağa sırayla tutuşur (katmanlı, titreyen
+               ateş ışıması harflerin kendisinden yükselir), bandın üstünden korlar uçar. -->
+          <p class="bedel__metin">
+            <strong class="bedel__vurgu">
+              @for (kelime of kelimeler('problem.bedelVurgu'); track $index) {
+                <span class="bedel__kelime" [style.--k]="$index">{{ kelime }}</span>{{ ' ' }}
+              }
+            </strong>
+          </p>
+          <span class="bedel__korlar" aria-hidden="true">
+            <i class="bedel__kor" style="--x: 8%; --g: 0.00s; --s: 0.7"></i>
+            <i class="bedel__kor" style="--x: 17%; --g: 0.37s; --s: 0.9"></i>
+            <i class="bedel__kor" style="--x: 26%; --g: 0.74s; --s: 1.1"></i>
+            <i class="bedel__kor" style="--x: 35%; --g: 1.11s; --s: 0.8"></i>
+            <i class="bedel__kor" style="--x: 44%; --g: 1.48s; --s: 1.0"></i>
+            <i class="bedel__kor" style="--x: 53%; --g: 0.25s; --s: 0.7"></i>
+            <i class="bedel__kor" style="--x: 62%; --g: 0.62s; --s: 0.9"></i>
+            <i class="bedel__kor" style="--x: 71%; --g: 0.99s; --s: 1.1"></i>
+            <i class="bedel__kor" style="--x: 80%; --g: 1.36s; --s: 0.8"></i>
+            <i class="bedel__kor" style="--x: 89%; --g: 0.13s; --s: 1.0"></i>
+          </span>
+          <span class="bedel__flas" aria-hidden="true"></span>
+        </div>
+      </div>
+
+      <!--
+        YIĞIN KARTLAR (kullanıcı referansı: rogerjunior.com). Her kart sırayla yapışıp
+        ekranı alıyor, bir sonraki üstüne binerken alttaki geri çekiliyor. Tamamen kaydırma
+        KONUMUNA bağlı olduğu için yukarı kaydırınca aynı sıra tersten geri geliyor —
+        JavaScript yok, geri sarma ayrıca yazılmadı.
+      -->
+      <div class="pains-track" data-ekran="yigin" [appStackProgress]="4">
+      <ol class="pains stack">
+        <li class="pain" style="--sira: 0">
+          <!-- Geri çekilen kartın karartması: filtre değil perdenin saydamlığı (GPU yeniden çizmez). -->
+          <span class="pain__perde" aria-hidden="true"></span>
+          <span class="pain__no" aria-hidden="true">01</span>
+          <div class="pain__soz">
+              <h3 class="pain__title">{{ t('dert1.baslik') }}</h3>
+              <p class="pain__text">{{ t('dert1.metin') }}</p>
+              <p class="pain__ozet">{{ t('dert1.ozet') }}</p>
+            </div>
+          <div class="pain__sahne" aria-hidden="true">
+            <img class="pain__foto" src="kart-halisaha.webp" alt="" loading="lazy" decoding="async" />
+            <div class="sahne-ui chat">
+              <div class="chat__bar">
+                <span class="chat__avatar">⚽</span>
+                <span class="chat__meta"><b>{{ t('sahne.sohbetAd') }}</b><small>{{ t('sahne.sohbetDurum') }}</small></span>
+                <span class="chat__badge">30</span>
+              </div>
+              <div class="chat__body">
+                <p class="chat__msg"><em class="c1">Burak</em>{{ t('sahne.mesaj1') }}<i>20:41</i></p>
+                <p class="chat__msg"><em class="c2">Emre</em>{{ t('sahne.mesaj2') }}<i>20:42</i></p>
+                <p class="chat__msg chat__msg--me">{{ t('sahne.mesaj3') }}<i>20:42 ✓✓</i></p>
+                <p class="chat__msg"><em class="c3">Can</em>{{ t('sahne.mesaj4') }}<i>20:43</i></p>
+                <p class="chat__typing"><span></span><span></span><span></span></p>
+              </div>
+            </div>
+            </div>
+        </li>
+        <li class="pain" style="--sira: 1">
+          <!-- Geri çekilen kartın karartması: filtre değil perdenin saydamlığı (GPU yeniden çizmez). -->
+          <span class="pain__perde" aria-hidden="true"></span>
+          <span class="pain__no" aria-hidden="true">02</span>
+          <div class="pain__soz">
+              <h3 class="pain__title">{{ t('dert2.baslik') }}</h3>
+              <p class="pain__text">{{ t('dert2.metin') }}</p>
+              <p class="pain__ozet">{{ t('dert2.ozet') }}</p>
+            </div>
+          <div class="pain__sahne" aria-hidden="true">
+            <img class="pain__foto" src="kart-kaleci.webp" alt="" loading="lazy" decoding="async" />
+            <div class="sahne-ui board">
+              <div class="board__top"><span>{{ t('sahne.ilkYari') }}</span><span class="board__clock">20:00</span><span>{{ t('sahne.canli') }}</span></div>
+              <div class="board__score">
+                <span class="board__team">{{ t('sahne.takimA') }}</span>
+                <span class="board__digit">5</span>
+                <span class="board__sep">–</span>
+                <span class="board__digit board__digit--dim">0</span>
+                <span class="board__team">{{ t('sahne.takimB') }}</span>
+              </div>
+              <div class="board__ticker">⚽ 4' · 9' · 12' · 17' · 20'</div>
+            </div>
+            </div>
+        </li>
+        <li class="pain" style="--sira: 2">
+          <!-- Geri çekilen kartın karartması: filtre değil perdenin saydamlığı (GPU yeniden çizmez). -->
+          <span class="pain__perde" aria-hidden="true"></span>
+          <span class="pain__no" aria-hidden="true">03</span>
+          <div class="pain__soz">
+              <h3 class="pain__title">{{ t('dert3.baslik') }}</h3>
+              <p class="pain__text">{{ t('dert3.metin') }}</p>
+              <p class="pain__ozet">{{ t('dert3.ozet') }}</p>
+            </div>
+          <div class="pain__sahne" aria-hidden="true">
+            <img class="pain__foto" src="kart-top.webp" alt="" loading="lazy" decoding="async" />
+            <div class="sahne-ui armband">
+              <svg class="armband__art" viewBox="0 0 240 200" aria-hidden="true">
+                <defs>
+                  <linearGradient id="kolg" x1="0" x2="1"><stop offset="0" stop-color="#2a2a30"/><stop offset=".5" stop-color="#3a3a42"/><stop offset="1" stop-color="#202026"/></linearGradient>
+                  <linearGradient id="bandg" x1="0" x2="1"><stop offset="0" stop-color="#b38f00"/><stop offset=".45" stop-color="#ffd83a"/><stop offset="1" stop-color="#9c7a00"/></linearGradient>
+                </defs>
+                <path d="M78 0h84l-6 200H84z" fill="url(#kolg)"/>
+                <path d="M72 70q48 16 96 0v62q-48 16-96 0z" fill="url(#bandg)"/>
+                <path d="M72 70q48 16 96 0" fill="none" stroke="#fff3a8" stroke-width="2" opacity=".7"/>
+                <path d="M72 132q48 16 96 0" fill="none" stroke="#5c4700" stroke-width="2"/>
+                <text x="120" y="122" text-anchor="middle" font-family="Saira Condensed, Barlow, sans-serif" font-style="italic" font-weight="800" font-size="52" fill="#141414">C</text>
+              </svg>
+              <span class="armband__tag armband__tag--1">{{ t('sahne.suc1') }}</span>
+              <span class="armband__tag armband__tag--2">{{ t('sahne.suc3') }}</span>
+              <span class="armband__tag armband__tag--3">{{ t('sahne.suc2') }}</span>
+            </div>
+            </div>
+        </li>
+        <li class="pain" style="--sira: 3">
+          <!-- Geri çekilen kartın karartması: filtre değil perdenin saydamlığı (GPU yeniden çizmez). -->
+          <span class="pain__perde" aria-hidden="true"></span>
+          <span class="pain__no" aria-hidden="true">04</span>
+          <div class="pain__soz">
+              <h3 class="pain__title">{{ t('dert4.baslik') }}</h3>
+              <p class="pain__text">{{ t('dert4.metin') }}</p>
+              <p class="pain__ozet">{{ t('dert4.ozet') }}</p>
+            </div>
+          <div class="pain__sahne" aria-hidden="true">
+            <img class="pain__foto" src="kart-bos-kale.webp" alt="" loading="lazy" decoding="async" />
+            <div class="sahne-ui sheet">
+              <div class="sheet__head"><b>{{ t('sahne.macKaydi') }}</b><span>{{ t('sahne.gecenHafta') }}</span></div>
+              <dl class="sheet__rows">
+                <div><dt>{{ t('sahne.kimGeldi') }}</dt><dd>—</dd></div>
+                <div><dt>{{ t('sahne.skor') }}</dt><dd>? – ?</dd></div>
+                <div><dt>{{ t('sahne.takimlar') }}</dt><dd>—</dd></div>
+                <div><dt>{{ t('sahne.kaleciSirasi') }}</dt><dd>?</dd></div>
+                <div><dt>{{ t('sahne.bolusum') }}</dt><dd>—</dd></div>
+              </dl>
+              <span class="sheet__stamp">{{ t('sahne.kayitYok') }}</span>
+            </div>
+            </div>
+        </li>
+      </ol>
+      </div>
+
+    </section>
+
+    <!--
+      DEV KELİME: bölümün arkasında kayan ve kaydırdıkça renklenen tek kelime. Sayfanın
+      konusunu bir kelimeye indiriyor ve iki bölüm arasında nefes veriyor.
+    -->
+    <div class="bigword bigword--foto" aria-hidden="true">
+      <!-- Sırada duran top, forma ve çanta: "senin yerin hazır". Kelime fotoğrafın üstünde. -->
+      <span class="photo photo--dolap"></span>
+      <span class="bigword__slide"><span class="bigword__text">{{ t('tanitim.devKelime') }}</span></span>
+    </div>
+
+    <!-- 4 · ÇÖZÜM: daha iyi bir yol. Her özellik = FAYDA + destekleyen görsel. -->
+    <section class="solution" id="cozum" aria-labelledby="cozum-baslik">
+      <h2 class="section-title from-left" appReveal id="cozum-baslik">{{ t('cozum.baslik') }}</h2>
+      <p class="section-lead fill-text">
+        {{ t('cozum.metin') }}
+      </p>
+
+      <!--
+        ADALET NASIL KURULUR (10 Ekim 2026, kullanıcı: "nasıl adaletli kadro kurduğumuzu çok boğmadan
+        anlat"). Solda küçük bir kura makinesi (10 oyuncu iki takıma dağılır, terazi dengelenir),
+        sağda üç kısa adım. Ekran durağı yine bloğun DİBİ: bant + başlık + blok tek ekranda.
+      -->
+      <app-adalet-demo data-ekran="dip" appReveal />
+
+    </section>
+
+    <!-- 5 · NASIL ÇALIŞIYOR: üç adım; asıl mesaj "bu iş ne kadar kolay". -->
+    <section class="how" data-ekran id="nasil" aria-labelledby="nasil-baslik">
+      <!-- İmleç gezindikçe kronometreler belirir (SSS'teki soru izinin dili); kartların ARKASINDA. -->
+      <app-saat-izi />
+      <!-- Ürünün en güçlü vaadi HIZ: başlık iki parça — ikinci parça neon vurgulu, önünde dönen kronometre. -->
+      <h2 class="section-title how__title from-left" appReveal id="nasil-baslik">
+        <span class="how__saat" aria-hidden="true">
+          <svg viewBox="0 0 48 48">
+            <rect class="how__saat-tepe" x="20" y="2" width="8" height="5" rx="1.5" />
+            <path class="how__saat-kulak" d="M36 9l4 4" />
+            <circle class="how__saat-govde" cx="24" cy="27" r="17" />
+            <circle class="how__saat-yay" cx="24" cy="27" r="13" pathLength="100" />
+            <line class="how__saat-ibre" x1="24" y1="27" x2="24" y2="16" />
+            <circle class="how__saat-merkez" cx="24" cy="27" r="2.4" />
+          </svg>
+        </span>
+        <span class="how__baslik-a">{{ t('adim.baslikA') }}</span>
+        <span class="how__vurgu">{{ t('adim.baslikB') }}</span>
+      </h2>
+      <app-adim-kartlari [adimlar]="adimlar()" />
+      <button type="button" class="ui-btn ui-btn--secondary how__cta" (click)="girisYap()">
+        {{ t('adim.cta') }} <span aria-hidden="true">→</span>
+      </button>
+    </section>
+
+    <!-- 6 · SSS: aklına takılabilecek soruların hepsi, kaçamaksız. -->
+    <section class="faq" data-ekran id="sss" aria-labelledby="sss-baslik">
+      <!-- İmleç gezindikçe soru işaretleri belirir (giriş ekranındaki izin dili); kartların ARKASINDA. -->
+      <app-soru-izi />
+      <!-- Solda başlık bloğu, sağda TEK sütun soru listesi: iki sütunlu akordeonda bir soru açılınca
+           yanındaki satır boş kalıyor ve ızgara dağınık görünüyordu (11 Ekim 2026). -->
+      <div class="faq__yan from-left" appReveal>
+        <!-- Başlık ekrana her girişte yazılır. Görünmez iskelet kutunun ölçüsünü baştan tutar:
+             yazılırken başlık ikinci satıra sarınca alttaki açıklama zıplamasın. -->
+        <h2 class="section-title faq__baslik" id="sss-baslik">
+          <span class="faq__iskelet" aria-hidden="true">{{ t('sss.baslik') }}</span>
+          <span class="faq__yazan" aria-hidden="true" [appTypeOn]="t('sss.baslik')">{{ t('sss.baslik') }}</span>
+          <span class="sr-only">{{ t('sss.baslik') }}</span>
+        </h2>
+        <p class="faq__alt">{{ t('sss.alt') }}</p>
+        <!-- Dekor: süzülen dev soru işareti, üstünde sektirilen top ve yükselen soru balonları. -->
+        <span class="faq__isaret" aria-hidden="true">?<svg class="faq__top" viewBox="0 0 24 24"><defs><clipPath id="faqTopKes"><circle cx="12" cy="12" r="10.6" /></clipPath></defs><circle cx="12" cy="12" r="10.6" fill="#fff" /><g clip-path="url(#faqTopKes)" fill="#111"><circle cx="18.76" cy="2.7" r="3.4" /><circle cx="22.94" cy="15.55" r="3.4" /><circle cx="12" cy="23.5" r="3.4" /><circle cx="1.06" cy="15.55" r="3.4" /><circle cx="5.24" cy="2.7" r="3.4" /></g><path d="M12 8l3.8 2.76-1.45 4.48h-4.7L8.2 10.76z" fill="#111" /><path d="M12 8V1.4M15.8 10.76l6.28-2.04M14.35 15.24l3.88 5.34M9.65 15.24l-3.88 5.34M8.2 10.76L1.92 8.72" stroke="#111" stroke-width="0.8" /><circle cx="12" cy="12" r="10.6" fill="none" stroke="#111" stroke-width="1" /></svg></span>
+        <span class="faq__balonlar" aria-hidden="true">
+          <i style="--b: 0">?</i><i style="--b: 1">!</i><i style="--b: 2">?</i><i style="--b: 3">?</i>
+        </span>
+      </div>
+      <div class="faq__list">
+        @for (s of sorular(); track s.id) {
+          <div class="faq__item" [class.faq__item--open]="acikSoru() === s.id">
+            <button
+              type="button"
+              class="faq__q"
+              [attr.aria-expanded]="acikSoru() === s.id"
+              [attr.aria-controls]="'cevap-' + s.id"
+              (click)="soruAc(s.id)"
+            >
+              <span>{{ s.soru }}</span>
+              <span class="faq__icon" aria-hidden="true">{{ acikSoru() === s.id ? '−' : '+' }}</span>
+            </button>
+            @if (acikSoru() === s.id) {
+              <p class="faq__a" [id]="'cevap-' + s.id">{{ s.cevap }}</p>
+            }
+          </div>
+        }
+      </div>
+    </section>
+
+    <div class="bigword" aria-hidden="true">
+      <span class="bigword__slide"><span class="bigword__text">evenside · evenside · evenside</span></span>
+    </div>
+
+    <!-- 7 · SON ÇAĞRI: başlık FAYDAYI söyler, özelliği değil. -->
+    <section class="final" id="son" data-ekran aria-labelledby="final-baslik">
+      <!-- Tünelden görünen saha: sayfanın son cümlesi "bu hafta sahaya çık" diyor. -->
+      <span class="photo photo--tunel" aria-hidden="true"></span>
+      <h2 class="final__title" id="final-baslik">{{ t('final.baslik') }}</h2>
+      <p class="final__lead fill-text">
+        {{ t('final.metin') }}
+      </p>
+      <button type="button" class="ui-btn ui-btn--primary final__cta" (click)="girisYap()">
+        {{ t('final.cta') }} <span aria-hidden="true">→</span>
+      </button>
+      <p class="final__note">
+        {{ t('final.hesap') }}
+        <button type="button" class="linkish" (click)="girisYap()">{{ t('ray.giris') }}</button>
+      </p>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="foot__brand">
+      <span class="brand">EVEN<span class="brand__accent">SIDE</span></span>
+      <p class="foot__tag">{{ t('alt.slogan') }}</p>
+    </div>
+    <nav class="foot__links" [attr.aria-label]="t('tanitim.sayfaBaglantilari')">
+      <a href="#giris" (click)="bolumeKaydir('giris', $event)">{{ t('ray.basa') }}</a>
+      <a href="#cozum" (click)="bolumeKaydir('cozum', $event)">{{ t('ray.neler') }}</a>
+      <a href="#nasil" (click)="bolumeKaydir('nasil', $event)">{{ t('ray.nasil') }}</a>
+      <a href="#sss" (click)="bolumeKaydir('sss', $event)">{{ t('ray.sorular') }}</a>
+      <button type="button" class="linkish" (click)="girisYap()">{{ t('ray.giris') }}</button>
+    </nav>
+    <nav class="foot__yasal" [attr.aria-label]="t('tanitim.yasal')">
+      <a routerLink="/privacy">{{ t('yasal.gizlilik') }}</a>
+      <a routerLink="/data-protection">{{ t('yasal.kvkk') }}</a>
+      <a routerLink="/cookies">{{ t('yasal.cerez') }}</a>
+      <a routerLink="/terms">{{ t('yasal.kosullar') }}</a>
+    </nav>
+    <p class="foot__legal">{{ t('alt.telif', { yil: yil }) }}</p>
+  </footer>
+  <!--
+    YÜZEN EYLEM PİLİ (referans: Brand Appart). Sayfa bir dönüşüm sayfası; kullanıcı ortalarda
+    bir yerdeyken girişe dönmesi için yukarı kaydırmak zorunda kalmasın. İlk ekranda ve son
+    çağrıda GİZLİ: orada zaten aynı düğme var, iki kez göstermek gürültü olur.
+  -->
+  <div
+    class="yuzen-cta"
+    [class.yuzen-cta--acik]="pilGorunur()"
+    [attr.aria-hidden]="!pilGorunur()"
+  >
+    <span class="yuzen-cta__metin">{{ t('yuzen.metin') }}</span>
+    <button
+      type="button"
+      class="yuzen-cta__dugme"
+      [attr.tabindex]="pilGorunur() ? null : -1"
+      (click)="girisYap()"
+    >
+      {{ t('final.cta') }} <span aria-hidden="true">→</span>
+    </button>
+  </div>
+
+  <!--
+    BAŞA DÖN — giriş ekranı görünmez olunca sağ altta belirir. Soldaki rayın ilk düğmesi de
+    aynı işi yapıyor ama o bir menü; bu, sayfanın sonuna inen kullanıcının gözünün olduğu yerde.
+    Telefonda gizli: orada ray alt şeride iniyor ve ilk düğmesi zaten "Başa dön".
+  -->
+  <button
+    type="button"
+    class="basa-don"
+    [class.basa-don--acik]="basaDonGorunur()"
+    [attr.aria-hidden]="!basaDonGorunur()"
+    [attr.tabindex]="basaDonGorunur() ? null : -1"
+    [attr.aria-label]="t('ray.basa')"
+    [title]="t('ray.basa')"
+    (click)="bolumeKaydir('giris', $event)"
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5" /></svg>
+  </button>
+</div>

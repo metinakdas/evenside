@@ -1,0 +1,32 @@
+<!--
+  Figür, yol haritasındaki koşucuyla AYNI dilde: yön tabelası piktogramı, tek renk,
+  1.8px kontur. İki ayrı karakter değil, tek karakter ailesi.
+-->
+<span class="juggler" aria-hidden="true">
+  <svg class="juggler__figure" viewBox="0 0 24 30" fill="none" stroke="currentColor"
+    stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <!-- SEKTİRME: dizini kaldırmış, kolları dengede. -->
+    <g class="juggler__pose juggler__pose--juggle">
+      <circle cx="11.2" cy="4" r="2" />
+      <path d="M11.2 6v7.6" />
+      <path d="M11.2 8.2 7.6 10.6l-.4 2.6M11.2 8.2l3.6 2.4.4 2.6" />
+      <!-- Destek bacağı yerde, vuruş bacağı havada (ayak topa bakıyor). -->
+      <path d="M11.2 13.6 9.6 21.4" />
+      <path d="M11.2 13.6 14 17.4l-.6 2.6" class="juggler__kick" />
+    </g>
+
+    <!-- KAÇIŞ: tek parça uzuvlar, net silüet. -->
+    <g class="juggler__pose juggler__pose--run">
+      <circle cx="12.6" cy="3.8" r="2" />
+      <path d="M12.2 5.9 10.2 12.8" />
+      <path d="M11.8 8.2 15.4 6.6M11.2 9.8 7.6 11.6" />
+      <path d="M10.2 12.8 14.6 16M10.2 12.8 7 18.4" />
+    </g>
+  </svg>
+
+  <!-- Top: sektirirken ayakla baş arası gidip gelir, kaçarken önde koşar. -->
+  <span class="juggler__ball"></span>
+
+  <!-- Gölge: figürü sahaya oturtur; yoksa havada duruyormuş gibi görünüyor. -->
+  <span class="juggler__shadow"></span>
+</span>

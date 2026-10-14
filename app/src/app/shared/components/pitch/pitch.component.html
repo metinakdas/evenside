@@ -1,0 +1,84 @@
+<div class="pitch" [class.pitch--dimmed]="dimmed()" [class.pitch--static]="!interactive()">
+  <div class="pitch__turf" aria-hidden="true"></div>
+  <svg class="pitch__markings" viewBox="0 0 68 105" preserveAspectRatio="xMidYMid meet">
+    <rect class="pitch__grass" x="0" y="0" width="68" height="105" />
+    <g class="pitch__stripes">
+      @for (i of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]; track i) {
+        @if (i % 2 === 0) {
+          <rect x="0" [attr.y]="i * 10.5" width="68" height="10.5" fill="rgba(255,255,255,.025)" />
+        }
+      }
+    </g>
+    <g class="pitch__lines">
+      <rect x="0.3" y="0.3" width="67.4" height="104.4" />
+      <line x1="0" y1="52.5" x2="68" y2="52.5" />
+      <circle cx="34" cy="52.5" r="9.15" />
+      <circle class="pitch__spot" cx="34" cy="52.5" r="0.35" />
+
+      <rect x="13.84" y="0" width="40.32" height="16.5" />
+      <rect x="24.84" y="0" width="18.32" height="5.5" />
+      <circle class="pitch__spot" cx="34" cy="11" r="0.35" />
+      <path d="M 26.688 16.5 A 9.15 9.15 0 0 0 41.312 16.5" />
+
+      <rect x="13.84" y="88.5" width="40.32" height="16.5" />
+      <rect x="24.84" y="99.5" width="18.32" height="5.5" />
+      <circle class="pitch__spot" cx="34" cy="94" r="0.35" />
+      <path d="M 26.688 88.5 A 9.15 9.15 0 0 1 41.312 88.5" />
+
+      <path d="M 1 0 A 1 1 0 0 1 0 1" />
+      <path d="M 67 0 A 1 1 0 0 0 68 1" />
+      <path d="M 0 104 A 1 1 0 0 1 1 105" />
+      <path d="M 68 104 A 1 1 0 0 0 67 105" />
+    </g>
+  </svg>
+
+  <div class="pitch__scene">
+    <svg class="pitch__links" viewBox="0 0 100 100" preserveAspectRatio="none">
+      @for (link of visibleLinks(); track $index) {
+        <line
+          [attr.x1]="link.x1"
+          [attr.y1]="link.y1"
+          [attr.x2]="link.x2"
+          [attr.y2]="link.y2"
+          vector-effect="non-scaling-stroke"
+          class="pitch__link"
+          [class.pitch__link--shifted]="link.color === 'shifted'"
+          [style.opacity]="linkOpacity(link)"
+        />
+      }
+    </svg>
+
+    @for (slot of visibleSlots(); track slot.side + '-' + slot.line + '-' + slot.x) {
+      <div class="pitch__slot" [style.left.%]="slot.x" [style.top.%]="slot.displayY" [style.--scale]="slot.scale">
+        @if (slot.player) {
+          <div
+            class="pitch__card"
+            [class.pitch__card--editable]="editable()"
+            [class.pitch__card--selected]="isSelected(slot.player.id)"
+            [attr.data-player-id]="slot.player.id"
+            (mouseenter)="onEnter(slot.player.id)"
+            (mouseleave)="onLeave()"
+            (click)="onCardClick(slot.player.id, slot.side)"
+          >
+            <app-player-card [player]="slot.player" [size]="cardSize()" [nameLabel]="nameLabels()[slot.player.id] ?? null" />
+            @if (editable()) {
+              <button
+                type="button"
+                class="pitch__remove"
+                (click)="onRemoveClick(slot.player.id, $event)"
+                [attr.aria-label]="t('ui.kadrodanCikar')"
+                [attr.title]="t('kadro.cikar')"
+              >
+                ×
+              </button>
+            }
+          </div>
+          <span class="pitch__badge" [class.pitch__badge--shifted]="slot.fit === 'shifted'">{{ slot.mevki }}</span>
+        } @else {
+          <div class="pitch__empty" [class.pitch__empty--compact]="compact()"></div>
+          <span class="pitch__badge pitch__badge--empty">{{ slot.mevki }}</span>
+        }
+      </div>
+    }
+  </div>
+</div>

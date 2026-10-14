@@ -1,0 +1,722 @@
+/*
+ * GİRİŞ / KAYIT — tasarım turu (9 Ekim 2026, kullanıcı: "hata mesajları çok sıradan, tasarımcı
+ * gibi düzenle; arka plan aynen kalsın").
+ *
+ * Arka plan (stadyum fotoğrafı + perde), logo ve slogan DEĞİŞMEDİ. İçerik buzlu cam bir panelde:
+ * üstte kayan göstergeli Giriş/Kayıt anahtarı, bildirimler tanıtım sayfasının "hakem kararı"
+ * dilinde (kırmızı kart / yeşil onay), ikonlu alanlar, oklu birincil düğme.
+ * Korunanlar: 44px dokunma hedefleri, hata satırı için ayrılmış yer (form zıplamaz), telefonda
+ * 16px yazı (iOS yakınlaşması), göz düğmesinin alanın İÇİNDE durması.
+ */
+
+$yesil: #00f57a;
+$kirmizi: #ff4d4f;
+$display: var(--font-display);
+
+/* ------------------------------------------------------------- ZEMİN (değişmedi) */
+.auth-page {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+}
+
+.auth-page__bg {
+  position: absolute;
+  inset: 0;
+  background-image: url('/galata.webp');
+  background-size: cover;
+  background-position: center 35%;
+  filter: brightness(0.5) saturate(1.15);
+  transform: scale(1.02); // kenarlarda blur/filter kesilme payı
+}
+
+.auth-page__scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(11, 11, 13, 0.6) 0%, rgba(11, 11, 13, 0.32) 38%, rgba(11, 11, 13, 0.88) 100%),
+    radial-gradient(60% 55% at 50% 38%, rgba(123, 47, 247, 0.28), transparent 70%);
+}
+
+/* ------------------------------------------------------------- BAŞLIK (değişmedi) */
+.auth-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: 460px;
+  width: 100%;
+  text-align: center;
+}
+
+// Evenside amblemi: iki eşit yarı açılışta yanlardan gelip orta çizgide birleşir.
+.auth-badge {
+  width: 56px;
+  height: 63px;
+  overflow: visible;
+  filter: drop-shadow(0 8px 22px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 18px rgba(0, 245, 122, 0.28));
+  margin-bottom: var(--space-2);
+}
+
+.auth-badge__sol,
+.auth-badge__sag {
+  animation: amblem-birles 0.7s cubic-bezier(0.2, 0.9, 0.25, 1) both;
+}
+
+.auth-badge__sol {
+  --from: -10px;
+}
+
+.auth-badge__sag {
+  --from: 10px;
+}
+
+@keyframes amblem-birles {
+  from {
+    transform: translateX(var(--from));
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-badge__sol,
+  .auth-badge__sag {
+    animation: none;
+  }
+}
+
+.auth-content__wordmark {
+  margin: 0;
+  font-family: $display;
+  font-style: italic;
+  font-weight: 900;
+  font-size: 52px;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+}
+
+.accent {
+  color: var(--color-accent);
+}
+
+.auth-content__tagline {
+  margin: var(--space-1) 0 var(--space-2);
+  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+
+/* ------------------------------------------------------------- PANEL */
+.panel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 18px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(20, 20, 24, 0.72), rgba(10, 10, 12, 0.82));
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  box-shadow:
+    0 30px 60px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  text-align: left;
+}
+
+/* --- Giriş / Kayıt anahtarı: gösterge seçili tarafa kayar --- */
+.sekme {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sekme__gosterge {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  border-radius: 999px;
+  background: $yesil;
+  box-shadow: 0 6px 18px rgba(0, 245, 122, 0.3);
+  transition: transform 0.35s cubic-bezier(0.3, 1.3, 0.5, 1);
+}
+
+.sekme--kayit .sekme__gosterge {
+  transform: translateX(100%);
+}
+
+:host-context([dir='rtl']) .sekme__gosterge {
+  left: auto;
+  right: 4px;
+}
+
+:host-context([dir='rtl']) .sekme--kayit .sekme__gosterge {
+  transform: translateX(-100%);
+}
+
+.sekme__dugme {
+  position: relative;
+  z-index: 1;
+  min-height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.25s ease;
+}
+
+.sekme__dugme:hover {
+  color: #fff;
+}
+
+.sekme__dugme--secili,
+.sekme__dugme--secili:hover {
+  color: #05130a;
+}
+
+/* ------------------------------------------------------------- BİLDİRİM = HAKEM KARARI */
+.karar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px 12px 14px;
+  border-radius: 14px;
+  overflow: hidden;
+  font-family: var(--font-body);
+  animation: karar-gir 0.45s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+}
+
+/* Sol kenarda kalın çizgi (yayın grafiği dili). */
+.karar::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+}
+
+:host-context([dir='rtl']) .karar::before {
+  inset: 0 0 0 auto;
+}
+
+.karar--hata {
+  border: 1px solid rgba(255, 77, 79, 0.35);
+  background: linear-gradient(90deg, rgba(255, 59, 59, 0.22), rgba(255, 59, 59, 0.06));
+  animation: karar-gir 0.45s cubic-bezier(0.2, 1.2, 0.4, 1) both, karar-sars 0.42s 0.18s ease both;
+}
+
+.karar--hata::before {
+  background: $kirmizi;
+}
+
+.karar--bilgi {
+  border: 1px solid rgba(0, 245, 122, 0.35);
+  background: linear-gradient(90deg, rgba(0, 245, 122, 0.18), rgba(0, 245, 122, 0.05));
+}
+
+.karar--bilgi::before {
+  background: $yesil;
+}
+
+/* Kırmızı kart: parlak, eğik; hakem kaldırır gibi girer. */
+.karar__kart {
+  flex: none;
+  width: 18px;
+  height: 25px;
+  margin-left: 4px;
+  border-radius: 3px;
+  background:
+    linear-gradient(125deg, rgba(255, 255, 255, 0.45) 0 18%, transparent 19%),
+    linear-gradient(160deg, #ff5252, #c50e0e);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25), 0 5px 12px rgba(255, 40, 40, 0.45);
+  transform: rotate(-12deg);
+  animation: kart-kaldir 0.5s 0.1s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+.karar__onay {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin-left: 2px;
+  border-radius: 50%;
+  background: $yesil;
+  box-shadow: 0 4px 12px rgba(0, 245, 122, 0.35);
+}
+
+.karar__onay svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: #05130a;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.karar__metin {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.karar__metin strong {
+  font-family: $display;
+  font-style: italic;
+  font-weight: 800;
+  font-size: 17px;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.karar__metin span {
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+@keyframes karar-gir {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+}
+
+@keyframes karar-sars {
+  20% { translate: -5px 0; }
+  40% { translate: 4px 0; }
+  60% { translate: -3px 0; }
+  80% { translate: 2px 0; }
+}
+
+@keyframes kart-kaldir {
+  from {
+    opacity: 0;
+    transform: translateY(10px) rotate(8deg) scale(0.7);
+  }
+}
+
+/* ------------------------------------------------------------- SOSYAL GİRİŞ */
+.oauth-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.oauth-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13.5px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard),
+    transform var(--duration-fast) var(--easing-standard);
+}
+
+.oauth-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.32);
+  transform: translateY(-1px);
+}
+
+.oauth-btn__icon {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+.oauth-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+}
+
+.oauth-divider::before,
+.oauth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.oauth-divider > span {
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------- FORM */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  /* Hata satırının yeri HER ZAMAN ayrılmış: mesaj gelince form zıplamaz (test raporu 11). */
+  --auth-error-line: 18px;
+}
+
+.auth-field::after {
+  content: '';
+  display: block;
+  height: var(--auth-error-line);
+}
+
+.auth-field:has(.auth-field__error)::after {
+  display: none;
+}
+
+.auth-field__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.auth-field__icon {
+  position: absolute;
+  left: 16px;
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+  transition: stroke 0.2s ease;
+}
+
+:host-context([dir='rtl']) .auth-field__icon {
+  left: auto;
+  right: 16px;
+}
+
+.auth-input {
+  width: 100%;
+  min-height: 50px;
+  box-sizing: border-box;
+  padding: 0 16px 0 46px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.32);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 15px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+:host-context([dir='rtl']) .auth-input {
+  padding: 0 46px 0 16px;
+}
+
+.auth-input::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.auth-input:hover {
+  border-color: rgba(255, 255, 255, 0.26);
+}
+
+.auth-input:focus-visible {
+  outline: none;
+  border-color: $yesil;
+  background: rgba(0, 0, 0, 0.42);
+  box-shadow: 0 0 0 4px rgba(0, 245, 122, 0.14);
+}
+
+.auth-field__control:focus-within .auth-field__icon {
+  stroke: $yesil;
+}
+
+/* Göz düğmesi alanın İÇİNDE, sağda. */
+.auth-input--with-action {
+  padding-right: 52px;
+}
+
+:host-context([dir='rtl']) .auth-input--with-action {
+  padding-left: 52px;
+}
+
+/* Hata: kırmızı kenar + hale, ikon kırmızı, alan bir kez sarsılır. */
+.auth-input--invalid,
+.auth-input--invalid:hover {
+  border-color: $kirmizi;
+  box-shadow: 0 0 0 4px rgba(255, 77, 79, 0.14);
+}
+
+.auth-field--hata .auth-field__icon {
+  stroke: $kirmizi;
+}
+
+.auth-field--hata .auth-field__control {
+  animation: karar-sars 0.4s ease;
+}
+
+.auth-field__toggle {
+  position: absolute;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+}
+
+:host-context([dir='rtl']) .auth-field__toggle {
+  right: auto;
+  left: 4px;
+}
+
+.auth-field__toggle:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.auth-field__toggle:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.auth-field__toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Alan altı mesaj: ikonlu, sola dayalı, kayarak gelir. */
+.auth-field__error {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 0;
+  padding: 0 4px;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: #ff9b9c;
+  animation: karar-gir 0.3s ease both;
+}
+
+.auth-field__error::before {
+  content: '!';
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: $kirmizi;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.auth-forgot {
+  align-self: flex-end;
+  min-height: 44px;
+  /* Şifre alanının altındaki ayrılmış hata satırına biner: arada ölü boşluk kalmasın. */
+  margin: -22px 0 0;
+  padding: 0 4px;
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.auth-forgot:hover:not(:disabled) {
+  color: $yesil;
+}
+
+.auth-forgot:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* --- Birincil düğme: ok ilerler, beklerken dönen halka --- */
+.auth-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  margin-top: 6px;
+  border: none;
+  border-radius: 14px;
+  background: $yesil;
+  color: #05130a;
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 10px 28px rgba(0, 245, 122, 0.28);
+  transition:
+    transform var(--duration-fast) var(--easing-standard),
+    box-shadow var(--duration-fast) var(--easing-standard),
+    filter var(--duration-fast) var(--easing-standard);
+}
+
+.auth-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  box-shadow: 0 14px 34px rgba(0, 245, 122, 0.38);
+}
+
+.auth-submit__ok {
+  transition: transform 0.25s ease;
+}
+
+.auth-submit:hover:not(:disabled) .auth-submit__ok {
+  transform: translateX(4px);
+}
+
+.auth-submit:disabled {
+  cursor: wait;
+}
+
+.auth-submit--bekliyor {
+  background: rgba(0, 245, 122, 0.6);
+  box-shadow: none;
+}
+
+.auth-submit__donen {
+  width: 16px;
+  height: 16px;
+  border: 2.5px solid rgba(5, 19, 10, 0.25);
+  border-top-color: #05130a;
+  border-radius: 50%;
+  animation: donen 0.8s linear infinite;
+}
+
+@keyframes donen {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- Panel altı geçiş bağlantısı --- */
+.auth-switch {
+  position: relative;
+  min-height: 44px;
+  padding: 0 12px;
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.75);
+  font-family: var(--font-body);
+  font-size: 13px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+}
+
+.auth-switch:hover {
+  color: var(--color-accent);
+}
+
+/* ------------------------------------------------------------- HAREKETİ AZALT */
+@media (prefers-reduced-motion: reduce) {
+  .karar,
+  .karar--hata,
+  .karar__kart,
+  .auth-field--hata .auth-field__control,
+  .auth-field__error {
+    animation: none;
+  }
+
+  .sekme__gosterge {
+    transition: none;
+  }
+
+  .auth-submit__donen {
+    animation-duration: 2.4s;
+  }
+}
+
+/* ------------------------------------------------------------- TELEFON (≤640px) */
+@media (max-width: 640px) {
+  .auth-content {
+    padding: 24px 0 32px;
+  }
+
+  .auth-content__wordmark {
+    font-size: 44px;
+  }
+
+  .panel {
+    padding: 14px 14px 16px;
+    border-radius: 18px;
+  }
+
+  .auth-input {
+    min-height: 52px;
+    font-size: 16px; /* iOS: 16px altındaki alanda sayfa yakınlaşır */
+  }
+
+  .auth-submit,
+  .oauth-btn {
+    min-height: 52px;
+  }
+
+  .auth-switch,
+  .auth-forgot {
+    min-height: 48px;
+  }
+}
+
+/* Dar ekranda sosyal düğmeler alt alta: yan yana "Google ile devam et" iki satıra kırılıyordu. */
+@media (max-width: 440px) {
+  .oauth-row {
+    grid-template-columns: 1fr;
+  }
+}

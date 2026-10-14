@@ -1,0 +1,192 @@
+/*
+ * Kabın BELİRLİ bir yüksekliği olmalı: saha yüksekliği doldurur, genişliğini en-boy
+ * oranından türetir. Yüksekliği belirsiz (auto) bir kapta saha sıfıra çöker.
+ */
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/*
+ * Saha, kabına SIĞAR (contain): yükseklik kabı doldurur, genişlik en-boy oranından
+ * türetilir. Önceden hem width hem height %100 verildiği için `aspect-ratio` hiç
+ * uygulanmıyor, saha kabın şekline geriliyordu — geniş-ve-kısa bir görünüm alanında
+ * (ör. 1662×954) en alttaki kartlar sahanın altından taşıp kırpılıyordu.
+ *
+ * Kırpılmayı asıl önleyen ikinci parça: taşma artık `.pitch` yerine `.pitch__turf`ta
+ * gizleniyor. Çim/çizgiler yine yuvarlatılmış dikdörtgene kırpılır, ama yuvalardaki
+ * KARTLAR (sabit piksel boyutlu, yuvanın merkezine oturur) sahanın kenarından biraz
+ * taşabildiği için görünür kalır.
+ */
+.pitch {
+  position: relative;
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  aspect-ratio: 68 / 105;
+  margin: 0 auto;
+  border-radius: var(--radius-sharp);
+}
+
+/* Çimin kendisi — kırpma burada, kartlar bunun dışında kalabilir. */
+.pitch__turf {
+  position: absolute;
+  inset: 0;
+  background: #07130d;
+  overflow: hidden;
+  border-radius: var(--radius-sharp);
+}
+
+.pitch--dimmed::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: rgba(8, 8, 10, 0.55);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+}
+
+.pitch--static .pitch__scene {
+  pointer-events: none;
+}
+
+.pitch__markings {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.pitch__grass {
+  fill: #0c2317;
+}
+
+.pitch__lines {
+  fill: none;
+  stroke: #ffffff;
+  stroke-opacity: 0.15;
+  stroke-width: 0.3;
+}
+
+.pitch__spot {
+  fill: #ffffff;
+  fill-opacity: 0.15;
+  stroke: none;
+}
+
+.pitch__scene {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.pitch__links {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.pitch__link {
+  stroke: var(--color-accent);
+  stroke-width: 2.5;
+  transition: opacity var(--duration-base) var(--easing-standard);
+}
+
+.pitch__link--shifted {
+  stroke: var(--color-warning);
+}
+
+.pitch__slot {
+  position: absolute;
+  transform: translate(-50%, -50%) scale(var(--scale, 1));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  z-index: 2;
+  transition: top var(--duration-base) var(--easing-standard);
+}
+
+.pitch__card {
+  position: relative;
+  transition:
+    transform var(--duration-fast) var(--easing-standard),
+    filter var(--duration-fast) var(--easing-standard);
+}
+
+.pitch__card:hover {
+  transform: scale(1.08);
+  filter: drop-shadow(var(--shadow-elevated));
+  z-index: 5;
+}
+
+.pitch__card--editable {
+  cursor: pointer;
+}
+
+.pitch__card--selected {
+  filter: drop-shadow(0 0 0 3px var(--color-accent)) drop-shadow(0 0 18px rgba(0, 245, 122, 0.7));
+  transform: scale(1.08);
+  z-index: 6;
+}
+
+.pitch__remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  z-index: 7;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-danger);
+  color: #fff;
+  border: 2px solid var(--color-bg);
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--easing-standard);
+}
+
+.pitch__card--editable:hover .pitch__remove,
+.pitch__remove:focus-visible {
+  opacity: 1;
+}
+
+.pitch__empty {
+  width: 128px;
+  height: 178px;
+  clip-path: polygon(0 7%, 7% 0, 93% 0, 100% 7%, 100% 80%, 50% 100%, 0 80%);
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.pitch__empty--compact {
+  width: 56px;
+  height: 78px;
+}
+
+.pitch__badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--color-bg);
+  background: var(--color-accent);
+  border-radius: var(--radius-pill);
+  padding: 2px 8px;
+}
+
+.pitch__badge--shifted {
+  background: var(--color-warning);
+}
+
+.pitch__badge--empty {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.4);
+}

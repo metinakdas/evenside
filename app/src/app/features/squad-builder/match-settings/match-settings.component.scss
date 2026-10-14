@@ -1,0 +1,648 @@
+:host {
+  display: block;
+}
+
+.settings-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/*
+ * Dikey yığın. Yatay flex + `flex-wrap` iken üç panel yan yana dizilmeye çalışıyor,
+ * sığmayınca alt alta sarıyordu: takım panelleri `flex: 1` ile satırı doldurup 300px
+ * oluyor, format paneli `flex` tanımsız olduğu için içeriği kadar (195px) kalıyordu
+ * (Tur 5 · F1).
+ */
+.settings {
+  display: flex;
+  gap: var(--space-3);
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.panel {
+  background: var(--color-panel);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-sharp);
+  padding: var(--space-2) var(--space-4);
+}
+
+.panel--team {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 240px;
+  flex: 1;
+}
+
+// Dar ekranda "min-width: 240px" iki takım paneliyle birlikte satırı zorlayıp yatay taşmaya
+// yol açıyordu (bkz. kullanıcı geri bildirimi: kadro kurma ekranı mobilde hiç sığmıyordu) —
+// her panel kendi satırına düşüyor ve taban genişliği kalkıyor.
+@media (max-width: 640px) {
+  .settings {
+    flex-direction: column;
+  }
+
+  .panel--format,
+  .panel--team {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+/* Artık bir <button>: armaya tıklamak kulüp aramasını açar. */
+.team-logo {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border: 0;
+  border-radius: var(--r-sm, 4px);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.team-logo:hover {
+  background: light-dark(rgba(18, 18, 22, 0.06), rgba(255, 255, 255, 0.06));
+  color: var(--color-text-primary);
+}
+
+.team-logo .text-mono-label {
+  font-size: 11px;
+}
+
+.team-fields {
+  flex: 1;
+  min-width: 0;
+}
+
+.team-name {
+  width: 100%;
+  background: var(--color-bg);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--r-sm);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+  padding: 5px var(--space-2);
+  margin-bottom: 6px;
+}
+
+.team-name:focus-visible {
+  outline: 2px solid var(--color-accent-line);
+  outline-offset: 1px;
+}
+
+.swatches {
+  display: flex;
+  gap: 6px;
+}
+
+.swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  padding: 0;
+  /*
+   * Koyu zeminde koyu renk (#161618) tamamen kayboluyordu — 6 seçenekten yalnızca 5'i
+   * görünüyordu (kullanıcı geri bildirimi). Kenarlık `border` yerine `box-shadow` ile
+   * çiziliyor ki seçili durumun beyaz `border`'ı bunun üstüne ayrıca binebilsin.
+   */
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  transition: border-color var(--duration-fast) var(--easing-standard);
+}
+
+.swatch:hover {
+  border-color: var(--color-divider);
+}
+
+.swatch--active {
+  border-color: light-dark(#121216, #fff);
+}
+
+/* Katlanabilir ayar şeridi (Ö7) — telefonda kapalı, geniş ekranda açık başlar. */
+.settings-details__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-6);
+  /* 44px dokunma hedefi (QA D3: 33px'ti). */
+  min-height: 44px;
+  box-sizing: border-box;
+  cursor: pointer;
+  list-style: none;
+}
+
+.settings-details__summary::-webkit-details-marker {
+  display: none;
+}
+
+.settings-details__hint {
+  opacity: 0.7;
+}
+
+@media (min-width: 901px) {
+  /* Geniş ekranda başlık satırı gereksiz krom; şerit zaten açık. */
+  .settings-details__summary {
+    display: none;
+  }
+}
+
+/* Renk noktası görünürde 16px, dokunma hedefi 44px (Tur 5 · E13). */
+.swatch {
+  position: relative;
+}
+
+.swatch::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+.team-name {
+  min-height: 44px;
+}
+
+/*
+ * Paneller en az aynı yükseklikte. Eskiden SABİT 104px idi (Tur 5 · F2, format paneliyle
+ * takım panelini eşitlemek için); takım kartı kulüp seçici + logo yükleme + renk satırlarıyla
+ * büyüyünce içerik kutudan taşıyordu (ölçüldü: içerik 218px, kutu 122px). Artık taban ölçü.
+ */
+.panel {
+  min-height: 104px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/*
+ * Kulüp seçimi (TheSportsDB) — gerçek bir açılır liste. Menü panelin AKIŞINDA değil üstünde
+ * (absolute) açılır: ayar şeridi kısa ve `overflow` kısıtlı, akışta açılan liste paneli
+ * itip kadro ızgarasını aşağı kaydırıyordu.
+ */
+.club-picker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.club-select {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--r-sm, 4px);
+  background: light-dark(#ffffff, #101014);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.club-select:hover,
+.club-select--open {
+  border-color: var(--color-accent-line);
+}
+
+.club-select__badge {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  object-fit: contain;
+}
+
+.club-select__label {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.club-select__caret {
+  flex: none;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+}
+
+.club__link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-secondary);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.club__link:hover {
+  color: var(--color-text-primary);
+}
+
+.club-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--r-md, 8px);
+  background: light-dark(#ffffff, #121216);
+  box-shadow: 0 16px 36px light-dark(rgba(20, 20, 30, 0.18), rgba(0, 0, 0, 0.6));
+}
+
+.club-menu__head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.club-menu__league,
+.club-menu__search {
+  width: 100%;
+  min-height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--r-sm, 4px);
+  background: light-dark(#ffffff, #0d0d11);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 12.5px;
+}
+
+.club-menu__status {
+  margin: 0;
+  padding: 6px 4px;
+  color: var(--color-text-secondary);
+}
+
+.club-menu__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 208px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.club-menu__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: var(--r-sm, 4px);
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.club-menu__item:hover {
+  background: light-dark(rgba(18, 18, 22, 0.08), rgba(255, 255, 255, 0.08));
+}
+
+.club-menu__badge {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  object-fit: contain;
+}
+
+.club-menu__badge--empty {
+  border-radius: 50%;
+  background: light-dark(rgba(18, 18, 22, 0.08), rgba(255, 255, 255, 0.08));
+}
+
+.club-menu__name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/*
+ * TAKIM KARTI — iki yol da eşit derecede görünür: kulüp seç (arma + forma hazır) ya da kendi
+ * logonu yükle. Her satır etiketli: önceden kontroller etiketsiz bir yığındı ve hangisinin ne
+ * yaptığı ancak denenerek anlaşılıyordu.
+ */
+.team-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.team-card__side {
+  color: var(--color-text-secondary);
+}
+
+/* Seçili kulübün rozeti: "forma dahil" bilgisi burada, ayrı bir satır harcamadan. */
+.team-card__tag {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 245, 122, 0.12);
+  border: 1px solid light-dark(rgba(15, 169, 91, 0.35), rgba(0, 245, 122, 0.35));
+  color: var(--color-accent-text);
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 62%;
+}
+
+.team-card__identity {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+/* Arma kartın kimliği: en büyük öğe ve tıklanınca kulüp listesini açar. */
+.crest {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 0;
+  border-radius: var(--r-sm, 4px);
+  background: transparent;
+  cursor: pointer;
+}
+
+.crest:hover {
+  background: light-dark(rgba(18, 18, 22, 0.06), rgba(255, 255, 255, 0.06));
+}
+
+.crest__hint {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+}
+
+.crest:hover .crest__hint {
+  color: var(--color-text-primary);
+}
+
+.team-card__fields {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Etiket üstte, kontrol altta — dar panelde yan yana etiket satırı okunmuyordu. */
+.field-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.field-row__label {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+}
+
+.logo-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 30px;
+}
+
+.logo-upload {
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.logo-upload:hover {
+  color: var(--color-accent-text);
+}
+
+.ghost-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-secondary);
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.ghost-link:hover {
+  color: var(--color-text-primary);
+}
+
+/* Format paneli — sol ayar şeridinde, takım kartlarının üstünde. */
+.panel--format {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-1);
+}
+
+.format-pills {
+  display: flex;
+  // Altı format dar sol kolona tek satıra sığmıyor (6v6…11v11) — sarsın.
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.settings__need {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.pill {
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-pill);
+  // Hedef ::after ile büyütülüyordu ama komşu pill'in kendi hedefi üste binip alanı
+  // 38px'e düşürüyordu (doğrulama raporu 18). Ölçü artık GERÇEK.
+  min-height: 44px;
+  padding: 3px 14px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--easing-standard),
+    color var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard);
+}
+
+.pill:hover {
+  border-color: var(--color-accent-line);
+}
+
+.pill--active {
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  border-color: var(--color-accent-line);
+}
+
+// Dokunmatik hedef (Tur 5 · E13).
+@media (hover: none) {
+  .pill {
+    min-height: 44px;
+  }
+}
+
+/* Kapalı takım kartı: tek satır kimlik — arma + ad (+ forma rozeti). */
+.team-card--compact {
+  gap: var(--space-2);
+}
+
+.team-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 44px;
+  padding: 4px;
+  border: 0;
+  border-radius: var(--r-sm, 4px);
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.team-summary:hover {
+  background: light-dark(rgba(18, 18, 22, 0.06), rgba(255, 255, 255, 0.06));
+}
+
+.team-summary__name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Kulüp forması geldiyse kapalı kartta da görünsün: "ayarlandı" bilgisini tek kelime taşır. */
+
+.team-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-divider);
+}
+
+.save-btn {
+  min-height: 32px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.save-btn:hover {
+  filter: brightness(1.08);
+}
+
+/*
+ * "Düzenle" bir bağlantı değil DÜĞME: kapalı kartın tek eylemi o ve düz yazı olarak
+ * seçilemiyordu (kullanıcı geri bildirimi: "düzenle butonu belirgin değil").
+ */
+.edit-btn {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-pill);
+  background: light-dark(rgba(18, 18, 22, 0.06), rgba(255, 255, 255, 0.06));
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard);
+}
+
+.edit-btn:hover {
+  background: light-dark(rgba(18, 18, 22, 0.14), rgba(255, 255, 255, 0.14));
+  border-color: var(--color-accent-line);
+}
+
+/* 44px dokunma hedefi (test raporu 9) — görünen ölçü değişmiyor. */
+.pill {
+  position: relative;
+}
+
+.pill::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 46px);
+  height: max(100%, 46px);
+  transform: translate(-50%, -50%);
+}
+
+.edit-btn {
+  position: relative;
+}
+
+.edit-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 46px);
+  height: max(100%, 46px);
+  transform: translate(-50%, -50%);
+}

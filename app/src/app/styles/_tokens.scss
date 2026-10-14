@@ -1,0 +1,78 @@
+// Tasarım tokenleri — proje notları "Tasarım dili" bölümünden ve prototipten
+// (FIFA kadro kurma prototip/uploads/*.md) birebir taşındı. Hiçbir bileşen bu
+// dosyanın dışında sabit renk/boşluk/süre değeri kullanmasın; hepsi var() ile gelsin.
+
+/*
+ * TEMA. Renkler `light-dark(açık, koyu)` ile yazılır: hangisinin geçerli olduğunu öğenin
+ * `color-scheme`'i belirler. `ThemeService`, `<html>`'e `data-theme` yazar; burada o da
+ * `color-scheme`'e çevrilir. Koyu tema bu sayede BİREBİR eski hâlinde kalır: açık değer
+ * yalnızca `color-scheme: light` iken devreye girer.
+ *
+ * Tanıtım, kura ve saha ekranları HER ZAMAN koyudur (fotoğraf atmosferli sahneler —
+ * "iki kutbu karıştırma" kuralı); bunu `ThemeService.effective` rota bazında çözer.
+ */
+:root {
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root {
+  // ---- Renkler ----
+  // Tören/sahne ekranları: mor ve parlak. Veri ekranları: siyah, tek vurgu neon yeşil.
+  // Bu iki kutbu karıştırma — bkz. proje notları "Tasarım dili".
+  --color-bg: light-dark(#f3f3f5, #0b0b0d); // arayüz siyahı / açık temada kırık beyaz
+  --color-panel: light-dark(#ffffff, #161618);
+  --color-divider: light-dark(#dcdce2, #2a2a2e);
+  --color-text-primary: light-dark(#121216, #ffffff);
+  --color-text-secondary: light-dark(#5c5c67, #9a9aa2);
+
+  --color-accent: #00f57a; // neon yeşil — veri ekranlarının tek vurgusu (DOLGU olarak)
+  --color-accent-contrast: light-dark(#05130a, #0b0b0d); // vurgu zemin üstü yazı
+  // Neon yeşil beyaz zeminde METİN ya da İNCE ÇİZGİ olarak okunmaz (kontrast ~1,3:1).
+  // Açık temada yazı/çizgi için koyulaştırılmış tonlar; dolgu `--color-accent`'te kalır.
+  --color-accent-text: light-dark(#067a3f, #00f57a);
+  --color-accent-line: light-dark(#0fa95b, #00f57a);
+  --color-surface: light-dark(#ffffff, #161618);
+  --color-surface-2: light-dark(#ececf0, #1e1e23);
+
+  --color-purple: #7b2ff7; // elektrik moru — tören/sahne
+  --color-lilac: #b98cff;
+  --color-deep-purple: #2a0d5c;
+
+  --color-danger: #fb090b; // silme/uyarı (prototipteki kırmızı)
+  --color-warning: #f5a800; // "kaydırılmış mevki" turuncusu
+
+  // ---- Boşluk ölçeği (px) ----
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+
+  // ---- Köşe yarıçapı ----
+  // Kart/panel: keskin (3-4px). Buton: tam yuvarlak. Arası yok.
+  --radius-sharp: 4px;
+  --radius-pill: 999px;
+  // Kısa takma adlar — bileşenlerde tekrar tekrar 3px/4px yazılmasın (Tur 7 · C2).
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-pill: 999px;
+
+  // ---- Gölge ----
+  // Açık temada gölgeler hafifler: beyaz zeminde %50 siyah gölge kirli bir leke olur.
+  --shadow-card: 0 22px 44px light-dark(rgba(20, 20, 30, 0.12), rgba(0, 0, 0, 0.5));
+  --shadow-elevated: 0 16px 32px light-dark(rgba(20, 20, 30, 0.16), rgba(0, 0, 0, 0.65));
+
+  // ---- Geçiş süresi/eğrisi ----
+  // Genel arayüz için. Kura töreninin faz süreleri (Faz 5) bunlardan bağımsız,
+  // SequenceService'in kendi zamanlayıcısından gelir — tören burada tokenlenmez.
+  --duration-fast: 180ms;
+  --duration-base: 300ms;
+  --easing-standard: cubic-bezier(0.16, 1, 0.3, 1);
+}

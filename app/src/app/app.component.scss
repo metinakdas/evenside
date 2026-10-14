@@ -1,0 +1,112 @@
+
+/*
+ * Sağ üst köşe. Bildirim yığını (z-index 80) ve çerez şeridi (70) ile aynı katman
+ * ailesinde; seçici onların ÜSTÜNDE değil, kendi köşesinde durur.
+ */
+.genel-ust {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 75;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+/*
+ * "Giriş yap" — dil seçicinin düğmesiyle (`.dil__dugme`) aynı ÖLÇÜ (44px pill, 14px/700),
+ * ama varsayılan rengi YEŞİL (kullanıcı isteği): sayfanın birincil düğmesiyle aynı dolu vurgu
+ * yeşili + koyu mürekkep. Sağ üstteki tek eylem bu; dil ve tema düğmeleri ayar, onlar nötr
+ * durur ve üzerine gelince aynı yeşile döner.
+ */
+.genel-giris {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid #00f57a;
+  border-radius: 999px;
+  background: #00f57a;
+  color: #05130a;
+  font-family: var(--font-body, 'Barlow', system-ui, sans-serif);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: filter 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+/* Yeşil yüzeyde renk değişimi okunmuyor: hover parlaklık + 1px yükselme + yeşil hale. */
+.genel-giris:hover,
+.genel-giris:focus-visible {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(0, 245, 122, 0.28);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .genel-giris:hover,
+  .genel-giris:focus-visible {
+    transform: none;
+  }
+}
+
+/* Telefonda köşe kenara biraz daha yaklaşır; düğmeler 44px kalır. */
+@media (max-width: 640px) {
+  .genel-ust {
+    top: 10px;
+    right: 10px;
+    gap: 6px;
+    /* Küçültme (scale .94) KALDIRILDI: düğmeler 41px'e iniyordu, 44px dokunma sınırının altı. */
+  }
+}
+
+/* Sayfa geçişi göstergesi: ekranın ortasında dönen top + metin. Tıklamayı yutmaz. */
+.gecis {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  pointer-events: none;
+  color: light-dark(rgba(18, 18, 22, 0.7), rgba(255, 255, 255, 0.72));
+  font-family: var(--font-body, 'Barlow', system-ui, sans-serif);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.gecis__top {
+  width: 34px;
+  height: 34px;
+  border: 3px solid light-dark(rgba(18, 18, 22, 0.12), rgba(255, 255, 255, 0.14));
+  border-top-color: #00f57a;
+  border-radius: 50%;
+  animation: gecis-don 0.8s linear infinite;
+}
+
+@keyframes gecis-don {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gecis__top {
+    animation-duration: 2.4s;
+  }
+}
+
+/*
+ * Telefonda/tablette (≤960px) çubuk SAYFAYA bağlı, ekrana değil (12 Ekim 2026, kullanıcı: "mobilde
+ * dil seçme alanı butonların üstüne geliyor"). Sabit konumdayken sayfa kaydırıldıkça kartlar ve
+ * düğmeler onun altından geçiyordu. Artık sayfanın tepesinde durur ve kaydırınca sayfayla birlikte
+ * yukarı kayıp gider. Ekranların üst çubukları sağda zaten ona yer bırakıyor.
+ */
+@media (max-width: 960px) {
+  .genel-ust {
+    position: absolute;
+  }
+}

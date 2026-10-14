@@ -1,0 +1,10 @@
+<button
+  class="app-button"
+  [class.app-button--secondary]="variant() === 'secondary'"
+  [type]="type()"
+  [disabled]="disabled()"
+  [attr.aria-disabled]="disabled() ? 'true' : null"
+  [attr.aria-description]="tooltip()"
+>
+  <ng-content></ng-content>
+</button>

@@ -1,0 +1,254 @@
+/*
+ * FIFA kartı — "Futbolcu Karti" referans tasarımının karşılığı (kök dizindeki standalone
+ * dosya; kaynağı bundle'ın son satırındaki JSON string'in içinde).
+ *
+ * Referans 310x570px sabit ölçüdeydi. Kart burada üç boyutta (large/mini/micro) ve farklı
+ * en-boy oranlarında kullanılıyor, bu yüzden ölçüler `cqw` ile KART GENİŞLİĞİNE oranlandı:
+ * 1cqw = kart genişliğinin %1'i, yani 310px'te referansın birebir değeri.
+ *   dolgu 30/26px = 9.7/8.4cqw · reyting 66px = 21.3cqw · mevki 26px = 8.4cqw
+ *   isim 34px = 11cqw · istatistik 27px = 8.7cqw · görsel 200px = 64.5cqw
+ *
+ * DİKKAT: kabın (`.card`) kendi dolgusu `cqw` OLAMAZ — dolgu kap genişliğini, kap genişliği
+ * dolguyu belirler; tarayıcı bu döngüde ölçüyü çözemeyip yazı boyutlarını 0px'e düşürüyor
+ * (mini kartlar bir turluk bomboş çıkmıştı). Bu yüzden dolgulu kutu ayrı bir katman:
+ * `.card__content`.
+ */
+@use 'card-large';
+@use 'card-mini';
+@use 'card-micro-and-fallbacks';
+
+/* Referanstaki kalkan: üst köşeler pahlı, yanlar %80'e kadar düz, sonra tek noktada birleşir. */
+$shield: polygon(0 7%, 7% 0, 93% 0, 100% 7%, 100% 80%, 50% 100%, 0 80%);
+
+@keyframes card-sheen {
+  0%,
+  8% {
+    transform: translateX(-130%) skewX(-18deg);
+  }
+  38%,
+  100% {
+    transform: translateX(320%) skewX(-18deg);
+  }
+}
+
+:host {
+  display: flex;
+  justify-content: center;
+  filter: drop-shadow(var(--shadow-card));
+  transition: transform var(--duration-fast) var(--easing-standard);
+}
+
+:host(:hover),
+:host(:focus-within) {
+  transform: translateY(-3px);
+}
+
+.card {
+  position: relative;
+  container-type: inline-size;
+  clip-path: $shield;
+  font-family: var(--font-card);
+  box-sizing: border-box;
+}
+
+.card__content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 9.7cqw 8.4cqw 0;
+  box-sizing: border-box;
+}
+
+/* Çerçeve ayrı bir katman: 3px'lik kenar kalkanı takip etsin, metni kaydırmasın. */
+.card__border {
+  position: absolute;
+  inset: 0;
+  clip-path: $shield;
+  border: 3px solid;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.card__shine,
+.card__sheen-mask {
+  position: absolute;
+  inset: 0;
+  clip-path: $shield;
+  pointer-events: none;
+}
+
+.card__sheen-mask {
+  overflow: hidden;
+}
+
+.card__sheen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  animation: card-sheen 3.5s ease-in-out infinite;
+}
+
+/* Üst blok: solda reyting sütunu (referansta 74/310), sağda oyuncu görseli. */
+.card__top {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 4.5cqw;
+  flex: 1;
+  min-height: 0;
+}
+
+.card__meta {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-self: flex-start;
+  width: 23.9cqw;
+  flex: none;
+}
+
+.card__rating {
+  font-weight: 600;
+  font-size: 21.3cqw;
+  line-height: 0.88;
+  letter-spacing: -0.03em;
+}
+
+.card__position {
+  font-weight: 500;
+  font-size: 8.4cqw;
+  letter-spacing: 0.04em;
+  margin-top: 1.3cqw;
+}
+
+/*
+ * Kulüp arması: reyting sütununun altında, ayırıcının hemen ardında — referans karttaki
+ * bayrak/arma yuvası. Ölçü `cqw` ile karta bağlı, yani mikro karttan büyük karta kadar
+ * aynı oranda kalıyor.
+ */
+.card__club {
+  width: 15cqw;
+  height: 15cqw;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
+}
+
+.card__tick {
+  width: 12.3cqw;
+  height: 1px;
+  margin: 3.9cqw 0;
+  background: currentColor;
+  opacity: 0.55;
+}
+
+/*
+ * Portre üst bloğun TAMAMINI kaplar (reyting sütununun da arkasına geçer) — referans EA
+ * kartlarında da fotoğraf kartın yarısını kaplar, dar bir kutuya sıkışmaz. Sütunun yanındaki
+ * dar kutu hâlinde kalan alan kartın ~%20'siydi ve yüzler tanınmıyordu.
+ */
+.card__photo {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.card__photo--empty {
+  background: repeating-linear-gradient(135deg, currentColor 0 2.3cqw, transparent 2.3cqw 4.5cqw);
+  opacity: 0.18;
+}
+
+.card__photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom;
+}
+
+/* İsim bandı: ortalanmış, altında 2px'lik ayırıcı — referansın imzası. */
+.card__name {
+  position: relative;
+  flex: none;
+  text-align: center;
+  font-weight: 600;
+  /* Dar kartta (7v7 ızgarası, telefon) 11cqw 9-10px'e iniyordu: 11px alt sınırı. Ad zaten üç noktayla kesilir. */
+  font-size: max(11px, 11cqw);
+  letter-spacing: 0.09em;
+  line-height: 1.05;
+  padding: 1.9cqw 0 2.6cqw;
+  border-bottom: 2px solid currentColor;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card__stats {
+  position: relative;
+  flex: none;
+  display: flex;
+  padding-top: 3.2cqw;
+}
+
+.card__stat-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.3cqw;
+}
+
+.card__stat-divider {
+  width: 2px;
+  margin: 0 3.9cqw;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.card__stat {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.6cqw;
+  font-size: max(11px, 8.7cqw);
+  line-height: 1.15;
+  transition: opacity var(--duration-base) var(--easing-standard);
+}
+
+.card__stat--hidden {
+  opacity: 0;
+}
+
+.card__stat-value {
+  text-align: right;
+  font-weight: 600;
+}
+
+.card__stat-label {
+  font-weight: 400;
+}
+
+/*
+ * Kalkanın daralan ucu — referansta 126/570 = kart yüksekliğinin %22'si. Genişliğe DEĞİL
+ * yüksekliğe oranlı: silüet %80'den sonra daraldığı için bu boşluk oranı, en-boy oranı
+ * değişse de korunmalı; yoksa isim ve istatistikler ucun içine taşar.
+ */
+.card__tail {
+  height: 16%;
+  flex: none;
+}
+
+/*
+ * Çok dar kart (110px altı: 7v7+ kadro ızgarası, telefon): istatistikler 11px'e sığmıyordu
+ * (tarama: 8.3px masaüstü, 7px telefon). Blok gizlenir; reyting, mevki ve ad kalır, altı
+ * istatistiğin ayrıntısı Liste görünümünde.
+ */
+@container (max-width: 110px) {
+  .card__stats {
+    display: none;
+  }
+}

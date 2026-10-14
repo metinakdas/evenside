@@ -1,0 +1,564 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.lineup {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0 auto; // JS boyu-sınırlı bir genişlik verdiğinde ortalanır (bkz. cardWidthPx)
+  background: linear-gradient(165deg, #0d2818, #051208 70%);
+  border: 1px solid rgba(150, 185, 255, 0.14);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow-elevated), 0 0 30px rgba(40, 75, 170, 0.16);
+}
+
+.lineup__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4) var(--space-3);
+}
+
+.lineup__name,
+.lineup__name-input {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 72%;
+  background: rgba(0, 0, 0, 0.4);
+  border: none;
+  color: #fff;
+  padding: 9px 20px 9px 14px;
+  clip-path: polygon(0 0, 100% 0, 86% 100%, 0% 100%);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lineup__name span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lineup__name:hover {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.lineup__name-input {
+  clip-path: none;
+  border-radius: 4px;
+  border: 1px solid var(--color-accent);
+  cursor: text;
+}
+
+.lineup__pencil {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  opacity: 0.75;
+  color: var(--color-accent);
+}
+
+.lineup__badge {
+  flex: none;
+}
+
+.lineup__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0 var(--space-4) var(--space-3);
+}
+
+.lineup__control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-secondary);
+}
+
+.lineup__select {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.lineup__switch {
+  width: 32px;
+  height: 18px;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-pill);
+  position: relative;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--easing-standard);
+}
+
+.lineup__switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform var(--duration-fast) var(--easing-standard);
+}
+
+.lineup__switch:checked {
+  background: var(--color-accent);
+}
+
+.lineup__switch:checked::after {
+  transform: translateX(14px);
+}
+
+.lineup__pitch {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  margin-bottom: var(--space-2);
+}
+
+.lineup__grass {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  clip-path: polygon(12% 0%, 88% 0%, 100% 100%, 0% 100%);
+  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.5));
+}
+
+.grass__base {
+  fill: #0c2317;
+}
+
+.grass__lines {
+  fill: none;
+  stroke: #fff;
+  stroke-opacity: 0.22;
+  stroke-width: 0.6;
+}
+
+.grass__spot {
+  fill: #fff;
+  fill-opacity: 0.22;
+  stroke: none;
+}
+
+.lineup__markers {
+  position: absolute;
+  inset: 0;
+}
+
+.marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 17%;
+  z-index: 2;
+}
+
+.marker--dragging {
+  z-index: 10;
+  pointer-events: none; // sürüklenirken elementFromPoint kendi altındaki oyuncuyu değil HEDEFİ görsün
+}
+
+.marker__jersey {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 15 / 16;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  touch-action: none; // parmakla sürüklerken sayfa kaymasın
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.45));
+  transition: transform var(--duration-fast) var(--easing-standard);
+}
+
+.marker--dragging .marker__jersey {
+  cursor: grabbing;
+  transform: scale(1.15);
+  transition: none; // canlı sürüklemede gecikme olmasın, doğrudan imleci takip etsin
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.6));
+}
+
+/*
+ * Üzerine gelince forma büyür, aydınlanır ve ince bir halka kazanır: "buraya tıklanabilir"
+ * hissi yalnızca imleç değişiminden gelmiyordu (kullanıcı geri bildirimi).
+ */
+.marker__jersey:hover {
+  transform: scale(1.08);
+  filter: brightness(1.12) drop-shadow(0 0 0 2px rgba(255, 255, 255, 0.55))
+    drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+}
+
+.marker__jersey:active {
+  cursor: grabbing;
+}
+
+/*
+ * Seçili durum artık vurgu rengiyle değil, nötr beyaz kalın halkayla anlatılıyor: turuncu ve
+ * yeşil aynı ekranda hem durum hem uyarı hem marka anlamına gelince göz hiyerarşiyi
+ * okuyamıyordu (Tur 3 · Ö4). Turuncu YALNIZCA "mevki dışı" uyarısına ayrıldı.
+ */
+.marker__jersey--selected {
+  transform: scale(1.12);
+  filter: drop-shadow(0 0 0 3px rgba(255, 255, 255, 0.9)) drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+}
+
+.marker__jersey--drag-over {
+  transform: scale(1.15);
+  filter: drop-shadow(0 0 0 3px #fff) drop-shadow(0 4px 12px rgba(255, 255, 255, 0.6));
+}
+
+.marker__jersey-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  stroke: rgba(0, 0, 0, 0.32);
+  stroke-width: 1;
+}
+
+.marker__jersey-shade {
+  pointer-events: none;
+}
+
+/* Kulüp forması: vektör formanın yerini alır, aynı kutuyu doldurur. */
+.marker__kit {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/*
+ * Gerçek formanın üstünde numara. Yalnızca gölge yetmiyordu: sarı sponsor baskısının üstüne
+ * düşen numara okunmuyordu (tarayıcı test raporu 8). Numara kendi koyu diskini taşıyor —
+ * formanın deseni ne olursa olsun kontrast sabit.
+ */
+.marker__number--kit {
+  min-width: 20px;
+  padding: 1px 5px;
+  border-radius: var(--radius-pill);
+  background: rgba(8, 8, 10, 0.72);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+}
+
+.marker__number {
+  position: relative;
+  z-index: 1;
+  color: #fff;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  font-size: 15px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  margin-top: 8%;
+}
+
+.marker__photo {
+  width: 82%;
+  height: 82%;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: top center;
+  border: 2px solid #fff;
+  background: var(--color-panel);
+}
+
+.marker__rating {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  z-index: 3;
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-bg);
+}
+
+/*
+ * Seçilen oyuncunun ÜSTÜNDEKİ eylem satırı: ⇄ değiştir, ✎ düzenle, × çıkar. Hover'da beliren
+ * tek bir × vardı; ne takasın varlığı ne de düzenleme buradan görülebiliyordu.
+ */
+.marker__actions {
+  // Varsayılan: gizli ama DOM'da. `--open` (seçili) ya da hover/odak ile açılır.
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--duration-fast) var(--easing-standard),
+    transform var(--duration-fast) var(--easing-standard);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  background: rgba(10, 12, 24, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.55);
+}
+
+.marker:hover .marker__actions,
+.marker:focus-within .marker__actions,
+.marker__actions--open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/*
+ * Dokunmatikte hover yok: eylem yalnızca oyuncu SEÇİLİYKEN görünür, yoksa parmağın altında
+ * kendiliğinden açılıp yanlışlıkla basılan bir düğme olurdu.
+ */
+@media (hover: none) {
+  .marker:hover .marker__actions {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .marker__actions--open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.marker__act {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: #e9e9ee;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--easing-standard);
+}
+
+.marker__act:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.marker__act--swap {
+  background: var(--color-accent);
+  color: #05130a;
+  font-weight: 700;
+}
+
+.marker__act--swap:hover {
+  background: #4dffa6;
+}
+
+.marker__act--danger:hover {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+/*
+ * Takas hedefi: karşı kadrodan "Değiştir" denince bu kartın oyuncuları yanıp söner — nereye
+ * tıklanacağı tarif edilmeden görülür.
+ */
+.marker__jersey--target {
+  animation: swap-target 1.1s ease-in-out infinite;
+  cursor: pointer;
+}
+
+/*
+ * Parlama `box-shadow` değil `drop-shadow`: işaretçi bir SVG forma, kutu gölgesi formanın
+ * etrafına kare bir çerçeve çiziyordu. drop-shadow alfayı takip eder, ışık formanın kendi
+ * hattından taşar.
+ */
+@keyframes swap-target {
+  0%,
+  100% {
+    filter: brightness(1) drop-shadow(0 0 0 rgba(0, 245, 122, 0));
+  }
+  50% {
+    filter: brightness(1.3) drop-shadow(0 0 9px rgba(0, 245, 122, 0.95));
+  }
+}
+
+.marker__name {
+  background: #fff;
+  color: #101012;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  white-space: nowrap;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+
+/*
+ * Pozisyon dışı oynayan oyuncu: kehribar halka + oynadığı mevkiyi söyleyen küçük rozet.
+ * Seçim (yeşil) ve sürükle-hedefi (beyaz) halkalarından ayrı bir renk seçildi ki üst üste
+ * geldiklerinde hangisinin ne olduğu karışmasın.
+ */
+.marker__jersey--off-position {
+  filter: drop-shadow(0 0 0 2px #f5a623) drop-shadow(0 3px 8px rgba(245, 166, 35, 0.45));
+}
+
+.marker__op {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  background: #f5a623;
+  color: #1a1206;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  padding: 2px 4px;
+  border-radius: 3px;
+  pointer-events: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+/*
+ * Vekil kaleci: kesikli çerçeve, gerçek kaleciden bakışta ayrılsın (kontrol raporu Ö3).
+ * Turuncu "pozisyon dışı" halkası KULLANILMAZ — bu bir yerleşim kazası değil, plan.
+ */
+.marker__jersey--stand-in::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border: 2px dashed rgba(255, 255, 255, 0.75);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.marker__op--stand-in {
+  // Mutlak konumda kaleci satırının üstüne biniyordu; akışa alındı ve marker'ın altına
+  // oturuyor (Tur 3 · A6).
+  position: static;
+  margin-top: 2px;
+  background: #fff;
+  color: #101012;
+}
+
+/*
+ * Kale sırası artık sahanın ÜSTÜNDE değil, kartın ALTINDA tam genişlik bir bant. Üstteyken
+ * marker'ların "KAL · vekil" çipiyle üst üste biniyor, üçüncü isim ve periyot notu
+ * okunmuyordu (Tur 3 · A6 / Ö7).
+ */
+.lineup__rotation {
+  margin: var(--space-2) 0 0;
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sharp);
+  background: rgba(255, 255, 255, 0.05);
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.lineup__rotation-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+
+.lineup__rotation-order {
+  color: var(--color-text-primary);
+}
+
+.lineup__rotation-note {
+  opacity: 0.75;
+}
+
+/*
+ * MOBİL: kadro haritasının kendi kontrolleri de parmakla kullanılmalı — takım adı,
+ * diziliş seçici ve oyuncunun üstündeki ⇄ düğmesi 44px'e çıkıyor.
+ */
+@media (max-width: 640px) {
+  .lineup__name,
+  .lineup__select {
+    min-height: 44px;
+    font-size: 15px;
+  }
+
+  .marker__act {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
+
+  .marker__actions {
+    gap: 6px;
+  }
+}
+
+/* Kadro haritası hedefleri — tarama turu (10 Ekim 2026): masaüstünde 44px altı hedefler. */
+.lineup__name {
+  position: relative;
+}
+
+.lineup__name::after {
+  content: '';
+  position: absolute;
+  inset: -5px -0px;
+}
+
+.marker__act {
+  position: relative;
+}
+
+.marker__act::after {
+  content: '';
+  position: absolute;
+  inset: -9px -9px;
+}
+
+.lineup__select {
+  min-height: 44px;
+}

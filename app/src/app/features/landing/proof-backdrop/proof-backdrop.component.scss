@@ -1,0 +1,55 @@
+/*
+ * Bölümün tam genişlik hesabı (soldaki rayın payı `--ray`). Bölümün kendi bandının
+ * (`.proof::before`, z-index -1) üstünde, içeriğin altında: aynı z katmanında DOM'da sonra geldiği
+ * için bandın üstüne boyanır.
+ */
+:host {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  left: calc(50% - var(--ray, 0px) / 2);
+  width: 100vw;
+  overflow: hidden;
+  transform: translateX(-50%);
+  pointer-events: none;
+  view-timeline: --proof-zemin block;
+}
+
+.foto {
+  position: absolute;
+  inset: 0;
+  background: url('/foto-saha-kusbakisi.webp') center / cover no-repeat;
+  /* Biraz karartılır ve doygunluğu kırılır: kartlar ve başlık öne çıksın, çim yeşili
+     vurgu yeşiliyle yarışmasın. */
+  filter: brightness(0.7) saturate(0.85);
+}
+
+/* Perde: kenarlardan içe vinyet + üst/alt kenarı komşu koyu bölümlere eriten geçiş. */
+:host::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 90% at 50% 50%, transparent 40%, rgba(5, 9, 6, 0.55) 100%),
+    linear-gradient(180deg, #0b0b0d 0%, rgba(11, 11, 13, 0) 14%, rgba(11, 11, 13, 0) 84%, #0b0b0d 100%);
+}
+
+/* Kaydırırken çok hafif yakınlaşma: ekrana gelirken saha "otururken" kameranın inişi gibi. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .foto {
+      animation: foto-in linear both;
+      animation-timeline: --proof-zemin;
+      animation-range: entry 0% cover 50%;
+    }
+  }
+}
+
+@keyframes foto-in {
+  from {
+    transform: scale(1.12);
+  }
+  to {
+    transform: scale(1);
+  }
+}

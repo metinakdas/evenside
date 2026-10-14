@@ -1,0 +1,402 @@
+@use '../../../styles/mac-isik' as isik;
+
+/*
+ * ÜÇ ADIM — beyaz Mac ışıklı kartlar (kura/adalet kartlarının dili). Fotoğraf kartın başında,
+ * alt kenarı beyaz gövdeye eriyor; numara rozeti fotoğrafla gövdenin sınırında. Metin koyu,
+ * vurgu koyu yeşil (neon yeşil beyazda okunmaz); süre çipi açık yeşil zeminde.
+ */
+$yesil: #00f57a;
+$koyu-yesil: #0b7a44;
+$display: 'Barlow Condensed', 'Saira Condensed', system-ui, sans-serif;
+$mono: var(--font-mono, 'Space Mono', monospace);
+$beyaz: #fbfcfa; // gövdenin rengi — fotoğrafın erime gradyanı buna varır
+
+:host {
+  display: block;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(16px, 2vw, 26px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  @include isik.mac-isik(
+    $renk: $yesil,
+    $parlak: rgba(11, 122, 68, 0.9),
+    $kalinlik: 2px,
+    $suz: rgba(0, 245, 122, 0.22),
+    $dongu: true
+  );
+
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 20px;
+  background: linear-gradient(180deg, $beyaz, #f1f4f0);
+  box-shadow:
+    0 24px 56px rgba(0, 0, 0, 0.42),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
+  color: #111;
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.35s ease;
+}
+
+/* Üç kartın parıltısı sırayla geçer, aynı anda değil. */
+@media (prefers-reduced-motion: no-preference) {
+  .step:nth-child(2)::after {
+    animation-delay: 2.3s;
+  }
+
+  .step:nth-child(3)::after {
+    animation-delay: 4.6s;
+  }
+}
+
+.step:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 32px 64px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(0, 245, 122, 0.4);
+}
+
+/* --- Fotoğraf: paletle evlendirilmiş, alt kenarı beyaza eriyor --- */
+.step__foto {
+  position: relative;
+  display: block;
+  height: clamp(128px, 12vw, 168px);
+  background-position: center;
+  background-size: cover;
+  filter: grayscale(0.25) saturate(0.85) brightness(0.8);
+  transition:
+    filter 0.35s ease,
+    transform 0.5s ease;
+}
+
+.step__foto::after {
+  content: '';
+  position: absolute;
+  inset: 64% 0 -1px;
+  background: linear-gradient(180deg, transparent, $beyaz);
+}
+
+.step:hover .step__foto {
+  filter: grayscale(0) saturate(1) brightness(0.92);
+  transform: scale(1.05);
+}
+
+/* --- Numara rozeti: fotoğrafla gövdenin sınırında --- */
+.step__no {
+  position: absolute;
+  z-index: 2;
+  top: calc(clamp(128px, 12vw, 168px) - 26px);
+  left: 22px;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1.5px solid rgba(11, 122, 68, 0.6);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+  font-family: $display;
+  font-style: italic;
+  font-weight: 800;
+  font-size: 22px;
+  color: $koyu-yesil;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    transform 0.35s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+.step:hover .step__no {
+  background: $yesil;
+  border-color: $koyu-yesil;
+  color: #05130a;
+  transform: scale(1.08) rotate(-6deg);
+}
+
+/* --- Gövde --- */
+.step__govde {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 14px;
+  padding: 34px 24px 24px;
+}
+
+/* Bilgi ile söz AYNI hücrede üst üste: söz yükselirken kart boyu değişmez. */
+.step__alan {
+  display: grid;
+  flex: 1;
+}
+
+.step__bilgi,
+.step__motto {
+  grid-area: 1 / 1;
+}
+
+.step__bilgi {
+  transition:
+    opacity 0.3s ease,
+    transform 0.35s ease;
+}
+
+.step__title {
+  margin: 0 0 8px;
+  font-family: $display;
+  font-style: italic;
+  font-weight: 800;
+  font-size: clamp(21px, 1.7vw, 26px);
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: #111;
+}
+
+.step__text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: #55524b;
+}
+
+.step__motto {
+  align-self: center;
+  margin: 0;
+  font-family: $display;
+  font-style: italic;
+  font-weight: 800;
+  font-size: clamp(24px, 2.1vw, 32px);
+  line-height: 1.04;
+  text-transform: uppercase;
+  color: $koyu-yesil;
+  pointer-events: none;
+
+  span {
+    display: inline-block;
+    margin-right: 0.24em;
+    opacity: 0;
+    transform: translateY(70%);
+    transition:
+      opacity 0.25s ease,
+      transform 0.45s cubic-bezier(0.2, 1.3, 0.4, 1);
+    transition-delay: calc(var(--k, 0) * 60ms);
+  }
+}
+
+.step:hover .step__bilgi {
+  opacity: 0;
+  transform: translateY(-14px);
+}
+
+.step:hover .step__motto span {
+  opacity: 1;
+  transform: none;
+}
+
+/*
+ * SÜRE ÇİPİ (11 Ekim 2026, kullanıcı: "süre çipinin tasarımı çok kötü, saat ikonu koy"): beyaz
+ * kartın üstünde KOYU bir kronometre ekranı — neon yeşil rakam koyu zeminde okunur ve kartın
+ * geri kalanından ayrışır. Solda ibresi dönen kronometre; kart üzerine gelince ibre hızlanır.
+ */
+.step__time {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px 6px 8px;
+  border: 1px solid rgba(0, 245, 122, 0.5);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #13201a, #0a120e);
+  box-shadow:
+    0 6px 14px rgba(5, 19, 10, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  font-family: $mono;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  color: $yesil;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.step__saat {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  padding: 1px;
+  border-radius: 50%;
+  background: rgba(0, 245, 122, 0.14);
+  fill: none;
+  stroke: $yesil;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.step__saat-ibre {
+  transform-box: view-box;
+  transform-origin: 12px 13.5px;
+}
+
+.step__sure {
+  text-shadow: 0 0 10px rgba(0, 245, 122, 0.45);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .step__saat-ibre {
+    animation: sure-ibre 6s linear infinite;
+  }
+
+  .step:hover .step__saat-ibre {
+    animation-duration: 0.9s;
+  }
+
+  .step:hover .step__time {
+    transform: translateY(-2px);
+    box-shadow:
+      0 10px 22px rgba(5, 19, 10, 0.3),
+      0 0 0 3px rgba(0, 245, 122, 0.18);
+  }
+}
+
+@keyframes sure-ibre {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ------------------------------------------------------------ DAR EKRAN / DOKUNMATİK */
+@media (max-width: 860px) {
+  .steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (hover: none) {
+  .step__motto {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step,
+  .step__foto,
+  .step__no,
+  .step__bilgi,
+  .step__motto span {
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------------------ EKRANA GELİŞ: DAĞITIM (11 Ekim 2026) */
+/*
+ * Geçiş koreografisi: kartlar masaya dağıtılır gibi sırayla aşağıdan devrilerek gelir (alt kenarı
+ * menteşe, 70°'den düzleşir). Kaydırmaya bağlı ve kart başına kaydırılmış aralık: 1 → 2 → 3.
+ * Hover'daki `transform` bozulmasın diye `translate`/`rotate` AYRI özellikler.
+ */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) and (min-width: 861px) {
+    .steps {
+      perspective: 1200px;
+    }
+
+    .step {
+      transform-origin: 50% 100%;
+      animation: gec-dagit linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 80%;
+    }
+
+    .step:nth-child(2) {
+      animation-range: entry 10% entry 90%;
+    }
+
+    .step:nth-child(3) {
+      animation-range: entry 20% entry 100%;
+    }
+  }
+}
+
+@keyframes gec-dagit {
+  from {
+    opacity: 0;
+    translate: 0 120px;
+    rotate: x 70deg;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    rotate: x 0deg;
+  }
+}
+
+/* ------------------------------------------------------------ EKRANDAN ÇIKIŞ: DESTE (11 Ekim 2026) */
+/*
+ * Ekrandan çıkarken kartlar DESTEYE toplanır: 1. ve 3. kart ortadakinin üstüne kayıp hafifçe
+ * eğilir (`transform`, exit 0–45%), sonra deste (`.steps`) dönerek küçülür ve yukarı savrulur
+ * (exit 40–90%). Çizelge landing'deki `.how` bölümünün `--adim`'i (adlandırılmış çizelgeler bileşen
+ * sınırını geçer). Kartın GİRİŞİ `translate`/`rotate` kullanıyor, hover `transform` — çıkış da
+ * `transform` olduğu için YALNIZCA İLERİ dolgulu (`forwards`): aralığa girmeden hiç uygulanmaz,
+ * durakta hover'daki kalkma ve giriş animasyonu bozulmaz.
+ */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) and (min-width: 861px) {
+    .step:nth-child(2) {
+      z-index: 2;
+    }
+
+    .step:nth-child(1),
+    .step:nth-child(3) {
+      animation:
+        gec-dagit linear both,
+        deste-topla linear forwards;
+      animation-timeline: view(), --adim;
+    }
+
+    .step:nth-child(1) {
+      --yon: 1;
+      animation-range: entry 0% entry 80%, exit 2% exit 45%;
+    }
+
+    .step:nth-child(3) {
+      --yon: -1;
+      animation-range: entry 20% entry 100%, exit 2% exit 45%;
+    }
+
+    .steps {
+      animation: deste-savrul linear forwards;
+      animation-timeline: --adim;
+      animation-range: exit 40% exit 90%;
+    }
+  }
+}
+
+@keyframes deste-topla {
+  from {
+    transform: none;
+  }
+  to {
+    transform: translateX(calc(var(--yon) * (100% + 2vw))) rotate(calc(var(--yon) * -7deg)) translateY(8px);
+  }
+}
+
+@keyframes deste-savrul {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translate(18vw, -46vh) rotate(-14deg) scale(0.32);
+  }
+}

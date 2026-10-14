@@ -1,0 +1,131 @@
+/*
+ * SAAT İZİ — "Üç adım" ekranının paletinde (koyu zemin, neon yeşil): kontur kronometre, dolu
+ * kronometre ve dijital "05:00" ekranı. Belirirken dönerek büyür, ibre hızla bir tur atar,
+ * sonra yükselip söner (ritim SSS'teki soru izi ile aynı: ~1,1 sn).
+ */
+$yesil: #00f57a;
+$mono: var(--font-mono, 'Space Mono', monospace);
+
+/* Ekranı boydan boya kaplar (bölüm kutusu sayfa genişliğiyle sınırlı — soru izindeki aynı hesap). */
+:host {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(50% - var(--ray, 0px) / 2 - 50vw);
+  width: 100vw;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.saat {
+  position: absolute;
+  left: var(--x, -999px);
+  top: var(--y, -999px);
+  opacity: 0;
+  translate: -50% -50%;
+  color: $yesil;
+  filter: drop-shadow(0 0 12px rgba(0, 245, 122, 0.45));
+
+  svg {
+    display: block;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+}
+
+.saat--kontur svg,
+.saat--dolu svg {
+  width: calc(64px * var(--olcek, 1));
+  height: calc(64px * var(--olcek, 1));
+}
+
+.saat__tepe,
+.saat__merkez {
+  fill: currentColor;
+  stroke: none;
+}
+
+/* Dolu kronometre: neon kadran, koyu ibre. */
+.saat--dolu {
+  .saat__govde {
+    fill: $yesil;
+  }
+
+  .saat__ibre {
+    stroke: #05130a;
+  }
+
+  .saat__merkez {
+    fill: #05130a;
+  }
+}
+
+/* Dijital ekran: koyu hap, neon ikon + 05:00 (süre çipiyle aynı dil). */
+.saat--dijital {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(8px * var(--olcek, 1));
+  padding: calc(8px * var(--olcek, 1)) calc(16px * var(--olcek, 1)) calc(8px * var(--olcek, 1))
+    calc(10px * var(--olcek, 1));
+  border: 1px solid rgba(0, 245, 122, 0.55);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #13201a, #0a120e);
+
+  .saat__ikon {
+    width: calc(24px * var(--olcek, 1));
+    height: calc(24px * var(--olcek, 1));
+    stroke-width: 2;
+  }
+}
+
+.saat__rakam {
+  font-family: $mono;
+  font-weight: 700;
+  font-size: calc(20px * var(--olcek, 1));
+  line-height: 1;
+  letter-spacing: 0.04em;
+}
+
+.saat__ibre {
+  transform-box: view-box;
+  transform-origin: 24px 27px;
+}
+
+.saat--dijital .saat__ibre {
+  transform-origin: 12px 13.5px;
+}
+
+.saat--canli {
+  animation: saat-cik 1.1s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+
+  .saat__ibre {
+    animation: saat-ibre 1.1s cubic-bezier(0.3, 0.7, 0.4, 1) both;
+  }
+}
+
+@keyframes saat-cik {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(calc(var(--aci, 0deg) - 30deg));
+  }
+  22% {
+    opacity: 1;
+    transform: scale(1.08) rotate(var(--aci, 0deg));
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-18px) scale(1) rotate(var(--aci, 0deg));
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-60px) scale(0.92) rotate(calc(var(--aci, 0deg) + 8deg));
+  }
+}
+
+@keyframes saat-ibre {
+  to {
+    transform: rotate(540deg);
+  }
+}

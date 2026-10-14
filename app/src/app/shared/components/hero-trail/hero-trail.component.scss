@@ -1,0 +1,63 @@
+/*
+ * İmleç izi. Kap giriş ekranını kaplar ve TIKLAMAYI YUTMAZ: içindeki düğmeler
+ * ("Ücretsiz başla", "Nasıl çalışıyor") çalışmaya devam etmeli.
+ */
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/*
+ * Nesnenin kendisi ÇERÇEVESİZ: görseller saydam arka planlı kesitler (CC0 PNG), tıpkı
+ * referanstaki anahtarlık render'ları gibi. Kutu/çerçeve eklemek onları rozete çevirirdi.
+ */
+.iz__oge {
+  --olcu: clamp(104px, 11vw, 190px);
+  position: absolute;
+  left: var(--x, -999px);
+  top: var(--y, -999px);
+  display: block;
+  width: var(--olcu);
+  height: var(--olcu);
+  /* İmlecin tam ortasında dursun. */
+  margin: calc(var(--olcu) / -2) 0 0 calc(var(--olcu) / -2);
+  opacity: 0;
+  transform: rotate(var(--aci, 0deg)) scale(0.6);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    /* Koyu zeminde nesne yüzmesin: altına kendi gölgesi. */
+    filter: drop-shadow(0 18px 26px rgba(0, 0, 0, 0.55));
+  }
+}
+
+/* Belirir, hafifçe yukarı süzülür, söner. Süre bileşendeki "omur" ile AYNI. */
+.iz__oge--canli {
+  animation: iz-belir 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes iz-belir {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--aci, 0deg)) scale(calc(var(--olcek, 1) * 0.62));
+  }
+  20% {
+    opacity: 1;
+    transform: rotate(var(--aci, 0deg)) scale(var(--olcek, 1));
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(calc(var(--aci, 0deg) * 1.5)) scale(calc(var(--olcek, 1) * 0.94)) translateY(-30px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iz__oge {
+    display: none;
+  }
+}

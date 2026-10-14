@@ -1,0 +1,72 @@
+<div
+  class="card"
+  [class.card--large]="size() === 'large'"
+  [class.card--mini]="size() === 'mini'"
+  [class.card--micro]="size() === 'micro'"
+  [style.background]="background()"
+  [style.color]="textColor()"
+>
+  <!--
+    "Futbolcu Karti" referans tasarımının düzeni: sol sütunda reyting + mevki + ince ayırıcı,
+    sağda oyuncu görseli, altta çizgili isim bandı ve iki sütun istatistik. Bayrak ve kulüp
+    arması YOK (kullanıcı isteği).
+  -->
+  <div class="card__border" [style.border-color]="borderColor()"></div>
+  <div class="card__shine" [style.background]="shine()"></div>
+  @if (showSheen()) {
+    <div class="card__sheen-mask"><div class="card__sheen"></div></div>
+  }
+
+  <!--
+    İçerik ayrı bir katmanda: ölçüler `cqw` ile kart genişliğine bağlı, ama kabın KENDİ dolgusu
+    `cqw` olamaz — dairesel bağımlılık olur ve tarayıcı kap genişliğini çözemeyip yazı boyutunu
+    0'a düşürür (mini kartlar bu yüzden bomboş çıkmıştı). Kap `.card`, dolgulu kutu bu.
+  -->
+  <div class="card__content">
+    <div class="card__top">
+      <div class="card__meta">
+        <span class="card__rating">{{ ratingText() }}</span>
+        <span class="card__position">{{ positionText() }}</span>
+        <span class="card__tick"></span>
+        @if (teamLogo(); as logo) {
+          <img class="card__club" [src]="logo" alt="" />
+        }
+      </div>
+
+      @if (showDetail()) {
+        <div class="card__photo" [class.card__photo--empty]="!player().input.photoImage">
+          @if (player().input.photoImage) {
+            <img class="card__photo-img" [src]="player().input.photoImage" alt="" />
+          }
+        </div>
+      }
+    </div>
+
+    <div class="card__name">{{ surname() }}</div>
+
+    @if (showStats()) {
+      <div class="card__stats">
+        <div class="card__stat-col">
+          @for (stat of leftStats(); track stat.label) {
+            <div class="card__stat" [class.card__stat--hidden]="!stat.revealed">
+              <span class="card__stat-value">{{ stat.value }}</span>
+              <span class="card__stat-label">{{ stat.label }}</span>
+            </div>
+          }
+        </div>
+        <div class="card__stat-divider"></div>
+        <div class="card__stat-col">
+          @for (stat of rightStats(); track stat.label) {
+            <div class="card__stat" [class.card__stat--hidden]="!stat.revealed">
+              <span class="card__stat-value">{{ stat.value }}</span>
+              <span class="card__stat-label">{{ stat.label }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Kalkanın daralan ucu: referansta da boş bırakılıyor. -->
+    <div class="card__tail"></div>
+  </div>
+</div>

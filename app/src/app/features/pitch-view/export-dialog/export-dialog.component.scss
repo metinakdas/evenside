@@ -1,0 +1,164 @@
+:host {
+  display: contents;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(2px);
+}
+
+/* Küçük ve tek işli: üç alan + iki eylem. İç scroll yok. */
+.dialog {
+  width: min(100%, 420px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--r-md, 8px);
+  background: #121216;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+}
+
+.dialog__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.dialog__close {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--r-sm, 4px);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.dialog__close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-primary);
+}
+
+.dialog__hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.field__label {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+}
+
+.field-row {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.input {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--r-sm, 4px);
+  background: #0d0d11;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 14px;
+}
+
+.input--invalid {
+  border-color: var(--color-danger, #ef4444);
+}
+
+.field__error {
+  font-size: 12px;
+  color: #ff8a8a;
+}
+
+/* Alanın tamamı tıklanabilir: takvim yalnızca simgeden değil her yerden açılır. */
+.input[type='datetime-local'] {
+  cursor: pointer;
+}
+
+/* Takvim simgesi koyu temada görünsün. */
+.input[type='datetime-local']::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.dialog__foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+}
+
+.ghost,
+.primary {
+  min-height: 40px;
+  padding: 0 20px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.ghost {
+  border: 1px solid var(--color-divider);
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+.ghost:hover {
+  color: var(--color-text-primary);
+}
+
+.primary {
+  border: 0;
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+}
+
+.primary:hover {
+  filter: brightness(1.08);
+}
+
+/* "Vazgeç" en solda, iki olumlu eylemden ayrı: yanlışlıkla basılmasın. */
+.dialog__cancel {
+  margin-right: auto;
+}

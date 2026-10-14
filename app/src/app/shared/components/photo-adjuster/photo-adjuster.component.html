@@ -1,0 +1,47 @@
+<div class="adjuster">
+  <p class="adjuster__title">{{ t('form.fotoYerlestir') }}</p>
+
+  <!--
+    Çerçeve = kartın portre alanı. Sürükleyerek konumlandırılır, tekerlek/kaydırıcı ile
+    yakınlaştırılır; ok tuşları da çalışır (sürükleme tek giriş yolu olmasın).
+  -->
+  <div
+    class="frame"
+    tabindex="0"
+    role="application"
+    [attr.aria-label]="t('foto.ipucu')"
+    [style.width.px]="frameWidth"
+    [style.height.px]="frameHeight"
+    (pointerdown)="onPointerDown($event)"
+    (pointermove)="onPointerMove($event)"
+    (pointerup)="onPointerUp($event)"
+    (pointercancel)="onPointerUp($event)"
+    (keydown)="onKeydown($event)"
+    (wheel)="onWheel($event)"
+  >
+    <img #image class="frame__img" [src]="source()" [style.transform]="transform()" (load)="onImageLoad()" alt="" />
+  </div>
+
+  <div class="zoom">
+    <button type="button" class="zoom__btn" (click)="stepZoom(-zoomStep)" [attr.aria-label]="t('foto.uzaklastir')">−</button>
+    <input
+      class="zoom__range"
+      type="range"
+      [min]="minZoom"
+      [max]="maxZoom"
+      [step]="zoomStep"
+      [value]="zoom()"
+      (input)="onZoomInput($event)"
+      [attr.aria-label]="t('foto.zum')"
+    />
+    <button type="button" class="zoom__btn" (click)="stepZoom(zoomStep)" [attr.aria-label]="t('foto.yakinlastir')">+</button>
+    <span class="zoom__value">%{{ zoomPercent() }}</span>
+  </div>
+
+  <div class="adjuster__actions">
+    <button type="button" class="adjuster__ghost" (click)="reset()">{{ t('kura.sifirla') }}</button>
+    <span class="adjuster__spacer"></span>
+    <button type="button" class="adjuster__ghost" (click)="cancel()">{{ t('oyun.vazgec') }}</button>
+    <button type="button" class="adjuster__apply" [disabled]="!ready()" (click)="apply()">{{ t('foto.uygula') }}</button>
+  </div>
+</div>

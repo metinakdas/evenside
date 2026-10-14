@@ -1,0 +1,14 @@
+<div class="stack" role="status" aria-live="polite">
+  @for (n of notices.notices(); track n.id) {
+    <div class="toast" [class]="'toast--' + n.kind">
+      <span class="toast__dot" aria-hidden="true"></span>
+      <span class="toast__text">{{ n.text }}</span>
+      @if (n.action) {
+        <button type="button" class="toast__action" (click)="n.action!.run(); notices.dismiss(n.id)">
+          {{ n.action.label }}
+        </button>
+      }
+      <button type="button" class="toast__close" (click)="notices.dismiss(n.id)" [attr.aria-label]="t('ortak.bildirimKapat')">×</button>
+    </div>
+  }
+</div>

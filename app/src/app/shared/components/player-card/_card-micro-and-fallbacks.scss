@@ -1,0 +1,48 @@
+// `size="micro"` — tören sahasındaki ve saha görünümündeki en küçük kart. Görsel ve
+// istatistik yok; bu boyutta ikisi de lekeye dönüşüyor. Reyting + mevki + isim kalır.
+//
+// Tipografi burada `cqw` DEĞİL px: 56px genişlikte 11cqw = 6.2px olurdu, projenin 11px alt
+// sınırının altına düşerdi.
+
+.card--micro {
+  width: 56px;
+  height: 78px;
+}
+
+.card--micro .card__content {
+  padding: 6px 5px 0;
+}
+
+.card--micro .card__border {
+  border-width: 2px;
+}
+
+.card--micro .card__tick,
+.card--micro .card__club {
+  display: none;
+}
+
+// Uç boşluğu mikro kartta da gerekli, yoksa isim kalkanın sivri ucuna oturuyor.
+.card--micro .card__tail {
+  height: 16%;
+}
+
+.card--micro .card__meta {
+  width: 100%;
+}
+
+.card--micro .card__rating {
+  font-size: 22px;
+}
+
+.card--micro .card__position {
+  font-size: 11px;
+  margin-top: 0;
+}
+
+.card--micro .card__name {
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  padding: 2px 0 3px;
+  border-bottom-width: 1px;
+}

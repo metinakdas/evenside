@@ -1,0 +1,17 @@
+<label class="stat-slider">
+  <div class="stat-slider__head">
+    <span class="text-mono-label">{{ label() }}</span>
+    <span class="stat-slider__value text-mono-data">{{ value() }}</span>
+  </div>
+  <input
+    class="stat-slider__input"
+    type="range"
+    [attr.aria-label]="label()"
+    [min]="min()"
+    [max]="max()"
+    [step]="step()"
+    [value]="value()"
+    [style.--fill.%]="fillPercent()"
+    (input)="onInput($event)"
+  />
+</label>

@@ -1,0 +1,227 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Saha 42 — sıfırla</title>
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0b0b0d;
+    color: #fff;
+    font: 15px/1.6 Barlow, system-ui, sans-serif;
+  }
+  .box {
+    width: min(600px, calc(100vw - 32px));
+    padding: 28px;
+    border: 1px solid rgba(0, 245, 122, 0.35);
+    background: #141417;
+  }
+  h1 { margin: 0 0 4px; font-size: 22px; }
+  h2 { margin: 22px 0 6px; font-size: 15px; color: #00f57a; }
+  p { margin: 0 0 12px; color: rgba(255, 255, 255, 0.68); font-size: 13.5px; }
+  ul { margin: 0 0 14px 18px; padding: 0; color: rgba(255, 255, 255, 0.6); font-size: 13px; }
+  code { color: #9ad; }
+  button {
+    min-height: 44px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 999px;
+    background: #00f57a;
+    color: #05130a;
+    font: 700 13.5px Barlow, sans-serif;
+    cursor: pointer;
+  }
+  button.ghost { background: transparent; border: 1px solid rgba(255, 255, 255, 0.25); color: #fff; }
+  button.danger { background: #ef4444; color: #fff; }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+  .ok { color: #00f57a; font-weight: 700; }
+  .err { color: #ff8a8a; font-weight: 700; }
+  hr { border: 0; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 18px 0 0; }
+</style>
+<div class="box">
+  <h1>Saha 42 — sıfırla</h1>
+  <p>İlk defa giriş yapmış kullanıcı hâline dönmek için iki taraf da silinmeli.</p>
+
+  <h2>1 · Sunucu (havuzdaki oyuncular, takımlar, üyelikler)</h2>
+  <p id="serverState">Durum okunuyor…</p>
+  <div class="row">
+    <button id="count" class="ghost">Say</button>
+    <button id="wipeServer" class="danger" disabled>Sunucudaki her şeyi sil</button>
+  </div>
+  <p id="serverLog"></p>
+
+  <hr />
+
+  <h2>2 · Bu cihaz (tarayıcıdaki kayıtlar)</h2>
+  <ul id="keys"></ul>
+  <div class="row">
+    <button id="wipe">Bu cihazı sıfırla</button>
+    <button id="wipeAll" class="ghost">Oturumu da kapat</button>
+    <button id="resetPopup" class="ghost">Açılış davetini geri getir</button>
+  </div>
+  <p id="done"></p>
+</div>
+
+<script>
+  /*
+   * Bu sayfa uygulamanın DIŞINDA duran bir bakım aracıdır. Sunucudaki veriyi silebilmesinin
+   * sebebi, tarayıcıda zaten açık olan Supabase oturumunu kullanması: RLS politikaları
+   * `authenticated` rolüne yazılı, dolayısıyla anon anahtarla silme mümkün değil — ama
+   * kullanıcının kendi erişim jetonuyla mümkün.
+   */
+  const SUPABASE_URL = 'https://gqkwuilixnhhfvjnbnvm.supabase.co';
+  const ANON_KEY = 'sb_publishable_GEsYHPqcpBLl56mdoPPYgg_DkXDWaaX';
+
+  const KEYS = [
+    'saha42.squad.v1',
+    'saha42.squad.v2',
+    'saha42.intro.skipped',
+    'saha42.match.v1',
+    'saha42.history.v1',
+    'saha42.onboarding.v1',
+    'saha42.cardmatch.v1',
+    'saha42.ceremony.speed',
+    'saha42.ceremony.skipAll',
+  ];
+
+  /*
+   * Tablo başına ANAHTAR SÜTUN. "squad_members" tablosunun "id" sütunu YOKTUR (birincil
+   * anahtarı squad_id + user_id); ona "id" ile sorulursa PostgREST 400 döner.
+   */
+  const KEY_COLUMN = { players: 'id', squads: 'id', squad_members: 'squad_id' };
+
+  const $ = (id) => document.getElementById(id);
+
+  /** Tarayıcıdaki Supabase oturumundan erişim jetonunu çıkarır. */
+  function accessToken() {
+    for (const key of Object.keys(localStorage)) {
+      if (!key.startsWith('sb-') || !key.includes('auth-token')) continue;
+      try {
+        let raw = localStorage.getItem(key) || '';
+        // Yeni supabase-js sürümleri değeri "base64-" önekiyle saklayabiliyor.
+        if (raw.startsWith('base64-')) raw = atob(raw.slice(7));
+        const parsed = JSON.parse(raw);
+        const token = parsed?.access_token || parsed?.currentSession?.access_token;
+        if (token) return token;
+      } catch {
+        /* bu anahtar oturum değilmiş */
+      }
+    }
+    return null;
+  }
+
+  const headers = (token) => ({
+    apikey: ANON_KEY,
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  });
+
+  async function countRows(token, table) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=${KEY_COLUMN[table]}`, {
+      headers: { ...headers(token), Prefer: 'count=exact', Range: '0-0' },
+    });
+    // 404 = tablo henüz yok (schema.sql çalıştırılmamış). Hata değil, durum bilgisi.
+    if (res.status === 404) return 'tablo yok';
+    if (!res.ok) return `hata ${res.status}`;
+    const range = res.headers.get('content-range') || '';
+    return range.split('/')[1] ?? '?';
+  }
+
+  async function refreshCounts() {
+    const token = accessToken();
+    if (!token) {
+      $('serverState').innerHTML =
+        '<span class="err">Bu tarayıcıda açık bir Saha 42 oturumu yok.</span> Önce uygulamaya giriş yap, sonra bu sayfaya dön.';
+      $('wipeServer').disabled = true;
+      return;
+    }
+    $('serverState').textContent = 'Sayılıyor…';
+    const [players, squads, members] = await Promise.all([
+      countRows(token, 'players'),
+      countRows(token, 'squads'),
+      countRows(token, 'squad_members'),
+    ]);
+    $('serverState').innerHTML =
+      `Havuzda <strong>${players}</strong> oyuncu, <strong>${squads}</strong> takım, ` +
+      `<strong>${members}</strong> üyelik var.` +
+      (squads === 'tablo yok'
+        ? ' <em>(takım tabloları henüz oluşturulmamış — <code>supabase/schema.sql</code> çalıştırılmalı.)</em>'
+        : '');
+    $('wipeServer').disabled = false;
+  }
+
+  async function deleteAll(token, table) {
+    // PostgREST koşulsuz DELETE'i reddeder; "anahtar null değil" tüm satırları kapsar.
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${KEY_COLUMN[table]}=not.is.null`, {
+      method: 'DELETE',
+      headers: { ...headers(token), Prefer: 'return=minimal' },
+    });
+    // Tablo yoksa silinecek bir şey de yok.
+    if (res.ok || res.status === 404) return null;
+    return `${table}: ${res.status} ${await res.text()}`;
+  }
+
+  $('count').onclick = refreshCounts;
+
+  $('wipeServer').onclick = async () => {
+    const token = accessToken();
+    if (!token) return refreshCounts();
+    if (!confirm('Havuzdaki TÜM oyuncular, takımlar ve üyelikler silinecek. Bu geri alınamaz. Devam?')) return;
+
+    $('wipeServer').disabled = true;
+    $('serverLog').textContent = 'Siliniyor…';
+
+    // Sıra önemli: üyelikler takımlara ve kartlara bağlı.
+    const errors = [];
+    for (const table of ['squad_members', 'squads', 'players']) {
+      const err = await deleteAll(token, table);
+      if (err) errors.push(err);
+    }
+
+    if (errors.length) {
+      $('serverLog').innerHTML = `<span class="err">Silinemedi:</span> ${errors.join(' · ')}`;
+    } else {
+      $('serverLog').innerHTML = '<span class="ok">Sunucudaki her şey silindi.</span>';
+    }
+    await refreshCounts();
+  };
+
+  const list = $('keys');
+  const renderKeys = () => {
+    list.innerHTML = '';
+    for (const k of KEYS) {
+      const li = document.createElement('li');
+      li.textContent = k + (localStorage.getItem(k) === null ? ' — yok' : ' — dolu');
+      list.appendChild(li);
+    }
+  };
+  renderKeys();
+
+  const wipeLocal = (alsoSession) => {
+    for (const k of KEYS) localStorage.removeItem(k);
+    if (alsoSession) {
+      for (const k of Object.keys(localStorage)) {
+        if (k.startsWith('sb-') && k.includes('auth-token')) localStorage.removeItem(k);
+      }
+    }
+    renderKeys();
+    $('done').innerHTML =
+      '<span class="ok">Bu cihaz temizlendi.</span> Uygulamaya git: <a href="/" style="color:#00f57a">/</a>';
+  };
+
+  // Yalnızca açılış davetinin kararını siler — kadro, geçmiş ve oturum yerinde kalır.
+  $('resetPopup').onclick = () => {
+    localStorage.removeItem('saha42.onboarding.v1');
+    renderKeys();
+    $('done').innerHTML =
+      '<span class="ok">Açılış daveti geri geldi.</span> Menüyü aç: <a href="/" style="color:#00f57a">/</a>';
+  };
+
+  $('wipe').onclick = () => wipeLocal(false);
+  $('wipeAll').onclick = () => wipeLocal(true);
+
+  refreshCounts();
+</script>

@@ -1,0 +1,52 @@
+<!--
+  Düğme + panel: yerleşik `<select>` yerine kendi listemiz (tarayıcının beyaz listesi koyu
+  arayüzde yamalı duruyordu). Erişilebilirlik elle kuruldu — bkz. bileşen açıklaması.
+-->
+<button
+  type="button"
+  class="dil__dugme"
+  [class.dil__dugme--acik]="acik()"
+  [attr.aria-haspopup]="'listbox'"
+  [attr.aria-expanded]="acik()"
+  [attr.aria-label]="t('dil.baslik')"
+  (click)="acik() ? kapat() : ac()"
+  (keydown)="tus($event)"
+>
+  <span class="dil__kure" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M3.5 12h17M12 3.5c2.4 2.6 2.4 14.4 0 17M12 3.5c-2.4 2.6-2.4 14.4 0 17" />
+    </svg>
+  </span>
+  <span class="dil__kod">{{ seciliDil().short }}</span>
+  <span class="dil__ok" aria-hidden="true">
+    <svg viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M1 1.8 6 6.4l5-4.6" />
+    </svg>
+  </span>
+</button>
+
+@if (acik()) {
+  <ul class="dil__panel" role="listbox" [attr.aria-label]="t('dil.baslik')" (keydown)="tus($event)">
+    @for (dil of locales; track dil.id) {
+      <li
+        class="dil__satir"
+        [class.dil__satir--secili]="dil.id === secili()"
+        role="option"
+        [attr.aria-selected]="dil.id === secili()"
+        tabindex="-1"
+        (click)="degistir(dil.id)"
+      >
+        <span class="dil__rozet">{{ dil.short }}</span>
+        <span class="dil__ad">{{ dil.label }}</span>
+        @if (dil.id === secili()) {
+          <span class="dil__tik" aria-hidden="true">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 8.6 6.4 12 13 4.8" />
+            </svg>
+          </span>
+        }
+      </li>
+    }
+  </ul>
+}

@@ -1,0 +1,93 @@
+<div class="page">
+  <div class="page__bg"></div>
+
+  <header class="topbar">
+    <a class="brand marka-link" routerLink="/">EVEN<span class="brand__accent">SIDE</span></a>
+    <button type="button" class="back" (click)="goHome()">{{ t('ortak.menuyeDon') }}</button>
+  </header>
+
+  <main class="content">
+    @switch (step()) {
+      <!-- Karşılama: takıma katılma ekranıyla simetrik. -->
+      @case ('hazir') {
+        <section class="panel">
+          <span class="eyebrow">{{ existing() ? t('takim.takimin') : t('takim.yeni') }}</span>
+          @if (existing(); as s) {
+            <h1 class="title">{{ t('takim.hazirBaslik') }}</h1>
+            <p class="lead">
+              <strong>{{ s.name }}</strong> {{ t('takim.zatenKurulu') }}
+            </p>
+            <div class="row">
+              <button type="button" class="btn btn--primary" (click)="goSquad()">{{ t('takim.kadroyaGec') }}</button>
+              <button type="button" class="btn" (click)="start()">{{ t('takim.duzenle') }}</button>
+            </div>
+          } @else {
+            <h1 class="title">{{ t('takim.hazirMisin') }}</h1>
+            <p class="lead">
+              {{ t('takim.adVerAciklama') }}
+            </p>
+            <div class="row">
+              <button type="button" class="btn btn--primary" (click)="start()">{{ t('takim.hazirim') }}</button>
+              <button type="button" class="btn" (click)="goTeams()">{{ t('ortak.simdiDegil') }}</button>
+            </div>
+          }
+        </section>
+      }
+
+      <!-- Ad -->
+      @case ('ad') {
+        <section class="panel">
+          <span class="eyebrow">{{ t('takim.ad') }}</span>
+          <h1 class="title title--sm">{{ t('takim.adVer') }}</h1>
+          <p class="lead">
+            {{ t('takim.adIpucu') }}
+          </p>
+
+          <input
+            class="field"
+            type="text"
+            maxlength="40"
+            [attr.placeholder]="t('takim.ad')"
+            [value]="name()"
+            (input)="onName($event)"
+            (keydown.enter)="finish()"
+            [attr.aria-label]="t('takim.ad')"
+          />
+
+          @if (error(); as message) {
+            <p class="error" role="alert">{{ message }}</p>
+          }
+
+          <div class="row row--nav">
+            <button type="button" class="btn" (click)="back()">{{ t('ui.geriOk') }}</button>
+            <button type="button" class="btn btn--primary" [disabled]="saving()" (click)="finish()">
+              {{ saving() ? t('takim.kaydediliyor') : t('takim.kur') }}
+            </button>
+          </div>
+        </section>
+      }
+
+      <!-- Bitti: kod da burada, paylaşılmak için. -->
+      @case ('bitti') {
+        <section class="panel">
+          <span class="eyebrow">{{ t('takim.kuruldu') }}</span>
+          @if (squad(); as s) {
+            <div class="done">
+              @if (s.logoImage) {
+                <img class="done__logo" [src]="s.logoImage" alt="" />
+              }
+              <h1 class="title title--sm">{{ s.name }}</h1>
+            </div>
+            <p class="lead">
+              {{ t('takim.kodPaylas') }}
+            </p>
+            <p class="code">{{ s.joinCode }}</p>
+          }
+          <div class="row">
+            <button type="button" class="btn btn--primary" (click)="goSquad()">{{ t('takim.kadroyuKur') }}</button>
+          </div>
+        </section>
+      }
+    }
+  </main>
+</div>

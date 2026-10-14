@@ -1,0 +1,114 @@
+/*
+ * EYLEM ÖLÇEĞİ — dört kademe, tek kaynak.
+ *
+ * Kullanıcı geri bildirimi: "tüm butonlar aynı renk olmasın; kaydet, iptal, paylaş, sil
+ * ayırt edilmeli, ana eylem belli olmalı." Bileşenlerin çoğu kendi `.btn--*` sınıflarını
+ * yazıyordu; ton ve ağırlık ekrandan ekrana kayıyordu. Kademeler burada tanımlı:
+ *
+ *   BİRİNCİL  (.ui-btn--primary)   → dolu yeşil + koyu mürekkep. Ekranda EN FAZLA BİR tane.
+ *                                    "Kaydet", "Kadroya geç", "Kuraya başla".
+ *   İKİNCİL   (.ui-btn--secondary) → ince yeşil kenar, saydam zemin. Gerçek bir eylem ama
+ *                                    o ekranın ana işi değil: "Yalnızca kaydet", "Paylaş".
+ *   SESSİZ    (.ui-btn--ghost)     → kenarlıksız, sönük metin. Geri dönüş yolu: "Vazgeç".
+ *   YIKICI    (.ui-btn--danger)    → kırmızı. Geri alınamaz: "Sil". Ekranda ana eylemin
+ *                                    YANINDA durmaz; ya karşı köşede ya da onay çubuğunda.
+ *
+ * Kural: bir ekranda iki BİRİNCİL olamaz. "Vazgeç" hiçbir zaman ikincil görünmez — aksi
+ * hâlde kullanıcı iptali eylem sanıyor.
+ */
+@use 'mac-isik' as isik;
+
+@mixin ui-btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 11px 18px;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm, 4px);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast, 0.15s) ease,
+    border-color var(--duration-fast, 0.15s) ease,
+    color var(--duration-fast, 0.15s) ease;
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.ui-btn {
+  @include ui-btn-base;
+}
+
+.ui-btn--primary {
+  /* Birincil eylemde ışık durgunken de tur atar; ikincilde yalnızca hover'da yanar. */
+  @include isik.mac-isik($renk: #fff, $parlak: rgba(5, 19, 10, 0.55));
+
+  background: var(--color-accent, #00f57a);
+  border-color: var(--color-accent-line);
+  color: #05130a;
+
+  &:hover:not(:disabled) {
+    filter: brightness(1.08);
+  }
+
+  /* Kapalı hâl OPAKLIKLA değil renkle: opacity kalıtılıp içindeki metni de okunmaz yapıyor. */
+  &:disabled {
+    background: rgba(0, 245, 122, 0.32);
+    border-color: transparent;
+    color: rgba(5, 19, 10, 0.55);
+  }
+}
+
+.ui-btn--secondary {
+  @include isik.mac-isik($hep: false);
+
+  background: transparent;
+  border-color: light-dark(rgba(15, 169, 91, 0.55), rgba(0, 245, 122, 0.55));
+  color: var(--color-accent-text);
+
+  &:hover:not(:disabled) {
+    background: rgba(0, 245, 122, 0.12);
+  }
+
+  &:disabled {
+    border-color: light-dark(rgba(15, 169, 91, 0.22), rgba(0, 245, 122, 0.22));
+    color: light-dark(rgba(6, 122, 63, 0.4), rgba(0, 245, 122, 0.4));
+  }
+}
+
+.ui-btn--ghost {
+  background: transparent;
+  border-color: transparent;
+  color: light-dark(rgba(18, 18, 22, 0.6), rgba(255, 255, 255, 0.6));
+
+  &:hover:not(:disabled) {
+    color: light-dark(#121216, #fff);
+  }
+
+  &:disabled {
+    color: light-dark(rgba(18, 18, 22, 0.3), rgba(255, 255, 255, 0.3));
+  }
+}
+
+.ui-btn--danger {
+  background: transparent;
+  border-color: rgba(255, 90, 90, 0.6);
+  color: light-dark(#c42b2b, #ff5a5a);
+
+  &:hover:not(:disabled) {
+    background: #ff5a5a;
+    color: #1a0505;
+  }
+
+  &:disabled {
+    border-color: rgba(255, 90, 90, 0.28);
+    color: rgba(255, 90, 90, 0.42);
+  }
+}

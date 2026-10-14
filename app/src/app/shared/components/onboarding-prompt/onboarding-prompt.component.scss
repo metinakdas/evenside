@@ -1,0 +1,199 @@
+/*
+ * AÇILIŞ DAVETİ — menünün üstünde. Görsel dil menüyle aynı: siyah zemin, keskin köşeler,
+ * tek vurgu neon yeşil, Barlow Condensed başlık.
+ */
+$display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  border: 0;
+  background: light-dark(rgba(255, 255, 255, 0.72), rgba(4, 4, 6, 0.72));
+  backdrop-filter: blur(3px);
+}
+
+.prompt {
+  position: fixed;
+  z-index: 61;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(560px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 28px;
+  border: 1px solid light-dark(rgba(15, 169, 91, 0.35), rgba(0, 245, 122, 0.35));
+  background: linear-gradient(170deg, light-dark(#ffffff, #141417) 0%, light-dark(#f3f3f5, #0a0a0c) 100%);
+  box-shadow: 0 32px 70px light-dark(rgba(20, 20, 30, 0.2), rgba(0, 0, 0, 0.65));
+  color: light-dark(#121216, #fff);
+  animation: prompt-in 0.32s var(--easing-standard, ease) both;
+}
+
+@keyframes prompt-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 12px));
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.prompt__eyebrow {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: light-dark(#067a3f, #00f57a);
+}
+
+.prompt__title {
+  margin: 0;
+  font-family: $display;
+  font-style: italic;
+  font-weight: 800;
+  font-size: 34px;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.prompt__lead {
+  margin: 0 0 6px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: light-dark(rgba(18, 18, 22, 0.7), rgba(255, 255, 255, 0.7));
+}
+
+.prompt__lead strong {
+  color: light-dark(#121216, #fff);
+}
+
+/* Tek seçenek: tam genişlik. İkinci bir yol olmadığı için ızgaraya gerek kalmadı. */
+.prompt__choices {
+  display: grid;
+  gap: 10px;
+}
+
+.choice {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  border: 1px solid light-dark(rgba(18, 18, 22, 0.14), rgba(255, 255, 255, 0.14));
+  border-radius: 0;
+  background: light-dark(rgba(18, 18, 22, 0.04), rgba(255, 255, 255, 0.04));
+  color: light-dark(#121216, #fff);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast, 0.15s) ease,
+    background var(--duration-fast, 0.15s) ease,
+    transform var(--duration-fast, 0.15s) ease;
+}
+
+.choice:hover,
+.choice:focus-visible {
+  transform: translateY(-2px);
+  border-color: light-dark(#0fa95b, #00f57a);
+}
+
+.choice--primary {
+  background: linear-gradient(165deg, #00f57a 0%, #00c964 100%);
+  border-color: transparent;
+  color: #05130a;
+}
+
+.choice--primary:hover,
+.choice--primary:focus-visible {
+  border-color: light-dark(#121216, #fff);
+}
+
+.choice__title {
+  font-family: $display;
+  font-style: italic;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.choice__desc {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: light-dark(rgba(18, 18, 22, 0.62), rgba(255, 255, 255, 0.62));
+}
+
+.choice--primary .choice__desc {
+  color: rgba(4, 26, 14, 0.75);
+}
+
+/*
+ * Alt satır: iki çıkış yolu. "Bir daha gösterme" bilinçli olarak DAHA SÖNÜK — kalıcı bir
+ * karar, yanlışlıkla tıklanmamalı.
+ */
+.prompt__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+  padding-top: 14px;
+  border-top: 1px solid light-dark(rgba(18, 18, 22, 0.1), rgba(255, 255, 255, 0.1));
+}
+
+.ghost {
+  min-height: 44px; /* QA: 40px idi */
+  padding: 0 14px;
+  border: 1px solid light-dark(rgba(18, 18, 22, 0.2), rgba(255, 255, 255, 0.2));
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: light-dark(rgba(18, 18, 22, 0.78), rgba(255, 255, 255, 0.78));
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ghost:hover,
+.ghost:focus-visible {
+  border-color: light-dark(rgba(18, 18, 22, 0.45), rgba(255, 255, 255, 0.45));
+  color: light-dark(#121216, #fff);
+}
+
+.ghost--quiet {
+  border-color: transparent;
+  color: light-dark(rgba(18, 18, 22, 0.42), rgba(255, 255, 255, 0.42));
+}
+
+.ghost--quiet:hover,
+.ghost--quiet:focus-visible {
+  border-color: transparent;
+  color: light-dark(rgba(18, 18, 22, 0.7), rgba(255, 255, 255, 0.7));
+  text-decoration: underline;
+}
+
+@media (max-width: 560px) {
+  .prompt__footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prompt {
+    animation: none;
+  }
+
+  .choice {
+    transition: none;
+  }
+
+  .choice:hover,
+  .choice:focus-visible {
+    transform: none;
+  }
+}

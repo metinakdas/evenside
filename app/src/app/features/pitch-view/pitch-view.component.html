@@ -1,0 +1,231 @@
+<div class="page">
+  <!-- Ekran okuyucu için sayfa başlığı (QA D4: bu ekranda h1 yoktu). -->
+  <h1 class="sr-only">{{ t('sayfa.saha') }}</h1>
+  <div class="page__bg"></div>
+  <div class="page__scrim"></div>
+  <div class="page__beams"></div>
+
+  <div class="page__content">
+  <header class="topbar">
+    <a class="topbar__brand text-display-2 marka-link" routerLink="/">EVEN<span class="accent">SIDE</span></a>
+    <div class="tabs">
+      <button type="button" class="tabs__btn" [class.tabs__btn--active]="tab() === 'saha'" (click)="setTab('saha')">{{ t('saha.saha') }}</button>
+      <button type="button" class="tabs__btn" [class.tabs__btn--active]="tab() === 'liste'" (click)="setTab('liste')">{{ t('oyun.liste') }}</button>
+    </div>
+    <div class="topbar__actions">
+      <!--
+        "Kurayı yenile" geri bildirimi düğmenin YANINDA duruyor: alt şeride yazılınca
+        kullanıcı bastığı düğmeyle mesajı ilişkilendiremiyordu (kullanıcı isteği).
+      -->
+      @if (redrawNotice(); as notice) {
+        <span class="topbar__notice" role="status">{{ notice }}</span>
+      }
+      <!--
+        ROL BAZLI (11 Ekim 2026, kullanıcı isteği): menüdeki "Sıradaki maç" bu ekrana açılıyor.
+        Herkes ana menüye dönebilir; kadroyu düzenleyebilen (kurucu/yönetici) ayrıca kadroyu
+        düzenleyip maçtan önce kurayı yeniden çekebilir. Üye yalnızca görür.
+      -->
+      @if (canEdit()) {
+        @if (confirmingRedraw()) {
+          <span class="text-mono-label redraw-confirm">{{ t('kura.sifirlansinMi') }}</span>
+          <button type="button" class="chip-btn chip-btn--danger" (click)="redraw()">{{ t('saha.evetYenile') }}</button>
+          <button type="button" class="chip-btn chip-btn--ghost" (click)="cancelRedraw()">{{ t('oyun.vazgec') }}</button>
+        } @else {
+          <button type="button" class="chip-btn chip-btn--ghost" (click)="askRedraw()">{{ t('kura.yenile') }}</button>
+        }
+        <button type="button" class="chip-btn chip-btn--ghost" (click)="editSquad()">{{ t('saha.kadroyuDuzenle') }}</button>
+      }
+      <!--
+        E-posta ve "Çıkış" bu ekrandan kaldırıldı (kullanıcı isteği; /kura'da da öyle).
+        Yerine kadroya dönüş: "Kadroyu düzenle" ile AYNI hedefe gidiyordu, o yüzden ikisi
+        tek düğmede birleşti.
+      -->
+      <button type="button" class="chip-btn chip-btn--ghost" (click)="goHome()">{{ t('oyun.menuyeDon') }}</button>
+    </div>
+  </header>
+
+
+  @if (tab() === 'saha') {
+    <div class="workbench">
+      <div class="lineups">
+        <app-team-lineup-card
+          #cardA
+          side="A"
+          [team]="store.teams()[0]"
+          [players]="store.teamAPlayers()"
+          [format]="store.format()"
+          [selectedPlayerId]="selection()?.id ?? null"
+          (playerClicked)="onMarkerClick($event, 'A')"
+          (swapRequested)="startSwap($event, 'A')"
+          [swapTargetsActive]="swapMode() && selection()?.side === 'B'"
+          (nameChanged)="renameTeam('A', $event)"
+          (dragSwapRequested)="onDragSwap($event)"
+          [keeperRotation]="rotationPlan().A"
+          [nameLabels]="nameLabels()"
+          (formationChanged)="formationA.set($event)"
+        />
+        <app-team-lineup-card
+          #cardB
+          side="B"
+          [team]="store.teams()[1]"
+          [players]="store.teamBPlayers()"
+          [format]="store.format()"
+          [selectedPlayerId]="selection()?.id ?? null"
+          (playerClicked)="onMarkerClick($event, 'B')"
+          (swapRequested)="startSwap($event, 'B')"
+          [swapTargetsActive]="swapMode() && selection()?.side === 'A'"
+          (nameChanged)="renameTeam('B', $event)"
+          (dragSwapRequested)="onDragSwap($event)"
+          [keeperRotation]="rotationPlan().B"
+          [nameLabels]="nameLabels()"
+          (formationChanged)="formationB.set($event)"
+        />
+        <!-- VS rozeti + altında ortalama farkı; renk hangi takımın önde olduğunu söyler. -->
+        <div class="lineups__vs" aria-hidden="true">VS</div>
+        <span
+          class="lineups__diff text-mono-data"
+          [style.color]="comparison().diffColor ?? 'var(--color-text-secondary)'"
+          [title]="t('ui.ortalamaFarki')"
+        >{{ comparison().diffText }}</span>
+      </div>
+
+      <div class="footer-bar">
+        <!--
+          Bir ipucu/uyarı varken sayılar GÖRÜNMEZ olur ama DOM'dan çıkmaz: `@if` ile
+          kaldırılınca şerit kısalıyordu, oysa kutunun ölçüsü sabit kalmalı (kullanıcı
+          isteği) — yalnızca içeriği değişir. Mesaj da şeridin üstüne mutlak konumla biner.
+        -->
+        <div class="compare" [class.compare--hidden]="footnoteKind() !== 'info'">
+          <div class="compare__avg">
+            <span class="text-display-2">{{ comparison().avgA }}</span>
+            <div class="compare__bar">
+              <div class="compare__bar-fill compare__bar-fill--a" [style.width.%]="comparison().shareA"></div>
+              <div class="compare__bar-fill compare__bar-fill--b" [style.width.%]="comparison().shareB"></div>
+            </div>
+            <span class="text-display-2">{{ comparison().avgB }}</span>
+          </div>
+
+          @if (comparison().spread; as spread) {
+            <p class="compare__spread" [attr.title]="t('saha.sapmaIpucu')">
+              {{ t('saha.dagilim') }} ±{{ ondalik(spread.A) }} / ±{{ ondalik(spread.B) }}
+            </p>
+          }
+          <p class="compare__spread" [attr.title]="t('saha.kazanmaIpucu')">
+            {{ t('saha.kazanma', { a: comparison().win.a, b: comparison().win.b }) }}
+          </p>
+          @if (comparison().formMatches > 0) {
+            <p class="compare__spread" [attr.title]="t('saha.formIpucu')">{{ t('saha.formNotu', { sayi: comparison().formMatches }) }}</p>
+          }
+
+          <div
+            class="compare__lines"
+            [attr.title]="t('saha.hatIpucu')"
+          >
+            @for (line of comparison().lines; track line.label) {
+              <div
+                class="compare__line"
+                [class.compare__line--balanced]="line.level === 'balanced'"
+                [class.compare__line--ok]="line.level === 'ok'"
+                [class.compare__line--off]="line.level === 'off'"
+                [attr.title]="line.gap === null ? t('saha.hatKarsilastirilamaz', { hat: line.label }) : t('saha.hatPuanFark', { hat: line.label, fark: line.gap })"
+              >
+                <span class="text-mono-label compare__line-label">{{ line.label }}</span>
+                <span class="compare__line-vals">
+                  <span class="text-mono-data">{{ line.a ?? '–' }}</span>
+                  <span class="compare__line-sep">–</span>
+                  <span class="text-mono-data">{{ line.b ?? '–' }}</span>
+                </span>
+                <span class="compare__line-gapbar" aria-hidden="true">
+                  <span class="compare__line-gapfill" [style.width.%]="line.gap === null ? 0 : (line.gap > 20 ? 100 : (line.gap / 20) * 100)"></span>
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!--
+          Alt şeridin tek metin alanı. Sırayla: takas ipucu (o an yapılan iş), uyarı
+          (indirme hatası / kura değişmedi), yoksa hat farkı yorumu. Üstte ayrı bir uyarı
+          kutusu YOK — kullanıcı isteği: mesaj buraya gelsin ve vurgulu olsun.
+        -->
+        @if (footnote(); as note) {
+          <!--
+            Mesaj ORTALI durmalı ama şeridin ölçüsü de değişmemeli. İkisi birlikte ancak şöyle
+            olur: bu satır akışta KALIR (görünmez bir yer tutucu olarak) ki `.compare` aynı
+            genişlikte sıkışsın ve şerit aynı yükseklikte kalsın; okunan mesaj ise şeridin
+            üstüne binen ortalanmış kopyadır. Yer tutucu ekran okuyuculardan gizlenir.
+          -->
+          <p
+            class="footnote"
+            [class.footnote--placeholder]="footnoteKind() !== 'info'"
+            [class.footnote--swap]="footnoteKind() === 'swap'"
+            [class.footnote--warn]="footnoteKind() === 'warn'"
+            [attr.aria-hidden]="footnoteKind() === 'info' ? null : 'true'"
+          >
+            {{ note }}
+          </p>
+
+          @if (footnoteKind() !== 'info') {
+            <p
+              class="footnote footnote--overlay"
+              [class.footnote--overlay--inset]="footnoteKind() === 'warn'"
+              [class.footnote--overlay--menu]="matchSaved() && !swapMode()"
+              [class.footnote--swap]="footnoteKind() === 'swap'"
+              [class.footnote--warn]="footnoteKind() === 'warn'"
+              role="status"
+            >
+              {{ note }}
+            </p>
+          }
+        }
+
+        <button
+          type="button"
+          class="download-both"
+          [class.download-both--ikincil]="matchSaved()"
+          [class.download-both--hidden]="footnoteKind() === 'swap'"
+          [disabled]="exporting()"
+          (click)="openExportDialog()"
+        >
+          <svg class="download-both__icon" viewBox="0 0 20 20" aria-hidden="true">
+            <path
+              d="M10 3 V12 M6 8 L10 12 L14 8 M4 15 H16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          {{ exporting() ? t('ui.hazirlaniyor') : t('ui.kaydetIndir') }}
+        </button>
+
+        <!-- Kayıttan sonra: ana menüye dönüş (birincil). Takas sürerken gizli — o an iş takas. -->
+        @if (matchSaved() && !swapMode()) {
+          <button type="button" class="download-both download-both--menu" (click)="goHome()">
+            <svg class="download-both__icon" viewBox="0 0 20 20" aria-hidden="true">
+              <path
+                d="M3 9.5 L10 3.5 L17 9.5 M5 8 V16 H8.5 V12 H11.5 V16 H15 V8"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            {{ t('saha.anaMenu') }}
+          </button>
+        }
+      </div>
+    </div>
+  } @else {
+    <div class="liste">
+      <app-rating-table [rows]="ratingRows()" />
+    </div>
+  }
+</div>
+
+@if (exportDialogOpen()) {
+  <!-- Maç bilgisi popup'ı: görselin başlığına yazılacak saha/tarih/saat. -->
+  <app-export-dialog (confirmed)="confirmExport($event)" (cancelled)="closeExportDialog()" />
+}

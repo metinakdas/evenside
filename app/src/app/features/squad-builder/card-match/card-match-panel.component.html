@@ -1,0 +1,53 @@
+@if (suggestions().length > 0) {
+  <section class="match" [attr.aria-label]="t('kadro.kartEslesme')">
+    <button type="button" class="match__head" (click)="toggle()" [attr.aria-expanded]="open()">
+      <span class="match__mark" aria-hidden="true">⚯</span>
+      <span class="match__text">
+        <strong>{{ suggestions().length }}</strong> {{ t('kadro.eslesmeBaslik') }}
+      </span>
+      <span class="match__toggle">{{ open() ? t('kadro.gizle') : t('kadro.incele') }}</span>
+    </button>
+
+    @if (open()) {
+      <div class="match__list">
+        @for (s of suggestions(); track s.poolCard.id + s.ownedCard.id) {
+          <article class="pair">
+            <div class="pair__side">
+              <span class="pair__label">{{ t('kadro.havuzdakiKart') }}</span>
+              <app-player-card [player]="s.poolCard" size="mini" />
+              <span class="pair__note">{{ t('kadro.seninGirdigin') }}</span>
+            </div>
+
+            <span class="pair__arrow" aria-hidden="true">→</span>
+
+            <div class="pair__side">
+              <span class="pair__label pair__label--own">{{ t('kadro.kendiKarti') }}</span>
+              <app-player-card [player]="s.ownedCard" size="mini" />
+              <span class="pair__note">{{ s.ownedCard.input.name }}</span>
+            </div>
+
+            <div class="pair__actions">
+              <p class="pair__explain">
+                {{ t('kadro.eslesmeOnce') }} <strong>{{ s.ownedCard.input.name }}</strong>
+                {{ t('kadro.eslesmeSonra') }}
+              </p>
+              <div class="pair__buttons">
+                <button type="button" class="pair__btn" (click)="dismiss(s)">{{ t('kadro.ayriKalsin') }}</button>
+                <button type="button" class="pair__btn pair__btn--primary" [disabled]="busy()" (click)="link(s)">
+                  {{ t('kadro.kartlariEsle') }}
+                </button>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    }
+
+    @if (error(); as message) {
+      <p class="match__error">{{ message }}</p>
+    }
+  </section>
+} @else if (linkedName()) {
+  <!-- "as" yalnızca birincil @if üzerinde geçerli (NG5002) — sinyal doğrudan çağrılıyor. -->
+  <p class="match__done">{{ linkedName() }} {{ t('kadro.eslendi') }}</p>
+}

@@ -1,0 +1,294 @@
+/*
+ * MAÇ SAATİ — sağ kenarda dikey taç çizgisi. Kapsül kendi koyu cam yüzeyini taşır: sayfa hem
+ * siyah hem krem bantlardan geçiyor, tek renk bir çizgi ikisinde birden okunmazdı.
+ * Renk kuralı: dolan çizgi ve geçilen çentik yeşil (ilerleme = eylem sonucu), metin beyaz.
+ */
+$yesil: #00f57a;
+$koyu-yesil: #0b7a44;
+$display: 'Barlow Condensed', 'Saira Condensed', system-ui, sans-serif;
+$mono: var(--font-mono, 'Space Mono', monospace);
+
+:host {
+  --p: 0;
+}
+
+.saat {
+  position: fixed;
+  z-index: 40;
+  right: clamp(14px, 1.6vw, 24px);
+  top: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 46px;
+  height: min(56vh, 460px);
+  padding: 12px 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  /* Bulanıklık yok: sabit katmanda kaydırırken her karede yeniden hesaplanıyordu. */
+  background: rgba(14, 15, 17, 0.94);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.35);
+  transform: translateY(-50%);
+}
+
+.saat__uc {
+  font-family: $display;
+  font-style: italic;
+  font-weight: 800;
+  font-size: 13px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.55);
+  transition: color 0.3s ease;
+}
+
+/* --- Ray --- */
+.saat__ray {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  /* Raya basıp sürüklemek sayfayı kaydırır. */
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+}
+
+.saat__iz,
+.saat__dolu {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 2px;
+  border-radius: 2px;
+  translate: -50% 0;
+}
+
+.saat__iz {
+  bottom: 0;
+  background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0 6px, transparent 6px 10px);
+}
+
+.saat__dolu {
+  width: 3px;
+  height: calc(var(--p) * 100%);
+  background: linear-gradient(180deg, $koyu-yesil, $yesil);
+  box-shadow: 0 0 10px rgba(0, 245, 122, 0.55);
+}
+
+/* Devre arası (45'): rayın tam ortasında küçük bir halka — orta saha noktası gibi. */
+.saat__devre {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  border-radius: 50%;
+  background: rgb(14, 15, 17);
+  translate: -50% -50%;
+  pointer-events: none;
+}
+
+/* --- Çentikler: bölümler --- */
+.saat__centik {
+  position: absolute;
+  left: 0;
+  top: calc(var(--k) * 100%);
+  width: 100%;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  translate: 0 -50%;
+  cursor: pointer;
+
+  /* Görünen çentik: rayı kesen kısa yatay çizgi. */
+  &::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 12px;
+    height: 2px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.4);
+    translate: -50% -50%;
+    transition:
+      width 0.25s ease,
+      background 0.25s ease;
+  }
+
+  &:hover::before,
+  &:focus-visible::before {
+    width: 22px;
+    background: #fff;
+  }
+
+  &:focus-visible {
+    outline: none;
+  }
+}
+
+.saat__centik--gecti::before {
+  background: $yesil;
+}
+
+/* Bölüm adı: kapsülün SOLUNDA açılır. */
+.saat__etiket {
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 50%;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(14, 15, 17, 0.92);
+  border: 1px solid rgba(0, 245, 122, 0.35);
+  color: #fff;
+  font-family: var(--font-body, system-ui);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(8px, -50%);
+  transition:
+    opacity 0.2s ease,
+    transform 0.25s ease;
+  pointer-events: none;
+}
+
+.saat__centik:hover .saat__etiket,
+.saat__centik:focus-visible .saat__etiket {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+
+/* --- Top + dakika çipi --- */
+.saat__top {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: calc(var(--p) * 100%);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  translate: -50% -50%;
+  /* Tutamaç: sürüklenir. Görünen top 20px, tutma alanı ::before ile 44px. */
+  cursor: grab;
+  touch-action: none;
+  outline: none;
+  transition: scale 0.2s ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -12px;
+    border-radius: 50%;
+  }
+
+  &:hover,
+  &:focus-visible {
+    scale: 1.25;
+  }
+
+  &:focus-visible svg {
+    filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 8px rgba(0, 245, 122, 0.9));
+  }
+
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    /* Kaydırdıkça yuvarlanır: sayfa boyunca iki buçuk tur. */
+    rotate: calc(var(--p) * 900deg);
+    filter: drop-shadow(0 0 6px rgba(0, 245, 122, 0.5));
+  }
+}
+
+.saat__dakika {
+  position: absolute;
+  right: calc(100% + 18px);
+  top: 50%;
+  min-width: 40px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: $yesil;
+  color: #05130a;
+  font-family: $mono;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  translate: 0 -50%;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+
+  /* Çipten topa küçük bir ok. */
+  &::after {
+    content: '';
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    border: 5px solid transparent;
+    border-left-color: $yesil;
+    translate: 0 -50%;
+  }
+}
+
+/* Sürüklerken: top büyür, imleç "tutuyor" olur, sayfada metin seçilmez. */
+:host(.saat--surukle) {
+  .saat__top {
+    scale: 1.35;
+    cursor: grabbing;
+    transition: none;
+  }
+
+  .saat__ray {
+    cursor: grabbing;
+  }
+}
+
+:host(.saat--surukle) ::selection {
+  background: transparent;
+}
+
+/* Çentik etiketi açıkken dakika çipi çekilir — ikisi aynı hizada çakışmasın. */
+.saat:has(.saat__centik:hover) .saat__dakika {
+  opacity: 0;
+}
+
+/* Maç sonu: 90' yeşil yanar, top parlar. */
+:host(.saat--bitti) .saat__uc--son {
+  color: $yesil;
+}
+
+:host(.saat--bitti) .saat__top svg {
+  filter: drop-shadow(0 0 10px rgba(0, 245, 122, 0.9));
+}
+
+/* --- Telefon: tepede ince çizgi --- */
+.saat-ince {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .saat {
+    display: none;
+  }
+
+  .saat-ince {
+    position: fixed;
+    z-index: 60;
+    left: 0;
+    top: 0;
+    display: block;
+    width: calc(var(--p) * 100%);
+    height: 3px;
+    background: linear-gradient(90deg, $koyu-yesil, $yesil);
+    box-shadow: 0 0 8px rgba(0, 245, 122, 0.6);
+  }
+}
+
+/* Kısa ekranda kapsül sığmazsa: hiç gösterme (çentikler birbirine biner). */
+@media (max-height: 520px) {
+  .saat {
+    display: none;
+  }
+}

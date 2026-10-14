@@ -1,0 +1,15 @@
+# Depoya yalnızca uygulama ve araçlar girer; tasarım taslakları ve çalışma notları yerelde kalır.
+/*
+!/.gitignore
+!/README.md
+!/app/
+!/tools/
+
+app/node_modules/
+app/dist/
+app/.angular/
+app/.wrangler/
+app/coverage/
+*.log
+.DS_Store
+Thumbs.db

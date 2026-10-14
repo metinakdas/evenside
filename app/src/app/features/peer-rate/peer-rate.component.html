@@ -1,0 +1,71 @@
+<div class="page">
+  <header class="topbar">
+    <a class="brand marka-link" routerLink="/">EVEN<span class="brand__accent">SIDE</span></a>
+    <button type="button" class="back" (click)="goBack()">{{ t('puan.kadroyaDon') }}</button>
+  </header>
+
+  <main class="content">
+    <section class="head">
+      <span class="eyebrow">{{ teamName() ?? '' }}</span>
+      <h1 class="title">{{ t('puan.baslik') }}</h1>
+      <p class="lead">{{ t('puan.aciklama') }}</p>
+      <p class="tip">{{ t('puan.ipucu') }}</p>
+    </section>
+
+    @if (unavailable()) {
+      <p class="state">{{ t('puan.kurulmadi') }}</p>
+    } @else if (!teamName()) {
+      <p class="state">{{ t('puan.takimYok') }}</p>
+    } @else if (!loaded()) {
+      <p class="state" aria-busy="true">{{ t('ust.yukleniyor') }}</p>
+    } @else if (!players().length) {
+      <p class="state">{{ t('puan.bos') }}</p>
+    } @else {
+      <p class="progress" aria-live="polite">{{ t('puan.ilerleme', { n: ratedCount(), toplam: players().length }) }}</p>
+
+      <ul class="list">
+        @for (p of players(); track p.id) {
+          <li class="row" [class.row--done]="mineFor(p) !== null">
+            <div class="who">
+              <span class="avatar">
+                @if (photo(p); as src) {
+                  <img [src]="src" alt="" />
+                } @else {
+                  {{ initials(p) }}
+                }
+              </span>
+              <span class="who__text">
+                <span class="who__name">{{ p.input.name }}</span>
+                <span class="who__pos">{{ t('poz.' + p.ratings.position) }}</span>
+              </span>
+            </div>
+
+            <div class="scale" role="radiogroup" [attr.aria-label]="t('puan.seviye', { ad: p.input.name })">
+              @for (lvl of levels; track lvl) {
+                <button
+                  type="button"
+                  class="lvl"
+                  role="radio"
+                  [class.lvl--on]="mineFor(p) === lvl"
+                  [attr.aria-checked]="mineFor(p) === lvl"
+                  (click)="rate(p, lvl)"
+                >{{ lvl }}</button>
+              }
+            </div>
+
+            <p class="band">
+              @if (mineFor(p); as v) {
+                <span>{{ band(v) }}</span>
+                @if (justSaved() === p.id) {
+                  <span class="saved">{{ t('puan.kaydedildi') }}</span>
+                }
+              } @else {
+                <span class="band__empty">{{ t('puan.secilmedi') }}</span>
+              }
+            </p>
+          </li>
+        }
+      </ul>
+    }
+  </main>
+</div>

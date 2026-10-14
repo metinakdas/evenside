@@ -1,0 +1,345 @@
+/*
+ * Havuz artık kart ızgarası değil, LİSTE (Tur 4 · Bölüm 4). Kart ızgarası 4 oyuncu için
+ * 179px yiyordu ve satır aralığı kart yüksekliğinin %30'una çıkıyordu (Y7); liste 48px'lik
+ * satırlarla aynı işi yapıyor ve 60 kişilik havuzda da aynı kolonda kalıyor.
+ *
+ * Sayfadaki tek kayan alan `.pool__list`; geri kalan her şey sabit yükseklikte.
+ */
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+}
+
+.pool {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  height: 100%;
+}
+
+.pool__head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.pool__counter {
+  color: var(--color-text-secondary);
+}
+
+.pool__dice {
+  margin-left: auto;
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-panel);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Görsel 32px, dokunma hedefi 44px (kabul ölçütü: 44px altı hedef kalmasın). */
+.pool__dice::after,
+.pool__take::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 46px;
+  height: 46px;
+  transform: translate(-50%, -50%);
+}
+
+.pool__dice:disabled,
+.pool__take:disabled,
+.pool__demo:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.pool__search {
+  height: 44px;
+  background: var(--color-surface-2, light-dark(#ececf0, #1e1e23));
+  border: none;
+  border-radius: var(--radius-sharp);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 0 14px;
+}
+
+.pool__search::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.pool__add-new {
+  height: 44px;
+  // `padding` hiç yazılmadığında tarayıcı `1px 6px` veriyor: yatay nefes yok (Tur 7 · C4).
+  padding: 0 20px;
+  border: none;
+  border-radius: var(--radius-sharp);
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: filter var(--duration-fast, 0.15s) ease, transform var(--duration-fast, 0.15s) ease;
+}
+
+.pool__add-new:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.pool__notice {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: #ffd591;
+}
+
+.pool__list {
+  flex: 1;
+  padding-top: 2px;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  display: flex;
+  flex-direction: column;
+}
+
+.pool__row {
+  display: grid;
+  // SABİT altı kolon: avatar · ad · rozetler · mevki · reyting · eylem. Kolon sayısı
+  // içeriğe göre değişmemeli, yoksa eksik bir rozet bütün satırı kaydırır.
+  grid-template-columns: 28px minmax(0, 1fr) auto auto auto 44px;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
+  padding: 0 4px;
+  border-radius: var(--radius-sharp);
+}
+
+.pool__row:hover {
+  background: var(--color-surface-2, light-dark(#ececf0, #1e1e23));
+}
+
+.pool__avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  font-size: 13px;
+}
+
+.pool__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pool__name {
+  border: none;
+  background: none;
+  padding: 0;
+  text-align: left;
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.pool__name:hover {
+  color: var(--color-accent-text);
+}
+
+.pool__pos {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--color-text-secondary);
+}
+
+.pool__rating {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.pool__take {
+  position: relative;
+  // 36px görünür + ::after ile 44px hedef; kolon da 44px, hedef kırpılmıyor.
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-panel);
+  color: var(--color-text-primary);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pool__take:hover:not(:disabled) {
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+}
+
+.pool__empty {
+  margin: 12px 4px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.pool__demo {
+  height: 36px;
+  border: none;
+  border-radius: var(--radius-sharp);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-family: var(--font-body);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.pool__demo:hover:not(:disabled) {
+  color: var(--color-text-primary);
+}
+
+/* E12: havuz kolonu tüm yüksekliği alsın — liste 802px'lik kolonda 192px'e sıkışıyordu. */
+:host {
+  flex: 1;
+}
+
+.pool__group {
+  margin: 10px 4px 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.pool__row--in {
+  opacity: 0.75;
+}
+
+.pool__take--out:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* E13: satırdaki adın da 44px yüksekliği olsun (dokunma hedefi). */
+.pool__name {
+  min-height: 44px;
+}
+
+/*
+ * "Dahil edildi" işareti: kodla katılan kişinin kartı. Kadro sahibinin elle eklediği kartla
+ * aynı listede duruyor ve ayırt edilebilmesi gerekiyor (kullanıcı isteği). Metin değil simge:
+ * satır zaten dar, ad + mevki + reyting + ekle düğmesi yer kaplıyor.
+ */
+.pool__joined {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(0, 245, 122, 0.16);
+  color: var(--color-accent-text);
+  font-size: 12px;
+  line-height: 1;
+  cursor: help;
+}
+
+/* Yinelenen ad uyarısı — kehribar, "mevki dışı" turuncusuyla karışmasın diye küçük ve nötr konumda. */
+.pool__dupe {
+  flex: none;
+  color: light-dark(#c42b2b, #ffc400);
+  font-size: 12px;
+  line-height: 1;
+  cursor: help;
+}
+
+/* Eşlenebilir çift: ⚠ bir EYLEM (kehribar halka, hover'da dolar). Görünen ölçü küçük kalır,
+   dokunma hedefi ::after ile 44px (Tur 7 · C6 yöntemi; konum yazılmaz — bkz. göz düğmesi tuzağı). */
+.pool__dupe--esle {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -11px;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: light-dark(#c42b2b, #ffc400);
+    color: light-dark(#fff, #1a1305);
+  }
+}
+
+/*
+ * Rozet hücresi. `display: none` YOK: gizlenen bir ızgara çocuğu kolonları yeniden kaydırır —
+ * düzeltmeye çalıştığımız hatanın ta kendisi. Boşken genişliği zaten 0.
+ */
+.pool__marks {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1;
+}
+
+/*
+ * MOBİL: parmakla kullanılan ekranda görünmez hedef yetmez — düğmenin KENDİSİ 44px olsun.
+ * (Masaüstünde 36px görünür + 46px ::after hedefi korunuyor.)
+ */
+@media (max-width: 640px) {
+  .pool__take {
+    width: 44px;
+    height: 44px;
+  }
+
+  .pool__row {
+    grid-template-columns: 28px minmax(0, 1fr) auto auto auto 48px;
+    height: 56px;
+  }
+
+  .pool__name {
+    font-size: 15px;
+  }
+}
+
+/* Havuz satırındaki "+" masaüstünde de 44px: görünmez hedef yerine gerçek ölçü. */
+.pool__take {
+  width: 44px;
+  height: 44px;
+}

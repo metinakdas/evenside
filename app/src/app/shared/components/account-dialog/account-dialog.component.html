@@ -1,0 +1,104 @@
+<!--
+  Perde: panelin dışına tıklamak kapatır. Silme onayı yazılmışken bile kapatmak serbest —
+  kapatmak zararsız yön; asıl korunan şey SİL düğmesi.
+-->
+<div class="backdrop" (click)="close()"></div>
+
+<div class="panel" appFocusTrap role="dialog" aria-modal="true" aria-labelledby="hesap-baslik" (click)="$event.stopPropagation()">
+  <header class="panel__head">
+    <h2 class="panel__title" id="hesap-baslik">{{ t('hesap.baslik') }}</h2>
+    <button type="button" class="panel__close" (click)="close()" [attr.aria-label]="t('hesap.kapat')">×</button>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button type="button" class="tabs__btn" role="tab" [class.tabs__btn--active]="section() === 'bilgi'"
+      [attr.aria-selected]="section() === 'bilgi'" (click)="open('bilgi')">{{ t('hesap.bilgiler') }}</button>
+    <button type="button" class="tabs__btn" role="tab" [class.tabs__btn--active]="section() === 'sifre'"
+      [attr.aria-selected]="section() === 'sifre'" (click)="open('sifre')">{{ t('hesap.sifre') }}</button>
+    <button type="button" class="tabs__btn tabs__btn--danger" role="tab" [class.tabs__btn--active]="section() === 'sil'"
+      [attr.aria-selected]="section() === 'sil'" (click)="open('sil')">{{ t('hesap.sil') }}</button>
+  </nav>
+
+  <div class="panel__body">
+    @switch (section()) {
+      @case ('bilgi') {
+        <dl class="facts">
+          <div class="facts__row">
+            <dt>{{ t('hesap.eposta') }}</dt>
+            <dd>{{ email() }}</dd>
+          </div>
+          <div class="facts__row">
+            <dt>{{ t('hesap.uyelik') }}</dt>
+            <dd>{{ t('ui.tarihindenBeri', { tarih: memberSince() }) }}</dd>
+          </div>
+        </dl>
+        <p class="hint">
+          {{ t('hesap.aciklama') }}
+        </p>
+      }
+
+      @case ('sifre') {
+        <!--
+          <form> + (ngSubmit) DEĞİL: bileşen FormsModule almadığı için ngSubmit gerçek bir
+          direktif olmuyor, submit düğmesi sayfayı NATIF olarak gönderip menüyü yeniden
+          yüklüyordu (tarayıcıda ölçüldü). Enter desteği alanların kendisinde.
+        -->
+        <div class="form">
+          <label class="field">
+            <span class="field__label">{{ t('hesap.mevcutSifre') }}</span>
+            <!-- Mevcut şifre ZORUNLU: açık bırakılmış bir cihazda tek tıkla hesap ele geçmesin. -->
+            <input class="field__input" type="password" (keydown.enter)="submitPassword()" autocomplete="current-password"
+              [value]="current()" (input)="onInput($event.target, current.set)" />
+          </label>
+
+          <label class="field">
+            <span class="field__label">{{ t('hesap.yeniSifre') }}</span>
+            <input class="field__input" type="password" (keydown.enter)="submitPassword()" autocomplete="new-password"
+              [value]="next()" (input)="onInput($event.target, next.set)" />
+            <span class="field__help">{{ t('hesap.sifreKural') }}</span>
+          </label>
+
+          <label class="field">
+            <span class="field__label">{{ t('hesap.yeniSifreTekrar') }}</span>
+            <input class="field__input" type="password" (keydown.enter)="submitPassword()" autocomplete="new-password"
+              [value]="repeat()" (input)="onInput($event.target, repeat.set)" />
+          </label>
+
+          <!-- Mesaj satırının yeri HER ZAMAN ayrılmış: form belirip kaybolan satırla zıplamasın. -->
+          <p class="msg" aria-live="polite" [class.msg--error]="passwordError()" [class.msg--ok]="passwordDone()">
+            {{ passwordError() ?? (passwordDone() ? t('ui.sifreGuncellendi') : '') }}
+          </p>
+
+          <button type="button" class="btn btn--primary" [disabled]="saving()" (click)="submitPassword()">
+            {{ saving() ? t('ui.guncelleniyor') : t('ui.sifreyiGuncelle') }}
+          </button>
+        </div>
+      }
+
+      @case ('sil') {
+        <div class="danger">
+          <p class="danger__lead">{{ t('hesap.geriAlinamaz') }}</p>
+          <ul class="danger__list">
+            <li>{{ t('hesap.silTakim') }}</li>
+            <li>{{ t('hesap.silKart') }}</li>
+            <li>{{ t('hesap.silUyelik') }}</li>
+            <li>{{ t('hesap.silYerel') }}</li>
+          </ul>
+
+          <label class="field">
+            <span class="field__label">{{ t('hesap.onay') }} <b>{{ deletePhrase() }}</b> {{ t('hesap.yaz') }}</span>
+            <input class="field__input" type="text" autocomplete="off" spellcheck="false"
+              [value]="confirmText()" (input)="onInput($event.target, confirmText.set)" />
+          </label>
+
+          <p class="msg" aria-live="polite" [class.msg--error]="deleteError()">{{ deleteError() ?? '' }}</p>
+
+          <!-- Onay metni harfi harfine yazılmadan düğme AÇILMAZ: geri alınamaz iş, tek tık olmamalı. -->
+          <button type="button" class="btn btn--danger" [disabled]="!canDelete() || deleting()" (click)="submitDelete()">
+            {{ deleting() ? t('ui.siliniyor') : t('ui.hesabiKaliciSil') }}
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>

@@ -1,0 +1,671 @@
+/*
+ * KAYDIRMAYA BAĞLI HAREKET
+ *
+ * Kullanıcı isteği: "aşağı kaydırdıkça bir şeyler olsun, metin renklensin, ortadan koşan
+ * futbolcu olsun." Kural: hareket DİKKAT ÇEKMEK için değil, OKUMAYI YÖNLENDİRMEK için.
+ * Bu yüzden dört şey var, hepsi kaydırma ilerlemesine bağlı — kendi başına oynayan,
+ * kullanıcıyı bekleten hiçbir animasyon yok.
+ *
+ * Teknik seçim: mümkün olan her yerde CSS `animation-timeline` (kaydırma/görünüm zaman
+ * çizelgesi). Kaydırma olayını JS'te dinleyip her karede stil yazmak, uzun bir sayfada
+ * kasmanın en hızlı yolu; tarayıcının kendi zaman çizelgesi ana iş parçacığını meşgul etmez.
+ * Desteklemeyen tarayıcıda her şey SON HÂLİNDE durur (metin tam renkli, saha çizili) —
+ * içerik hiçbir koşulda yarım görünmez.
+ */
+
+/* ------------------------------------------------------------------ BELİRME */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 620ms cubic-bezier(0.22, 0.9, 0.3, 1),
+    transform 620ms cubic-bezier(0.22, 0.9, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ------------------------------------------------- METİN KAYDIRDIKÇA DOLUYOR */
+/*
+ * Metin sönük başlar, ekranda ilerledikçe soldan sağa beyaza döner. Gradyan metne
+ * kırpılıyor (`background-clip: text`); animasyon yalnızca gradyanın KONUMUNU değiştiriyor,
+ * yani her karede yeniden düzen hesabı yok.
+ *
+ * Varsayılan konum DOLU hâl: zaman çizelgesi desteklenmiyorsa metin tamamen okunur kalır.
+ */
+.fill-text {
+  background-image: linear-gradient(
+    100deg,
+    #fff 0%,
+    #fff 42%,
+    rgba(255, 255, 255, 0.24) 58%,
+    rgba(255, 255, 255, 0.24) 100%
+  );
+  background-size: 260% 100%;
+  background-position: 0% 0;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* Vurgulu kelimeler gradyanın dışında kalsın diye kendi rengini taşır. */
+  strong {
+    color: $green;
+    -webkit-text-fill-color: $green;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .fill-text {
+    background-position: 100% 0;
+    animation: metin-dolsun linear both;
+    animation-timeline: view();
+    /* Paragraf ekrana girerken başlar, ortasına gelmeden biter: okurken dolar. */
+    animation-range: entry 24% cover 52%;
+  }
+}
+
+
+/* --------------------------------------------- YAN ÇİZGİDE KOŞAN FUTBOLCU */
+/*
+ * Sayfanın ortasında, iki bölüm arasında bir TAÇ ÇİZGİSİ var; koşucu bu çizgi boyunca
+ * sayfanın kaydırma ilerlemesiyle soldan sağa gidiyor. Yani "aşağı ne kadar indin"in
+ * görsel karşılığı: sayfanın kendi ilerleme çubuğu, ama futbol diliyle.
+ *
+ * Figür, yol haritası ve saha oyuncusuyla AYNI piktogram ailesinden.
+ */
+
+/* Koşucunun GEÇTİĞİ yer yeşile döner: nereye kadar okuduğun çizgide duruyor. */
+
+
+
+
+/* Kap sorgusu: yukarıdaki `cqw` ölçüleri bu kaba göre. */
+
+/* Koşu bacakları: sürekli, ama yalnızca sayfa kaydırılırken anlamlı olduğu için yavaş. */
+
+
+/* ----------------------------------------- MİNİ SAHA KENDİNİ ÇİZİYOR */
+/*
+ * Saha çizgileri, bölüm göründüğünde çizilir (stroke-dashoffset). Statik bir şema yerine
+ * "şimdi kuruluyor" hissi veriyor ve bakışı özellik metnine getiriyor.
+ */
+
+/* Oyuncu noktaları çizgilerden SONRA düşer. */
+
+/* ------------------------------------------------- RAKAMLAR SAYARAK GELİR */
+
+/* ------------------------------------------------------- HAREKETİ AZALTILMIŞ */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal.is-in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .fill-text {
+    background: none;
+    -webkit-text-fill-color: $ink;
+    color: $ink;
+  }
+
+}
+
+/* ======================================================================
+ * İKİNCİ TUR — yazma efekti, file dokusu, yandan gelen metin, dev kelime
+ * (kullanıcı referansı: buzzworthystudio.com ve gönderdiği üç görsel)
+ * ====================================================================== */
+
+/* ------------------------------------------------------- YAZMA EFEKTİ */
+/*
+ * Başlığın son kelimesi kendini silip yenisini yazıyor. Kelime değişirken satırın
+ * GENİŞLİĞİ değişiyor; başlık zıplamasın diye kelime `inline-block` ve en uzun kelimeye
+ * göre bir alt sınır taşıyor (`min-width`), imleç de o kutunun içinde kalıyor.
+ */
+.typed {
+  display: inline-block;
+  /*
+   * En uzun kelime "tarafsız" (8 harf) — kutu ona göre. 7.2ch iken kelime değişirken kutu
+   * 234-238px arasında oynuyordu (ölçüldü); 8.4ch ile oynama biter, satır hiç kıpırdamaz.
+   */
+  min-width: 8.4ch;
+  text-align: left;
+}
+
+.typed--live::after {
+  content: '';
+  display: inline-block;
+  width: 0.06em;
+  height: 0.84em;
+  margin-left: 0.06em;
+  vertical-align: -0.06em;
+  background: currentColor;
+  animation: imlec-yansin 1.06s steps(1, end) infinite;
+}
+
+
+/* --------------------------------------------- KAYDIRIRKEN BELİREN FİLE */
+/*
+ * Kale filesi: iki çapraz çizgi ailesi. Sabit (`fixed`) — sayfayla birlikte kaymaz,
+ * ekranın arkasında durur; kayan şey içeriktir, file onun gerisindeki dokudur.
+ *
+ * Görünürlüğü `.page.is-scrolling` belirler (bkz. ScrollPulseDirective). Kullanıcı isteği:
+ * "daha saydam olsun ve durduğum gibi kaybolsun" — belirmesi 200ms, ÇEKİLMESİ 180ms ve
+ * bekleme süresi 420 → 130ms. Yani file kaydırmanın kendisine bağlı: parmak durunca doku da
+ * durmuyor, gidiyor. Çizgiler %16 → %9, doku doygunluğu %55: arkada durduğunu bilirsin ama
+ * metnin arkasında bir ızgara okumazsın.
+ */
+.mesh {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 180ms ease-out;
+  background-image:
+    repeating-linear-gradient(
+      58deg,
+      rgba(0, 245, 122, 0.09) 0 1px,
+      transparent 1px 26px
+    ),
+    repeating-linear-gradient(
+      -58deg,
+      rgba(0, 245, 122, 0.09) 0 1px,
+      transparent 1px 26px
+    );
+  /* Kenarlarda erisin: ekranı çerçeveleyen bir ızgara gibi durmasın. */
+  mask-image: radial-gradient(ellipse 88% 76% at 50% 44%, #000 34%, transparent 100%);
+}
+
+.page.is-scrolling .mesh {
+  /* Tam opak DEĞİL: doku zeminde kalsın, sayfanın üstüne bir katman gibi oturmasın. */
+  /* Kullanıcı isteğiyle yarıya indi (0,55 → 0,28): çizgilerin görünen yoğunluğu ~%2,5. */
+  opacity: 0.28;
+  transition-duration: 200ms;
+}
+
+/* ------------------------------------------------ YANDAN GELEN METİN */
+/*
+ * `appReveal`'ın kendi belirmesi yukarıdan gelir; bu iki sınıf onu YANDAN getirir.
+ * Karşılıklı kullanılıyor (başlık soldan, görsel sağdan) — sayfa aşağı inerken iki yandan
+ * kapanan bir makas hissi veriyor.
+ */
+.reveal.from-left {
+  transform: translateX(-72px);
+}
+
+.reveal.from-right {
+  transform: translateX(72px);
+}
+
+.reveal.from-left.is-in,
+.reveal.from-right.is-in {
+  transform: none;
+}
+
+/* ------------------------------------------------------- DEV KELİME */
+/*
+ * Bölüm aralarında, içeriğin arkasında duran iri bir kelime. Kaydırdıkça yatay olarak
+ * kayıyor (paralaks) ve aynı anda soldan sağa RENKLENİYOR — "attitude" referansındaki
+ * dolan harfler. İkisi ayrı katmanda: dıştaki kayar, içteki dolar; tek öğede iki
+ * `animation-timeline` çakışırdı.
+ */
+.bigword {
+  position: relative;
+  overflow: clip; /* hidden DEĞİL: kaydırma kabı yaratıp zaman çizelgesini bozar */
+  padding: clamp(18px, 4vw, 44px) 0;
+  user-select: none;
+}
+
+.bigword__slide {
+  display: block;
+  white-space: nowrap;
+  transform: translateX(6%);
+}
+
+.bigword__text {
+  font-family: $display;
+  font-style: italic;
+  font-weight: 800;
+  font-size: clamp(56px, 12vw, 168px);
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  /*
+   * DOLU hâli bile SÖNÜK. İlk denemede dolan kısım tam neon yeşildi: 200px'lik parlak bir
+   * kelime bölüm başlığını eziyordu (ölçüldü — ekran görüntüsünde sayfanın konusu o oldu) ve
+   * projenin renk kuralını çiğniyordu (yeşil = basılabilir eylem; bu kelime bir eylem değil).
+   * Burada yeşil bir DOKU olarak var: dolduğu görülüyor, okumayı bastırmıyor.
+   */
+  background-image: linear-gradient(
+    92deg,
+    rgba(0, 245, 122, 0.26) 0%,
+    rgba(0, 245, 122, 0.26) 40%,
+    rgba(255, 255, 255, 0.05) 56%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 280% 100%;
+  background-position: 0% 0; /* desteklenmeyen tarayıcıda DOLU hâl */
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@supports (animation-timeline: view()) {
+  .bigword__slide {
+    animation: kelime-kaysin linear both;
+    animation-timeline: view();
+    animation-range: cover 0% cover 100%;
+  }
+
+  .bigword__text {
+    background-position: 100% 0;
+    animation: kelime-dolsun linear both;
+    animation-timeline: view();
+    animation-range: entry 30% cover 62%;
+  }
+}
+
+
+
+/* ------------------------------------------------------- HAREKETİ AZALTILMIŞ */
+@media (prefers-reduced-motion: reduce) {
+  .typed--live::after {
+    display: none;
+  }
+
+  .mesh {
+    display: none;
+  }
+
+  .reveal.from-left,
+  .reveal.from-right {
+    transform: none;
+  }
+
+  .bigword__slide,
+  .bigword__text {
+    animation: none;
+    transform: none;
+  }
+
+  .bigword__text {
+    background: none;
+    -webkit-text-fill-color: rgba(0, 245, 122, 0.22);
+    color: rgba(0, 245, 122, 0.22);
+  }
+}
+
+/* ====================================================================== */
+/* SOYUNMA ODASI FOTOĞRAFLARI                                              */
+/* ====================================================================== */
+/*
+ * Üç fotoğraf, üç İŞ — dekor değil:
+ *   .photo--hazirlik (problem)    ışıklar altında gece halı saha maçı: başlığın anlattığı an
+ *                                 ("maç saat 21.00'de").
+ *   .photo--dolap    (dev kelime) çimde beyaz saha çizgisi — sınır, kural, adalet. Marka yok.
+ *   .photo--tunel    (son çağrı)  ışıklar altında toplanmış takım: "bu hafta kadro kurulsun".
+ *
+ * Hepsi 2400px, CC0 (Openverse API → Wikimedia Commons, Unsplash kaynaklı). Önceki set
+ * 512-768px'ti ve tam genişlikte 3x büyütülünce bulanıklaşıyordu (kullanıcı: "HD değil").
+ *
+ * ORTAK İŞLEM — fotoğraflar ham hâliyle KONULMAZ. Üçü de kırmızı/turuncu ağırlıklı;
+ * sayfanın paleti siyah + beyaz + tek yeşil. Doygunluk düşürülüp karartılıyor, üstüne çok
+ * hafif yeşil bir tint biniyor: fotoğraf sayfaya KATILIYOR, sayfanın üstüne yapışmıyor.
+ * Kenarları maskeyle siyaha eriyor — dikdörtgen bir "resim kutusu" görünmesin.
+ *
+ * KATMAN KURALI (projede bir kez tüm tören ekranını bozdu): fotoğraf mutlak konumlu,
+ * kardeşleri (h2/p/ul) konumsuz blok. Konumlu öğe konumsuzun ÜSTÜNE boyanır — bu yüzden
+ * `z-index: -1` + kapsayıcıda `isolation: isolate`. Çocuklara TOPLU (`> *`) kural YAZILMAZ.
+ */
+.photo {
+  position: absolute;
+  inset: 0;
+  /*
+   * TAM GENİŞLİK. Bölüm oluğuna hapsedilince fotoğraf ekranın ortasında KESKİN KENARLI bir
+   * dikdörtgen olarak duruyordu (ölçüldü: 318-1528px arası bir kutu) — "sayfaya yapıştırılmış
+   * resim" etkisi. Artık ekranı boydan boya geçiyor ve yanlardan da maskeyle eriyor.
+   * `.page` üzerindeki `overflow: clip` 100vw'nin yan kaydırma açmasını engelliyor.
+   */
+  left: 50%;
+  right: auto;
+  width: 100vw;
+  max-width: none;
+  transform: translateX(-50%);
+  z-index: -1;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  filter: grayscale(0.5) saturate(0.7) brightness(0.36) contrast(1.05);
+}
+
+/* Fotoğrafın üstündeki perde: metnin arkasını çökertir, yeşile doğru evlendirir. */
+.photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(8, 8, 10, 0.55) 0%, rgba(8, 8, 10, 0.2) 38%, #08080a 100%),
+    linear-gradient(90deg, rgba(0, 245, 122, 0.07), transparent 60%);
+}
+
+.problem,
+.final,
+.bigword--foto {
+  position: relative;
+  /* Fotoğrafın `z-index: -1`'i sayfanın altına kaçmasın diye kendi yığma bağlamı. */
+  isolation: isolate;
+}
+
+/* PROBLEM — fotoğraf başlığın arkasında, kartlara inmeden siyaha eriyor. */
+.photo--hazirlik {
+  background-image: url('/foto-halisaha-gece.webp');
+  /* Bant ince (yalnız başlık bloğu, ~226px). %68'de yalnızca ışık direkleri görünüyordu;
+     oyuncular fotoğrafın ~%78'inde, kadraj onlara indirildi. Ortak karartma bu bantta
+     sahneyi yutuyordu, biraz daha aydınlık. */
+  --foto-y: 82%;
+  background-position: 50% var(--foto-y);
+  filter: grayscale(0.35) saturate(0.8) brightness(0.5) contrast(1.05);
+  bottom: calc(-1 * clamp(24px, 3vw, 44px));
+  /* Yalnızca BAŞLIK BLOĞUNUN arkasında (.problem__head): fotoğraf açıklamanın altında
+     tamamen erimiş biter, 01 kartı onun ALTINDA temiz zeminde başlar. Önceden bölüm
+     yüksekliğine göre boyutlanıyordu ve kartın üst yarısına biniyordu. */
+  top: calc(-1 * clamp(36px, 5vw, 64px));
+  mask-image:
+    linear-gradient(180deg, transparent 0%, #000 16%, #000 72%, transparent 100%),
+    linear-gradient(90deg, transparent 0%, #000 14%, #000 86%, transparent 100%);
+  mask-composite: intersect;
+  -webkit-mask-composite: source-in;
+}
+
+/* DEV KELİME — fotoğraf bandın kendisi; kelime onun üstünde duruyor. */
+.bigword--foto {
+  /* Fotoğraf bandı taşısın diye bant biraz daha yüksek. */
+  padding-block: clamp(26px, 6vw, 72px) 16px;
+  /* Alt dolgu kısa: altındaki çözüm bölümüyle TEK EKRAN (kelime + başlık + sahne). */
+}
+
+.photo--dolap {
+  background-image: url('/foto-saha-cizgisi.webp');
+  --foto-y: 55%;
+  background-position: center var(--foto-y);
+  /* Yanlardan erisin: bant tam genişlikte, kesik kenar istemiyoruz. */
+  mask-image:
+    linear-gradient(90deg, transparent 0%, #000 18%, #000 82%, transparent 100%),
+    linear-gradient(180deg, transparent 0%, #000 22%, #000 78%, transparent 100%);
+  mask-composite: intersect;
+  -webkit-mask-composite: source-in;
+}
+
+/* SON ÇAĞRI — kapanışın zemini; alta doğru tamamen siyaha iniyor ki alt bilgi temiz olsun. */
+/*
+ * SON ÇAĞRI — tek istisna: bu fotoğrafın YEŞİLİ (ışıklı çim) bizim vurgu yeşilimizle aynı
+ * işi görüyor. Diğerlerinde doygunluğu kırmak doğruydu, burada kırmak sayfanın
+ * en iyi rengini çöpe atardı: bu yüzden daha az gri, biraz daha aydınlık.
+ */
+.photo--tunel {
+  background-image: url('/foto-takim-isiklar.webp');
+  /* Kadraj IŞIK DİREKLERİNDE. %78 denendi: ışık başları kırpıldı, toplanmış takım butonun
+     altına ve maskenin eridiği bölgeye düştü, bant koyu bir ufuk çizgisine döndü. Bu bölümde
+     fotoğraf atmosfer taşıyor; mesajı metin ve buton veriyor. */
+  --foto-y: 56%;
+  background-position: center var(--foto-y);
+  /* Gökyüzü mor-lacivert: eski "doygunluğu koru" istisnası burada sayfaya yabancı bir mor
+     getiriyordu. Doygunluk kırıldı; ışıklar yine okunuyor. */
+  filter: grayscale(0.45) saturate(0.85) brightness(0.8) contrast(1.05);
+  /*
+   * Yarıçap merkezin ÜST kenara uzaklığıyla aynı (46%): elipsin kendisi öğenin üst
+   * kenarında sıfıra iniyor, yoksa maske orada kesiliyor ve fotoğraf keskin bir yatay
+   * çizgiyle başlıyordu (ölçüldü).
+   */
+  mask-image: radial-gradient(74% 46% at 50% 46%, #000 12%, transparent 100%);
+}
+
+/*
+ * Tünelin perdesi de kendine ait. ORTAK perde alta doğru tam siyaha iniyor; burada o siyah
+ * tam olarak sahayı — fotoğrafın tek konusunu — yutuyordu. Yerine metnin arkasını çökerten
+ * bir ORTA perde + kenarlarda vinyet: yazı okunur kalıyor, saha görünüyor.
+ */
+.photo--tunel::after {
+  background:
+    radial-gradient(64% 62% at 50% 44%, rgba(8, 8, 10, 0.74), rgba(8, 8, 10, 0.26) 72%),
+    linear-gradient(180deg, rgba(8, 8, 10, 0.72) 0%, transparent 34%, rgba(8, 8, 10, 0.86) 100%);
+}
+
+/*
+ * PARALAKS — fotoğraf kaydırma ilerlemesiyle çok hafif kayar (sayfadan YAVAŞ).
+ * Derinlik hissi veriyor; ölçü bilinçli olarak küçük (%6), çünkü fotoğrafın işi metni
+ * taşımak, gösteri yapmak değil.
+ */
+@supports (animation-timeline: view()) {
+  .photo {
+    animation: foto-kaysin linear both;
+    animation-timeline: view();
+    animation-range: cover 0% cover 100%;
+  }
+}
+
+/* Kayma HER FOTOĞRAFIN KENDİ kadrajı (--foto-y) etrafında: sabit 36→58% yazılıydı ve
+   fotoğraf başına verilen background-position'ı sessizce eziyordu (kadraj ayarı hiç işlemedi). */
+
+@media (max-width: 640px) {
+  /* Telefonda fotoğraf daha da geri çekiliyor: küçük ekranda metin zaten dar. */
+  .photo {
+    filter: grayscale(0.55) saturate(0.65) brightness(0.28) contrast(1.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------- YIĞIN KARTLAR */
+/* Konum StackProgressDirective'in yazdığı --p'den türetilir (landing.component.scss).
+   Hareketi azaltılmışta yığın kurulmaz: kartlar sıradan liste olarak alt alta durur. */
+@media (prefers-reduced-motion: reduce) {
+  .pains-track {
+    height: auto;
+  }
+
+  .pains {
+    position: static;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 0;
+  }
+
+  .pain {
+    transform: none;
+    filter: none;
+    min-height: 0;
+  }
+
+  .pain__no,
+  .pain__soz,
+  .pain__sahne {
+    opacity: 1;
+  }
+}
+
+/* ------------------------------------------------- GİRİŞ EKRANININ ÇIKIŞI */
+/*
+ * Kullanıcı isteği: "ilk sayfayı aşağı kaydırınca animasyonlu geçiş olsun, yukarı kaysın."
+ * Giriş ekranı sayfayla birlikte düz kayıp gitmiyor; içeriği KATMAN KATMAN kalkıyor:
+ * başlık en önde ve en hızlı, metin ve düğmeler biraz geride, kartlar en hızlı ve hafifçe
+ * devrilerek. Farklı hızlar derinlik hissi veriyor, sönme bir sonraki bölüme yer açıyor.
+ *
+ * Kaynak `.hero`nun KENDİ görünüm zaman çizelgesi (`--giris`): `exit` aralığı bölümün üst
+ * kenarı ekranın tepesine değdiği anda (yani sayfanın en başında) %0'dır, bölüm ekrandan
+ * tamamen çıkınca %100. Kaydırma konumuna bağlı olduğu için yukarı dönünce her şey
+ * kendiliğinden yerine gelir. Yalnızca transform/opacity: düzen hesabı yok, zıplama yok.
+ *
+ * Sarmalayıcılar (`.hero__text`, `.hero__visual`) bilerek seçildi: kartların kendi eğiklik
+ * transform'u `.hero__card`'da duruyor, aynı öğeye ikinci bir transform yazılsa ezerdi.
+ */
+@supports (animation-timeline: view()) {
+  .hero {
+    view-timeline: --giris block;
+  }
+
+  .hero__title,
+  .hero__lead,
+  .hero__actions,
+  .hero__visual {
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: --giris;
+    animation-range: exit 0% exit 85%;
+  }
+
+  .hero__title {
+    animation-name: giris-kalk-baslik;
+  }
+
+  .hero__lead {
+    animation-name: giris-kalk-metin;
+  }
+
+  .hero__actions {
+    animation-name: giris-kalk-eylem;
+  }
+
+  .hero__visual {
+    animation-name: giris-kalk-kartlar;
+  }
+}
+
+/* Kurdele deseni sayfanın kökünde; sayfanın ilk ekranlık kaydırmasıyla yavaşça kalkar. */
+@supports (animation-timeline: scroll()) {
+  .hero__kurdele {
+    animation: giris-kalk-desen linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 0 100vh;
+  }
+}
+
+
+
+
+
+
+/* Hareketi azaltılmışta giriş ekranı sayfayla birlikte DÜZ kayar; içerik yerinde durur. */
+@media (prefers-reduced-motion: reduce) {
+  .hero__title,
+  .hero__lead,
+  .hero__actions,
+  .hero__visual,
+  .hero__kurdele {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------------- EKRAN GEÇİŞİ */
+/*
+ * Sayfa ekranlara bölündü (`ScreenStepperDirective`, kullanıcı: "tüm tablarda aynı geçiş
+ * olsun"). Ekrandan çıkan her bölüm giriş ekranındaki gibi yukarı kalkar, hafifçe küçülür ve
+ * söner; alttan bir sonraki bölüm gelir. Giriş ekranının kendi katmanlı çıkışı var (yukarıda),
+ * dert destesinin izi ise bölümün bir parçası — ikisi bu kurala girmez.
+ *
+ * Aralık yalnızca bölümün SON EKRANI: `exit calc(100% - 100vh)` = bölümün alt kenarı ekranın
+ * altına değdiği an. Yoksa ekrandan uzun bölümler (deste 3200px) baştan sona sönük kalırdı.
+ * Yalnızca KAYMA var, ölçek ve sönme yok: ilk sürümde krem bantlı bölüm sönerken altındaki
+ * koyu zeminle karışıp GRİ bir şerit oluyordu, `scale` da tam genişlik bandın kenarlarını
+ * içeri çekip yanlarda koyu boşluk açıyordu (ekran görüntüsünde görüldü). Bölüm son anında
+ * sayfadan daha hızlı kalkar — sekme geçişindeki "çekilme" hissi buradan geliyor.
+ */
+@supports (animation-timeline: view()) {
+  /* Son çağrı muaf: sayfanın son bölümü, ondan sonra geçilecek ekran yok. "Ücretsiz" (.proof) de
+     muaf: kendi DAĞILMA çıkışı var (landing.component.scss "ÜCRETSİZ EKRANI: DAĞILARAK ÇIKIŞ"); Adil kura
+     (app-adalet-demo) da: Mac "genie" çıkışı bileşenin kendi stilinde; Üç adım (.how) da: deste toplama
+     çıkışı (landing.component.scss sonu + adim-kartlari stili); Tanıdık dertler (.problem) da: destenin
+     TV kapanması (landing.component.scss "TANIDIK DERTLER: TV KAPANMASI"). */
+  [data-ekran]:not(.hero):not(.pains-track):not(.final):not(.proof):not(app-adalet-demo):not(.how):not(.problem) {
+    animation: ekran-cik linear both;
+    animation-timeline: view();
+    animation-range: exit calc(100% - 100vh) exit 100%;
+  }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  [data-ekran] {
+    animation: none;
+  }
+}
+
+
+
+
+/* --- Anahtar kareler (11 Ekim 2026: yanlışlıkla silindi, derlenmiş koddan GERİ YÜKLENDİ; içerik birebir) --- */
+@keyframes metin-dolsun {
+  to {
+    background-position: 0% 0;
+  }
+}
+@keyframes imlec-yansin {
+  0%, 50% {
+    opacity: 1;
+  }
+  50.01%, 100% {
+    opacity: 0;
+  }
+}
+@keyframes kelime-kaysin {
+  to {
+    transform: translateX(-16%);
+  }
+}
+@keyframes kelime-dolsun {
+  to {
+    background-position: 0% 0;
+  }
+}
+@keyframes foto-kaysin {
+  from {
+    background-position-y: calc(var(--foto-y, 46%) - 11%);
+  }
+  to {
+    background-position-y: calc(var(--foto-y, 46%) + 11%);
+  }
+}
+@keyframes giris-kalk-baslik {
+  to {
+    transform: translateY(-190px) scale(0.94);
+    opacity: 0;
+  }
+}
+@keyframes giris-kalk-metin {
+  to {
+    transform: translateY(-120px);
+    opacity: 0;
+  }
+}
+@keyframes giris-kalk-eylem {
+  to {
+    transform: translateY(-80px);
+    opacity: 0;
+  }
+}
+@keyframes giris-kalk-kartlar {
+  to {
+    transform: translateY(-260px) rotate(-6deg) scale(0.9);
+    opacity: 0;
+  }
+}
+@keyframes giris-kalk-desen {
+  to {
+    transform: translateY(-120px);
+    opacity: 0;
+  }
+}
+@keyframes ekran-cik {
+  to {
+    transform: translateY(-140px);
+  }
+}

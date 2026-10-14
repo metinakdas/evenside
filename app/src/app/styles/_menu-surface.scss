@@ -1,0 +1,141 @@
+/*
+ * MENÜNÜN GÖRSEL DİLİ — tek kaynak.
+ *
+ * Ana menü (`Kadro Kurma Menü Tasarımı/Saha42 Menu.dc.html` portu) uygulamanın geri kalanından
+ * farklı bir palet ve tipografi getirdi: mor zemin, #3ee07f yeşil, #6ee7ff turkuaz, Barlow
+ * Condensed italik başlıklar, KESKİN köşeli paneller. Bir ekran menü dilinde, diğeri eski
+ * siyah/neon dilde kalınca uygulama iki ayrı ürün gibi görünüyor (kullanıcı: "uygulama
+ * bütünlüğü olmaz"). Ekranlar bu değerleri buradan alır — kopyalanmaz.
+ */
+
+/* Menü paletinin değişkenleri; ekranın kök kabına yazılır. */
+@mixin menu-palette {
+  --m-green: #3ee07f;
+  --m-cyan: #6ee7ff;
+  --m-violet: #9a49f5;
+  --m-ink: light-dark(#121216, #fff);
+  --m-muted: light-dark(rgba(18, 18, 22, 0.6), rgba(255, 255, 255, 0.6));
+  --m-panel: linear-gradient(170deg, rgba(38, 20, 76, 0.92) 0%, rgba(22, 11, 44, 0.94) 100%);
+  --m-panel-dim: linear-gradient(170deg, rgba(28, 16, 58, 0.9) 0%, rgba(18, 9, 38, 0.94) 100%);
+  --m-panel-border: rgba(150, 110, 235, 0.4);
+  --m-line: light-dark(rgba(18, 18, 22, 0.1), rgba(255, 255, 255, 0.1));
+  --m-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+}
+
+/*
+ * Menünün zemini: dört gradyan katman. Menüde bunlar ayrı `div`ler (üstlerinde SVG kurdele
+ * var); burada tek bir `background` yığını yetiyor — ekranın içeriği zaten zemini örtüyor.
+ * Kabın `position` vermesi ve zeminin içeriğin ALTINDA kalması gerekir.
+ */
+@mixin menu-ground {
+  background-color: #160b2a;
+  background-image:
+    radial-gradient(110% 85% at 50% 42%, rgba(0, 0, 0, 0) 45%, light-dark(rgba(255, 255, 255, 0.55), rgba(6, 3, 14, 0.55)) 100%),
+    radial-gradient(55% 45% at 26% 34%, rgba(120, 60, 210, 0.28) 0%, rgba(22, 11, 42, 0) 72%),
+    radial-gradient(120% 95% at 22% 6%, #3a2468 0%, #2a1b52 30%, #1d1340 55%, #17102f 78%, #120b26 100%);
+}
+
+
+/*
+ * Menü dilini ALT BİLEŞENLERE de geçiren katman. Bileşen stilleri Angular'da kapsüllüdür ama
+ * CSS değişkenleri kapsüllemeyi delip geçer: ekranın kökünde token'ları yeniden tanımlayınca
+ * format panelinden havuz listesine, tablodan düğmelere kadar her şey menü paletine döner —
+ * onlarca bileşeni tek tek elden geçirmeye gerek kalmaz.
+ *
+ * Uyarı: bu SADECE menü dilindeki ekranlarda (`/`, `/kadro`) kullanılır. Tören ve saha
+ * ekranları kendi fotoğraf atmosferleriyle siyah/mor kutupta kalır (proje notları
+ * "Tasarım dili": iki kutbu karıştırma).
+ */
+@mixin menu-token-overrides {
+  --color-bg: #160b2a;
+  --color-panel: rgba(30, 17, 62, 0.92);
+  --color-surface: rgba(30, 17, 62, 0.92);
+  --color-divider: rgba(150, 110, 235, 0.28);
+  --color-accent: #3ee07f;
+  --color-accent-contrast: #06210f;
+  --color-text-secondary: light-dark(rgba(18, 18, 22, 0.62), rgba(255, 255, 255, 0.62));
+  // Menü dili KESKİN köşeli: yuvarlak paneller mor zeminde menüden ayrı bir dil kuruyordu.
+  // Pill (düğme) yarıçapı bilinçli olarak dokunulmadan kalır.
+  --radius-sharp: 0;
+  --r-sm: 0;
+  --r-md: 0;
+}
+
+/* Menünün kutusu: keskin köşe, mor kenar, gölge. */
+@mixin menu-panel($dim: false) {
+  border: 1px solid var(--m-panel-border);
+  border-radius: 0;
+  @if $dim {
+    background: var(--m-panel-dim);
+  } @else {
+    background: var(--m-panel);
+  }
+  box-shadow: 0 14px 32px light-dark(rgba(20, 20, 30, 0.11), rgba(0, 0, 0, 0.35));
+}
+
+/* Menünün başlık tipografisi (kutu etiketleri, bölüm başlıkları). */
+@mixin menu-title($size: 22px) {
+  font-family: var(--m-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: $size;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Üst çubuktaki ince çerçeveli pill (menüdeki "Çıkış" düğmesi). */
+@mixin menu-pill {
+  padding: 7px 16px;
+  border: 1px solid light-dark(rgba(18, 18, 22, 0.28), rgba(255, 255, 255, 0.28));
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: light-dark(rgba(18, 18, 22, 0.8), rgba(255, 255, 255, 0.8));
+  font-family: var(--font-body);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--m-green);
+    color: var(--m-green);
+  }
+}
+
+/* Menünün sekme şeridi. */
+@mixin menu-tabs {
+  display: flex;
+  align-self: flex-start;
+  background: light-dark(rgba(255, 255, 255, 0.62), rgba(14, 8, 28, 0.62));
+  border: 1px solid light-dark(rgba(18, 18, 22, 0.08), rgba(255, 255, 255, 0.08));
+  border-radius: 3px;
+  overflow: hidden;
+  padding: 0;
+  gap: 0;
+}
+
+@mixin menu-tab {
+  padding: 9px 22px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: light-dark(rgba(18, 18, 22, 0.55), rgba(255, 255, 255, 0.55));
+  font-family: var(--m-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+
+  &:hover {
+    color: light-dark(rgba(18, 18, 22, 0.85), rgba(255, 255, 255, 0.85));
+  }
+}
+
+@mixin menu-tab-active {
+  background: linear-gradient(180deg, #8a3df0, #6a23c8);
+  color: #fff;
+  box-shadow: inset 0 -3px 0 0 var(--m-green);
+}

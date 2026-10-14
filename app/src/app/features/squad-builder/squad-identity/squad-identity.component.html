@@ -1,0 +1,95 @@
+<!--
+  Panel KAPALI durur: yalnızca kadronun adı ve "Düzenle". Katılma kodu ve üye satırı, bir kez
+  bakılıp bir daha ihtiyaç duyulmayan bilgiler — sürekli açık durduklarında sol kolonda yer
+  kaplıyorlar. "Düzenle" hepsini birden açar (kullanıcı isteği).
+-->
+<section class="identity" [attr.aria-label]="t('kadro.kadroKimligi')">
+  <div class="identity__row">
+    <div class="identity__name-wrap">
+      <span class="identity__label">{{ t('kadro.kadro') }}</span>
+      <!--
+        Yüklenmeden "Adsız / Ad ver" göstermek yanlış: takımı olan kullanıcı panelin bir an
+        "adsız" deyip sonra adı yazmasını görüyordu. `as` yalnızca BİRİNCİL @if üzerinde
+        geçerli (NG5002), bu yüzden kontrol iç içe yazıldı.
+      -->
+      @if (loaded()) {
+        @if (squad(); as s) {
+          <span class="identity__name">{{ s.name || t('kadro.adsiz') }}</span>
+          <!--
+            Kaç kişinin kodla katıldığı panel KAPALIYKEN de görünür: kadro sahibinin aklındaki
+            asıl soru bu (kod zaten bir kez paylaşılıyor, sayı ise değişiyor).
+          -->
+          <span class="identity__joined">
+            <span class="identity__mark" aria-hidden="true">⚯</span>
+            {{ joinedText() }}
+          </span>
+        } @else {
+          <span class="identity__name identity__name--empty">{{ t('oyun.adsiz') }}</span>
+        }
+      } @else {
+        <span class="identity__name identity__name--empty">…</span>
+      }
+    </div>
+
+    <!-- Düzenleme yalnızca kurucuda: üye takımın adını değiştiremez (RLS de reddeder). -->
+    @if (loaded() && isOwner()) {
+    <button
+      type="button"
+      class="identity__btn"
+      [class.identity__btn--primary]="!squad() && !editing()"
+      [attr.aria-expanded]="editing()"
+      (click)="toggle()"
+    >
+      {{ editing() ? t('oyun.kapat') : squad() ? t('oyun.duzenle') : t('kadro.adVer') }}
+    </button>
+    }
+  </div>
+
+  @if (editing()) {
+    <div class="identity__edit">
+      <input
+        class="identity__field"
+        type="text"
+        maxlength="40"
+        [attr.placeholder]="t('kadro.kadroAdiOrnek')"
+        [value]="draft()"
+        (input)="onName($event)"
+        (keydown.enter)="save()"
+        (keydown.escape)="cancel()"
+        [attr.aria-label]="t('kadro.kadroAdi')"
+      />
+      <div class="identity__actions">
+        <!-- Vazgeç SESSİZ kademede: iptal, kaydetmeyle aynı ağırlıkta görünmemeli. -->
+        <button type="button" class="identity__btn ui-btn ui-btn--ghost" (click)="cancel()">{{ t('oyun.vazgec') }}</button>
+        <button type="button" class="identity__btn identity__btn--primary" [disabled]="saving()" (click)="save()">
+          {{ saving() ? t('ui.kaydediliyor') : t('ui.kaydet') }}
+        </button>
+      </div>
+    </div>
+
+    <!--
+      `as` yalnızca BİRİNCİL @if üzerinde geçerli (NG5002), bu yüzden kadro kontrolü iç içe
+      bir @if olarak yazıldı.
+    -->
+    @if (squad(); as s) {
+      <!-- Kod: paylaşılmak için var, bu yüzden okunaklı ve tek dokunuşla kopyalanabilir. -->
+      <button type="button" class="identity__code" (click)="copyCode()" [title]="t('ui.koduKopyala')">
+        <span class="identity__code-label">{{ t('kadro.katilmaKodu') }}</span>
+        <span class="identity__code-value">{{ s.joinCode }}</span>
+        <span class="identity__code-hint">{{ copied() ? t('kadro.kopyalandi') : t('kadro.kopyala') }}</span>
+      </button>
+
+      <p class="identity__members">
+        {{ t('kadro.kodIsaretOnce') }} <span class="identity__mark">⚯</span>{{ t('kadro.kodIsaretSonra') }}
+      </p>
+    } @else {
+      <p class="identity__hint">
+        {{ t('kadro.adVerAciklama') }}
+      </p>
+    }
+  }
+
+  @if (error(); as message) {
+    <p class="identity__error">{{ message }}</p>
+  }
+</section>

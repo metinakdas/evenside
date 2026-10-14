@@ -1,0 +1,54 @@
+<div class="table">
+  <div class="table__head">
+    @for (col of columns(); track col.key) {
+      <button
+        type="button"
+        class="table__th"
+        [class.table__th--active]="sortKey() === col.key"
+        [class.table__th--left]="col.key === 'ad'"
+        [class.table__mobile-hide]="col.key === 'ulke' || col.key === 'takim'"
+        (click)="sortBy(col.key)"
+      >
+        {{ t(col.label) }}
+        @if (sortKey() === col.key) {
+          <span>{{ sortDir() === -1 ? ' ▾' : ' ▴' }}</span>
+        }
+      </button>
+    }
+  </div>
+
+  @for (row of sortedRows(); track row.player.id; let i = $index) {
+    <div class="table__row">
+      <div class="table__cell table__cell--sira">{{ i + 1 }}</div>
+      <div class="table__cell table__cell--player">
+        <div class="table__mini" [class]="'table__mini--' + row.player.ratings.tier">{{ row.player.ratings.overall }}</div>
+        <span class="table__name">{{ row.player.input.name }}</span>
+      </div>
+      <div class="table__cell table__mobile-hide">{{ row.player.input.countryCode || '—' }}</div>
+      <div class="table__cell table__mobile-hide" [style.color]="row.teamColor">{{ row.teamName }}</div>
+      @if (showSquadActions()) {
+        <div class="table__cell table__cell--durum">
+          <button
+            type="button"
+            class="table__squad-btn"
+            [class.table__squad-btn--in]="row.inSquad"
+            (click)="squadToggled.emit(row.player.id)"
+            [attr.aria-label]="t(row.inSquad ? 'kadro.cikarEtiket' : 'kadro.ekleEtiket') + row.player.input.name"
+          >
+            {{ row.inSquad ? t('ui.kadroda') : t('ui.havuzda') }}
+          </button>
+        </div>
+      }
+      <div class="table__cell">{{ t('poz.' + row.player.ratings.position) }}</div>
+      <div class="table__cell table__cell--num table__cell--gen" [class.table__cell--active]="sortKey() === 'gen'">
+        {{ row.player.ratings.overall }}
+      </div>
+      <div class="table__cell table__cell--num" [class.table__cell--active]="sortKey() === 'hiz'">{{ roundStat(row, 'hiz') }}</div>
+      <div class="table__cell table__cell--num" [class.table__cell--active]="sortKey() === 'sut'">{{ roundStat(row, 'sut') }}</div>
+      <div class="table__cell table__cell--num" [class.table__cell--active]="sortKey() === 'pas'">{{ roundStat(row, 'pas') }}</div>
+      <div class="table__cell table__cell--num" [class.table__cell--active]="sortKey() === 'dri'">{{ roundStat(row, 'dri') }}</div>
+      <div class="table__cell table__cell--num" [class.table__cell--active]="sortKey() === 'def'">{{ roundStat(row, 'def') }}</div>
+      <div class="table__cell table__cell--num" [class.table__cell--active]="sortKey() === 'fiz'">{{ roundStat(row, 'fiz') }}</div>
+    </div>
+  }
+</div>

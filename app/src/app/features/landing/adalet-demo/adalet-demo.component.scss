@@ -1,0 +1,1134 @@
+@use '../../../styles/mac-isik' as isik;
+
+/*
+ * "ADALET NASIL KURULUR" — kura makinesi + üç adım.
+ *
+ * 11 Ekim 2026 (kullanıcı: "tasarımcı gibi düzelt, kura kartı ikinci görseldeki gibi Mac ışığıyla
+ * olsun"): iç içe iki koyu kutu (panel içinde panel) kaldırıldı. Kura makinesi artık "Hesap sana
+ * gelmez" rakam kartlarıyla AYNI dilde: BEYAZ yüzey, kenarda tur atan ışık, birkaç saniyede bir
+ * geçen ışık süzmesi (`styles/_mac-isik.scss`). Sağdaki adımlar koyu zeminde serbest duruyor ve
+ * numaralar dikey bir yol çizgisiyle birbirine bağlı.
+ * Palet: beyaz kartta rakam/metin koyu, çizimler koyu yeşil (neon yeşil beyazda okunmaz).
+ */
+$yesil: #00f57a;
+$koyu-yesil: #0b7a44;
+$display: 'Barlow Condensed', 'Saira Condensed', system-ui, sans-serif;
+$mono: var(--font-mono, 'Space Mono', monospace);
+$sure: 170ms; // çip başına dağıtım aralığı
+$bitis: 2.15s; // son çip yerine oturduktan sonra: terazi + ortalamalar
+
+:host {
+  display: grid;
+  /* İki yarı EŞİT (kullanıcı: "boyutları eşit olsun"): aynı genişlik, aynı yükseklik. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: clamp(18px, 2vw, 28px);
+  margin: clamp(20px, 2.4vw, 32px) 0 clamp(20px, 2.4vw, 32px);
+  color: #fff;
+}
+
+/* ------------------------------------------------------------ KURA MAKİNESİ (beyaz kart) */
+.demo {
+  @include isik.mac-isik(
+    $renk: $yesil,
+    $parlak: rgba(11, 122, 68, 0.9),
+    $kalinlik: 2px,
+    $suz: rgba(0, 245, 122, 0.22),
+    $dongu: true
+  );
+
+  padding: clamp(16px, 1.8vw, 24px) clamp(16px, 1.8vw, 24px) clamp(14px, 1.6vw, 20px);
+  border-radius: 20px;
+  background:
+    radial-gradient(120% 90% at 0% 0%, rgba(0, 245, 122, 0.09), transparent 55%),
+    linear-gradient(150deg, #ffffff, #f2f5f1);
+  box-shadow:
+    0 24px 56px rgba(0, 0, 0, 0.42),
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    inset 0 1px 0 #fff;
+  color: #111;
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.35s ease;
+}
+
+.demo:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 32px 64px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(0, 245, 122, 0.4),
+    inset 0 1px 0 #fff;
+}
+
+/* İçerik ışık katmanlarının (z-index 1) üstünde dursun; düğme tıklanabilir kalsın. */
+.saha,
+.olcu,
+.demo__tekrar {
+  position: relative;
+  z-index: 2;
+}
+
+.saha {
+  /* 5 sıra × 40px çip, sıra adımı %16 × 280px = 45px: çipler birbirinin mevkisini örtmez. */
+  height: 280px;
+  /* Silik saha: orta yuvarlak (dağıtım bitince çizgiyle birlikte belirir). */
+  background: radial-gradient(circle at 50% 52%, transparent 0 46px, rgba(11, 122, 68, 0.12) 46px 47.5px, transparent 48px)
+    no-repeat;
+  background-size: 100% 100%;
+}
+
+.saha__havuz,
+.saha__takim {
+  position: absolute;
+  top: 0;
+  font-family: $mono;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8a877f;
+  transition: opacity 0.4s ease;
+}
+
+.saha__havuz {
+  left: 0;
+}
+
+.saha__takim {
+  top: 0;
+  translate: -50% 0;
+  opacity: 0;
+  color: $koyu-yesil;
+}
+
+.saha__takim--a {
+  left: 27%;
+}
+
+.saha__takim--b {
+  left: 73%;
+}
+
+/* İki takımı ayıran orta çizgi (dağıtım başlayınca çizilir). */
+.saha__cizgi {
+  position: absolute;
+  left: 50%;
+  top: 9%;
+  bottom: 0;
+  width: 1.5px;
+  background: linear-gradient(transparent, rgba(11, 122, 68, 0.28) 18%, rgba(11, 122, 68, 0.28) 82%, transparent);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.5s ease;
+}
+
+/* Oyuncu çipi: reyting + mevki, kart renginde. */
+.cip {
+  position: absolute;
+  left: var(--hx);
+  top: 4%;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 40px;
+  padding-top: 2px;
+  border-radius: 8px 8px 12px 12px;
+  translate: -50% 0;
+  color: #1a1305;
+  box-shadow:
+    0 6px 14px rgba(0, 0, 0, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  transition:
+    left 0.55s cubic-bezier(0.3, 1.25, 0.5, 1),
+    top 0.55s cubic-bezier(0.3, 1.25, 0.5, 1);
+  transition-delay: calc(var(--d) * #{$sure});
+
+  b {
+    font-family: $display;
+    font-style: italic;
+    font-weight: 800;
+    font-size: 19px;
+    line-height: 1;
+  }
+
+  small {
+    font-family: $display;
+    font-weight: 700;
+    font-size: 11px;
+    line-height: 1;
+    letter-spacing: 0.04em;
+  }
+}
+
+.cip[data-tier='altin'] {
+  background: linear-gradient(160deg, #f6e27a, #d2a83a);
+}
+
+.cip[data-tier='gumus'] {
+  background: linear-gradient(160deg, #f4f5f7, #b4bac2);
+}
+
+.cip[data-tier='bronz'] {
+  background: linear-gradient(160deg, #e7b98a, #a8693a);
+}
+
+/* --- Terazi + ortalamalar --- */
+.olcu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 4px;
+  color: $koyu-yesil;
+}
+
+.olcu__terazi {
+  width: 96px;
+  height: 46px;
+}
+
+.olcu__kol {
+  transform-box: view-box;
+  transform-origin: 60px 14px;
+  transform: rotate(-12deg);
+  transition: transform 0.8s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.olcu__deger {
+  min-width: 3.2ch;
+  font-family: $display;
+  font-style: italic;
+  font-weight: 800;
+  font-size: 32px;
+  color: #111;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease;
+}
+
+/* Koyu hap düğme, kenarında yeşil ışık tur atar (tüm düğmelerdeki Mac ışığı). */
+.demo__tekrar {
+  @include isik.mac-isik($renk: $yesil, $parlak: rgba(255, 255, 255, 0.9), $kalinlik: 1.5px);
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px auto 0;
+  min-height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+  font: 700 14px/1 var(--font-body, system-ui);
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: #000;
+    transform: translateY(-1px);
+    outline: none;
+  }
+
+  &:focus-visible {
+    box-shadow:
+      0 0 0 3px rgba(0, 245, 122, 0.45),
+      0 8px 18px rgba(0, 0, 0, 0.22);
+  }
+}
+
+.demo__tekrar-ikon {
+  display: inline-block;
+  color: $yesil;
+  transition: rotate 0.5s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.demo__tekrar:hover .demo__tekrar-ikon,
+.demo__tekrar:focus-visible .demo__tekrar-ikon {
+  rotate: -180deg;
+}
+
+/* --- ÇALIŞ: çipler takımlara dağılır, terazi dengelenir, ortalamalar belirir --- */
+:host(.calis) {
+  .cip {
+    left: var(--tx);
+    top: var(--ty);
+  }
+
+  /* Etiketler havuz satırıyla aynı yükseklikte: son çip havuzdan ayrıldıktan SONRA belirir. */
+  .saha__takim {
+    opacity: 1;
+    transition-delay: 1.75s;
+  }
+
+  .saha__havuz {
+    opacity: 0;
+  }
+
+  .saha__cizgi {
+    transform: scaleY(1);
+    transition-delay: 0.15s;
+  }
+
+  .olcu__kol {
+    transform: rotate(0deg);
+    transition-delay: $bitis;
+  }
+
+  .olcu__deger {
+    opacity: 1;
+    transform: none;
+    transition-delay: $bitis;
+  }
+
+}
+
+/* Yeni kura: her şey GEÇİŞSİZ başlangıç hâline döner, sonra dağıtım baştan oynar. */
+:host(.sifirla) {
+  .cip,
+  .saha__takim,
+  .saha__havuz,
+  .saha__cizgi,
+  .olcu__kol,
+  .olcu__deger {
+    transition: none !important;
+  }
+}
+
+/* Dağıtım bitmeden kol iki yana sallanır: "hesap yapılıyor" hissi. */
+@media (prefers-reduced-motion: no-preference) {
+  :host(:not(.calis)) .olcu__kol {
+    animation: kol-tart 1.4s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes kol-tart {
+  from { transform: rotate(-12deg); }
+  to { transform: rotate(10deg); }
+}
+
+/* ------------------------------------------------------------ ÜÇ ADIM (kura kartının beyaz ikizi) */
+/* 11 Ekim 2026 (kullanıcı: "bunun da arka planı beyaz olsun, aynı mantık light"): kura kartıyla
+   AYNI yüzey ve ışık — beyaz, kenarda tur atan ışık, birkaç saniyede bir geçen yeşil parıltı. */
+.adimlar {
+  @include isik.mac-isik(
+    $renk: $yesil,
+    $parlak: rgba(11, 122, 68, 0.9),
+    $kalinlik: 2px,
+    $suz: rgba(0, 245, 122, 0.22),
+    $dongu: true
+  );
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(24px, 2.6vw, 40px);
+  border-radius: 20px;
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(0, 245, 122, 0.09), transparent 55%),
+    linear-gradient(150deg, #ffffff, #f2f5f1);
+  box-shadow:
+    0 24px 56px rgba(0, 0, 0, 0.42),
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    inset 0 1px 0 #fff;
+  color: #111;
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.35s ease;
+}
+
+/* Kura kartıyla AYNI ikinci faz: iki kartın parıltısı aynı anda geçmesin. */
+@media (prefers-reduced-motion: no-preference) {
+  .adimlar::after {
+    animation-delay: 3.5s;
+  }
+}
+
+.adimlar:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 32px 64px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(0, 245, 122, 0.4),
+    inset 0 1px 0 #fff;
+}
+
+.adimlar__ust,
+.adimlar__liste {
+  position: relative;
+  z-index: 2;
+}
+
+.adimlar__ust {
+  margin-bottom: 24px;
+}
+
+.adimlar__etiket {
+  margin: 0 0 12px;
+  font-family: $mono;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: $koyu-yesil;
+}
+
+.adimlar__baslik {
+  margin: 0;
+  font-family: $display;
+  font-style: italic;
+  font-weight: 800;
+  font-size: clamp(30px, 2.8vw, 44px);
+  line-height: 1.02;
+  text-transform: uppercase;
+  color: #111;
+}
+
+.adimlar__etiket,
+.adimlar__baslik {
+  transition:
+    opacity 0.3s ease,
+    transform 0.35s ease;
+}
+
+.adimlar__liste {
+  /* Panel kartla aynı boyda: ilk iki adım büyüyüp aradaki boşluğu paylaşır, son adım dipte. */
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 22px;
+  max-height: 420px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+  }
+
+  li:not(:last-child) {
+    flex: 1 1 0;
+  }
+
+  /* Yol çizgisi: her adımın numarasından bir sonrakinin numarasına (aradaki boşluk dahil). */
+  li:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 17px;
+    top: 36px;
+    bottom: -22px;
+    width: 2px;
+    background: linear-gradient(rgba(11, 122, 68, 0.55), rgba(11, 122, 68, 0.2));
+  }
+
+  b {
+    display: block;
+    font-family: $display;
+    font-style: italic;
+    font-weight: 800;
+    font-size: clamp(20px, 1.6vw, 24px);
+    line-height: 1.15;
+    text-transform: uppercase;
+    color: #111;
+    transition: color 0.2s ease;
+  }
+
+  p {
+    margin: 5px 0 0;
+    font-size: 15px;
+    line-height: 1.55;
+    color: #55524b;
+  }
+
+  li:hover b {
+    color: $koyu-yesil;
+  }
+}
+
+/* Numara rozeti: beyaz zeminde koyu yeşil kontur; adımın üzerine gelince neon dolgu. */
+.adimlar__no {
+  @include isik.mac-isik($renk: $yesil, $parlak: $koyu-yesil, $hep: false, $kalinlik: 1.5px);
+
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid rgba(11, 122, 68, 0.6);
+  border-radius: 50%;
+  background: #fff;
+  font-family: $display;
+  font-style: italic;
+  font-weight: 800;
+  font-size: 17px;
+  color: $koyu-yesil;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.adimlar__liste li:hover .adimlar__no {
+  border-color: $koyu-yesil;
+  background: $yesil;
+  color: #05130a;
+}
+
+.adimlar__liste li:hover .adimlar__no::before {
+  opacity: 1;
+}
+
+/* ------------------------------------------------------------ MOTİVASYON SÖZÜ (hover) */
+/*
+ * "Hesap sana gelmez" rakam kartlarındaki dil: kartın üzerine gelince bir bilgi satırı söner,
+ * yerinde kısa bir söz KELİME KELİME yükselir. Kura kartında takım etiketlerinin yerinde (sonuç ve
+ * düğme hiç örtülmez — kullanıcı yeniden çekerken ortalamaları görmeli), adım kartında başlığın yerinde.
+ */
+.motto {
+  position: absolute;
+  z-index: 3;
+  margin: 0;
+  font-family: $display;
+  font-style: italic;
+  font-weight: 800;
+  line-height: 1.02;
+  text-transform: uppercase;
+  color: $koyu-yesil;
+  pointer-events: none;
+
+  span {
+    display: inline-block;
+    margin-right: 0.24em;
+    opacity: 0;
+    transform: translateY(70%);
+    transition:
+      opacity 0.25s ease,
+      transform 0.45s cubic-bezier(0.2, 1.3, 0.4, 1);
+    transition-delay: calc(var(--k, 0) * 60ms);
+  }
+}
+
+.motto--saha {
+  left: 0;
+  right: 0;
+  top: -4px;
+  font-size: 22px;
+  text-align: center;
+}
+
+.motto--adim {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  font-size: clamp(30px, 2.8vw, 44px);
+}
+
+.saha__takim {
+  transition:
+    opacity 0.4s ease,
+    transform 0.35s ease;
+}
+
+.demo:hover .saha__takim {
+  opacity: 0 !important;
+  transform: translateY(-10px);
+  transition-delay: 0s !important;
+}
+
+.adimlar:hover .adimlar__etiket,
+.adimlar:hover .adimlar__baslik {
+  opacity: 0;
+  transform: translateY(-14px);
+}
+
+.demo:hover .motto--saha span,
+.adimlar:hover .motto--adim span {
+  opacity: 1;
+  transform: none;
+}
+
+/* Dokunmatikte hover yok: söz hiç çıkmaz, bilgi hep görünür. */
+@media (hover: none) {
+  .motto {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------ DAR EKRAN */
+@media (max-width: 860px) {
+  :host {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 420px) {
+  .cip {
+    width: 34px;
+    height: 38px;
+
+    b {
+      font-size: 15px;
+    }
+  }
+}
+
+/* Hareketi azaltılmış: son hâl, geçiş yok. */
+@media (prefers-reduced-motion: reduce) {
+  .cip,
+  .olcu__kol,
+  .olcu__deger,
+  .saha__takim,
+  .saha__cizgi,
+  .demo,
+  .adimlar,
+  .motto span {
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------------------ EKRANA GELİŞ: KAPI (11 Ekim 2026) */
+/*
+ * Geçiş koreografisi (bkz. landing.component.scss "GEÇİŞ KOREOGRAFİSİ"): iki kart iki yandan,
+ * birer kapı kanadı gibi 3B dönerek açılır — kura kartı soldan, adım kartı sağdan. Kaydırmaya
+ * bağlı; hover'daki `transform` bozulmasın diye `translate`/`rotate` AYRI özellikler.
+ */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) and (min-width: 861px) {
+    :host {
+      perspective: 1400px;
+    }
+
+    .demo,
+    .adimlar {
+      animation-timeline: view();
+      animation-range: entry 0% entry 90%;
+      animation-fill-mode: both;
+      animation-timing-function: linear;
+    }
+
+    .demo {
+      transform-origin: 0% 50%;
+      animation-name: gec-kapi-sol;
+    }
+
+    .adimlar {
+      transform-origin: 100% 50%;
+      animation-name: gec-kapi-sag;
+      animation-range: entry 8% entry 100%;
+    }
+  }
+}
+
+@keyframes gec-kapi-sol {
+  from {
+    opacity: 0;
+    translate: -90px 0;
+    rotate: y 38deg;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    rotate: y 0deg;
+  }
+}
+
+@keyframes gec-kapi-sag {
+  from {
+    opacity: 0;
+    translate: 90px 0;
+    rotate: y -38deg;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    rotate: y 0deg;
+  }
+}
+
+/* ------------------------------------------------------------ EKRANDAN ÇIKIŞ: MAC "GENIE" (11 Ekim 2026) */
+/*
+ * Kullanıcı: "Adil kura tabına da bir geçiş yapabilirsin, Mac bilgisayardaki sekme kapatma efekti
+ * gibi". macOS'un pencereyi Dock'a küçültme efekti ("genie"): blok önce bir HUNİYE dönüşür (üst
+ * kenar geniş kalır, alt kenar daralır — `clip-path`), sonra o huni soldaki menünün "Adil kura"
+ * düğmesine doğru EMİLİR (`translate` + `scale`, menünün olduğu sol alta).
+ *
+ * Aralık: `contain 120px` = blok ekran durağındaki yerinden (dibi ekranın altından 104px yukarıda,
+ * bkz. ScreenStepperDirective DIP_PAYI) hemen ayrıldığı an; `contain 100%` = blok ekranın TEPESİNE
+ * vardığı an — emilme tamamen ekranda görünür (ilk sürüm `exit 45%`te bitiyordu: blok emilirken
+ * ekranın üstünden çıkmış oluyordu, geçiş ortasında %22 opaklık kalmıştı — ölçüldü). Yani efekt YALNIZCA geçişte oynar, durakta blok kimlik hâlindedir; geri
+ * kaydırınca pencere Dock'tan geri açılır. Ortak yukarı kalkıştan muaf (landing-scroll.scss).
+ * Kartların giriş "kapı" animasyonu çocuklarda, bu host'ta — çakışmaz.
+ */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) and (min-width: 861px) {
+    :host {
+      transform-origin: 0% 100%;
+      animation: genie-kapan linear both;
+      animation-timeline: view();
+      animation-range: contain 120px contain 100%;
+    }
+  }
+}
+
+@keyframes genie-kapan {
+  /* Çokgen kenarlardan TAŞAR: durakta kartların gölgesi kırpılmasın. */
+  0% {
+    clip-path: polygon(-12% -20%, 112% -20%, 112% 120%, -12% 120%);
+    translate: 0 0;
+    scale: 1;
+    opacity: 1;
+  }
+  /* Huni: üst kenar yerinde, alt kenar sol alta (Dock'a) doğru daralır. */
+  40% {
+    clip-path: polygon(-12% -20%, 112% -20%, 34% 120%, 2% 120%);
+    translate: -4vw 2vh;
+    scale: 1 0.92;
+    opacity: 1;
+  }
+  /* Emilme: huni küçülerek menüye doğru akar. */
+  100% {
+    clip-path: polygon(6% 0%, 30% 0%, 20% 100%, 16% 100%);
+    translate: -38vw 18vh;
+    scale: 0.12 0.18;
+    opacity: 0;
+  }
+}
+
+/* ------------------------------------------------------------ KURA KARTI: EXCALIDRAW GÖRÜNÜMÜ (11 Ekim 2026) */
+/*
+ * Kullanıcı: "el yazısıyla çizilmiş gibi çiz, CSS'i Excalidraw gibi". Kura kartı bir eskiz:
+ * - el yazısı (Caveat — Excalidraw'ın Virgil'ine yakın, Türkçe karakterli; index.html'de yüklü),
+ * - çizgiler kalemle çizilmiş gibi TİTREK: şablondaki `#saha42-kalem` SVG filtresi (fractal gürültü +
+ *   yer değiştirme), düzensiz köşe yarıçapları ve çift kontur,
+ * - çiplerde Excalidraw'ın çapraz tarama (hachure) dolgusu, her biri hafif yamuk,
+ * - Excalidraw paleti: mürekkep #1e1e1e; Takım A mavi #1971c2, Takım B kırmızı #e03131,
+ * - noktalı tuval zemini.
+ * Kartın Mac ışığı (mixin'in ::before/::after'ı) bu kartta KAPALI; ::before/::after artık eskiz
+ * konturları. Animasyonlar (dağıtım, terazi, genie çıkışı, kapı girişi) aynen duruyor.
+ */
+$ex-murekkep: #1e1e1e;
+$ex-mavi: #1971c2;
+$ex-kirmizi: #e03131;
+$ex-yesil: #2f9e44;
+$el-yazisi: 'Caveat', 'Comic Sans MS', 'Segoe Print', cursive;
+
+.kalem-filtresi {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.demo {
+  background:
+    radial-gradient(circle, #dee2e6 1px, transparent 1.4px) 0 0 / 22px 22px,
+    #fff;
+  border-radius: 22px 30px 18px 34px / 30px 18px 34px 22px;
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.42);
+}
+
+/* Mac ışığı kapalı: pseudo'lar eskizin iki konturu. */
+.demo::before,
+.demo::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  padding: 0;
+  background: none;
+  -webkit-mask: none;
+  mask: none;
+  animation: none !important;
+  opacity: 1;
+  pointer-events: none;
+  filter: url(#saha42-kalem);
+}
+
+.demo::before {
+  inset: 10px;
+  border: 2.5px solid $ex-murekkep;
+  border-radius: 255px 14px 225px 14px / 14px 225px 14px 255px;
+}
+
+.demo::after {
+  inset: 13px 11px 8px 14px;
+  border: 1.5px solid rgba(30, 30, 30, 0.5);
+  border-radius: 14px 240px 16px 230px / 230px 16px 240px 14px;
+}
+
+.demo:hover {
+  box-shadow:
+    0 32px 64px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+/* Etiketler el yazısıyla, takım renkleriyle. */
+.saha__havuz,
+.saha__takim {
+  font-family: $el-yazisi;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  color: $ex-murekkep;
+}
+
+.saha__takim--a {
+  color: $ex-mavi;
+}
+
+.saha__takim--b {
+  color: $ex-kirmizi;
+}
+
+/* Orta çizgi: kesikli kalem çizgisi; orta yuvarlak: elle çizilmiş elips. */
+.saha {
+  background: none;
+}
+
+.saha__cizgi {
+  width: 0;
+  background: none;
+  border-left: 2px dashed rgba(30, 30, 30, 0.55);
+  filter: url(#saha42-kalem);
+}
+
+/* Orta yuvarlak GERÇEK öğe (önce `.saha::after` idi): sözde öğe `elementsFromPoint`te çıkmadığı için
+   silgi onu silemiyordu (kullanıcı: "bu yuvarlak da silinmeli"). */
+.saha__yuvarlak {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  width: 96px;
+  height: 90px;
+  border: 2px solid rgba(30, 30, 30, 0.45);
+  border-radius: 52% 46% 55% 44% / 46% 55% 44% 52%;
+  translate: -50% -50%;
+  rotate: -8deg;
+  filter: url(#saha42-kalem);
+}
+
+/* Çipler: tarama dolgulu, kalem konturlu, hafif yamuk kutular. */
+.cip,
+.cip[data-tier='altin'],
+.cip[data-tier='gumus'],
+.cip[data-tier='bronz'] {
+  border: 2px solid $ex-murekkep;
+  border-radius: 9px 14px 8px 13px / 13px 8px 14px 9px;
+  box-shadow: none;
+  color: $ex-murekkep;
+  filter: url(#saha42-kalem);
+}
+
+.cip[data-tier='altin'] {
+  background: repeating-linear-gradient(-45deg, rgba(250, 176, 5, 0.85) 0 1.6px, transparent 1.6px 6px), #fff3bf;
+}
+
+.cip[data-tier='gumus'] {
+  background: repeating-linear-gradient(-45deg, rgba(134, 142, 150, 0.75) 0 1.6px, transparent 1.6px 6px), #f1f3f5;
+}
+
+.cip[data-tier='bronz'] {
+  background: repeating-linear-gradient(-45deg, rgba(253, 126, 20, 0.8) 0 1.6px, transparent 1.6px 6px), #ffe8cc;
+}
+
+.cip:nth-of-type(odd) {
+  rotate: -2deg;
+}
+
+.cip:nth-of-type(even) {
+  rotate: 1.8deg;
+}
+
+/* El yazısı uzun boylu: çip biraz büyüdü, satırlar sıkıştı (ilk sürümde mevki alttan kesiliyordu). */
+.cip,
+.cip[data-tier='altin'],
+.cip[data-tier='gumus'],
+.cip[data-tier='bronz'] {
+  width: 46px;
+  height: 44px;
+  padding: 1px 0 0;
+  align-content: center;
+  gap: 0;
+}
+
+.cip b {
+  font-family: $el-yazisi;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 21px;
+  line-height: 0.82;
+}
+
+.cip small {
+  font-family: $el-yazisi;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 0.9;
+  letter-spacing: 0;
+}
+
+/* Terazi ve ortalamalar: mürekkep, el yazısı. */
+.olcu {
+  color: $ex-murekkep;
+}
+
+.olcu__terazi {
+  filter: url(#saha42-kalem);
+}
+
+.olcu__deger {
+  font-family: $el-yazisi;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 46px;
+  color: $ex-murekkep;
+}
+
+/* Düğme: Excalidraw butonu — beyaz, kalem konturlu, sert gölge; üzerine gelince yeşil tarama. */
+.demo__tekrar {
+  background: #fff;
+  color: $ex-murekkep;
+  border: 2px solid $ex-murekkep;
+  border-radius: 14px 20px 12px 22px / 20px 12px 22px 14px;
+  box-shadow: 3px 4px 0 $ex-murekkep;
+  font-family: $el-yazisi;
+  font-size: 24px;
+  font-weight: 700;
+
+  &::before,
+  &::after {
+    display: none;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: repeating-linear-gradient(-45deg, rgba(47, 158, 68, 0.45) 0 1.6px, transparent 1.6px 6px), #ebfbee;
+    color: $ex-murekkep;
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 5px 0 $ex-murekkep;
+  }
+
+  &:focus-visible {
+    box-shadow:
+      4px 5px 0 $ex-murekkep,
+      0 0 0 3px rgba(47, 158, 68, 0.45);
+  }
+}
+
+.demo__tekrar-ikon {
+  color: $ex-yesil;
+}
+
+/* ------------------------------------------------------------ ADIM KARTI + SÖZLER: EXCALIDRAW (11 Ekim 2026) */
+/*
+ * Kullanıcı: "Excalidraw olsun bu görseldekilerde de" — "Adalet nasıl kurulur" kartı ve hover'da
+ * yükselen motivasyon sözleri de kura kartıyla aynı eskiz dilinde: noktalı tuval, çift kalem
+ * kontur (Mac ışığı bu kartta da kapalı), el yazısı, elle çizilmiş numara yuvarlakları, kesikli yol.
+ */
+.adimlar {
+  background:
+    radial-gradient(circle, #dee2e6 1px, transparent 1.4px) 0 0 / 22px 22px,
+    #fff;
+  border-radius: 30px 20px 34px 22px / 20px 34px 22px 30px;
+}
+
+.adimlar::before,
+.adimlar::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  padding: 0;
+  background: none;
+  -webkit-mask: none;
+  mask: none;
+  animation: none !important;
+  opacity: 1;
+  pointer-events: none;
+  filter: url(#saha42-kalem);
+}
+
+.adimlar::before {
+  inset: 10px;
+  border: 2.5px solid $ex-murekkep;
+  border-radius: 14px 255px 14px 225px / 225px 14px 255px 14px;
+}
+
+.adimlar::after {
+  inset: 8px 13px 12px 9px;
+  border: 1.5px solid rgba(30, 30, 30, 0.5);
+  border-radius: 240px 16px 230px 14px / 16px 230px 14px 240px;
+}
+
+.adimlar__etiket {
+  font-family: $el-yazisi;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  color: $ex-yesil;
+}
+
+.adimlar__baslik {
+  font-family: $el-yazisi;
+  font-style: normal;
+  font-weight: 700;
+  font-size: clamp(38px, 3.4vw, 54px);
+  line-height: 0.95;
+  text-transform: none;
+  color: $ex-murekkep;
+}
+
+.adimlar__liste {
+  b {
+    font-family: $el-yazisi;
+    font-style: normal;
+    font-weight: 700;
+    font-size: clamp(26px, 2vw, 30px);
+    line-height: 1;
+    text-transform: none;
+    color: $ex-murekkep;
+  }
+
+  p {
+    font-family: $el-yazisi;
+    font-size: 21px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #495057;
+  }
+
+  /* Yol: kesikli kalem çizgisi. */
+  li:not(:last-child)::after {
+    width: 0;
+    background: none;
+    border-left: 2px dashed rgba(30, 30, 30, 0.5);
+    filter: url(#saha42-kalem);
+  }
+
+  li:hover b {
+    color: $ex-yesil;
+  }
+}
+
+/* Numaralar: elle çizilmiş yuvarlak; adımın üzerine gelince yeşil tarama. */
+.adimlar__no {
+  border: 2px solid $ex-murekkep;
+  border-radius: 52% 46% 55% 44% / 46% 55% 44% 52%;
+  background: #fff;
+  font-family: $el-yazisi;
+  font-style: normal;
+  font-size: 24px;
+  color: $ex-murekkep;
+  filter: url(#saha42-kalem);
+
+  &::before,
+  &::after {
+    display: none;
+  }
+}
+
+.adimlar__liste li:hover .adimlar__no {
+  border-color: $ex-murekkep;
+  background: repeating-linear-gradient(-45deg, rgba(47, 158, 68, 0.5) 0 1.6px, transparent 1.6px 6px), #ebfbee;
+  color: $ex-murekkep;
+}
+
+/* Hover'da yükselen sözler: el yazısı, büyük harf yok. */
+.motto {
+  font-family: $el-yazisi;
+  font-style: normal;
+  font-weight: 700;
+  text-transform: none;
+  color: $ex-yesil;
+}
+
+.motto--saha {
+  top: -10px;
+  font-size: 32px;
+}
+
+.motto--adim {
+  font-size: clamp(44px, 3.8vw, 60px);
+  line-height: 0.95;
+}
+
+/* ------------------------------------------------------------ SİLGİ (Excalidraw, 11 Ekim 2026) */
+/*
+ * Kartların üzerinde imleç Excalidraw'ın silgisine döner; basılı tutup sürükleyince geçtiği öğeler
+ * silinir (`.silindi`), birkaç saniye sonra soldan sağa yeniden çizilerek geri gelir
+ * (`.geri-ciziliyor`). Mantık bileşende (`silgiyiKur`); dokunmatikte `silgi-acik` sınıfı hiç gelmez.
+ */
+:host {
+  position: relative;
+}
+
+:host(.silgi-acik) .demo,
+:host(.silgi-acik) .adimlar {
+  cursor:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 24 24' fill='none' stroke='%231e1e1e' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M16.5 4.5 20 8a1.5 1.5 0 0 1 0 2.1L11.6 18.5H7.4L4 15.1a1.5 1.5 0 0 1 0-2.1l10.4-8.5a1.5 1.5 0 0 1 2.1 0z' fill='%23ffffff'/><path d='M9.2 9.6l5.2 5.2'/><path d='M7.4 18.5H20'/></svg>")
+      5 22,
+    crosshair;
+}
+
+:host(.siliyor) {
+  user-select: none;
+}
+
+.silindi {
+  opacity: 0 !important;
+  transition: opacity 0.18s ease !important;
+}
+
+.geri-ciziliyor {
+  animation: geri-ciz 0.6s ease-out both;
+}
+
+@keyframes geri-ciz {
+  from {
+    opacity: 0;
+    clip-path: inset(-20% 100% -20% -20%);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(-20% -20% -20% -20%);
+  }
+}
+
+.silgi-izi {
+  position: absolute;
+  z-index: 6;
+  left: var(--x, -99px);
+  top: var(--y, -99px);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(134, 142, 150, 0.4);
+  translate: -50% -50%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.silgi-izi--canli {
+  animation: silgi-izi-son 0.45s ease-out both;
+}
+
+@keyframes silgi-izi-son {
+  from {
+    opacity: 0.8;
+    scale: 1;
+  }
+  to {
+    opacity: 0;
+    scale: 0.35;
+  }
+}

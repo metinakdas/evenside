@@ -1,0 +1,254 @@
+<div class="page">
+  <div class="page__bg"></div>
+
+  <header class="topbar">
+    <a class="brand marka-link" routerLink="/">EVEN<span class="brand__accent">SIDE</span></a>
+    <button type="button" class="back" (click)="goHome()">{{ t('ortak.menuyeDon') }}</button>
+  </header>
+
+  <main class="content">
+    <!-- Fotoğraf yerleştirme paneli açıkken ekranı devralır (oyuncu formundaki gibi). -->
+    @if (adjustSource(); as source) {
+      <section class="panel panel--adjust">
+        <app-photo-adjuster [source]="source" (applied)="onPhotoAdjusted($event)" (cancelled)="closeAdjuster()" />
+      </section>
+    } @else {
+    @switch (step()) {
+      <!-- Giriş: kartı olmayan kullanıcıyı karşılayan ekran. -->
+      @case ('giris') {
+        <!-- Havuz BU kullanıcı için gelmeden "Kartını oluştur" iddia edilmez (kartı olan
+             kullanıcıya bir an davet görünüyordu); o ana kadar boş bir panel. -->
+        @if (!poolReady()) {
+          <section class="panel panel--intro panel--yukleniyor" aria-busy="true">
+            <span class="eyebrow">{{ t('ust.yukleniyor') }}</span>
+          </section>
+        } @else {
+        <section class="panel panel--intro">
+          <span class="eyebrow">{{ t('kart.tanit') }}</span>
+          <h1 class="title">{{ t('kart.olusturBaslik') }}</h1>
+          <p class="lead">
+            {{ t('kart.anketAciklama', { sayi: total() }) }}
+          </p>
+          <div class="row">
+            <button type="button" class="btn btn--primary" (click)="startQuiz()">{{ t('kart.basla') }}</button>
+            <button type="button" class="btn" (click)="goJoin()">{{ t('kart.kodumVar') }}</button>
+          </div>
+        </section>
+        }
+      }
+
+      <!-- Anket: tek soru, tek seçim. -->
+      @case ('anket') {
+        <section class="panel panel--quiz">
+          <!-- İlerleme noktaları: kaç soru kaldığını sayı okumadan gösterir. -->
+          <div class="dots" aria-hidden="true">
+            @for (q of questions; track q.id; let i = $index) {
+              <span
+                class="dot"
+                [class.dot--done]="selected(q.id) !== undefined"
+                [class.dot--current]="i === index()"
+              ></span>
+            }
+          </div>
+
+          <h1 class="title title--sm">{{ t('kart.tanitBaslik') }}</h1>
+          <p class="counter">{{ t('ui.soruSayac', { n: index() + 1, toplam: total() }) }}</p>
+
+          <div class="card">
+            <h2 class="question">{{ t(current().text) }}</h2>
+
+            <div class="options" role="radiogroup" [attr.aria-label]="t(current().text)">
+              @for (option of current().options; track option.label; let i = $index) {
+                <button
+                  type="button"
+                  class="option"
+                  role="radio"
+                  [class.option--selected]="selected(current().id) === i"
+                  [attr.aria-checked]="selected(current().id) === i"
+                  (click)="choose(i)"
+                >
+                  {{ t(option.label) }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="row row--nav">
+            <button type="button" class="btn" (click)="back()">{{ t('ui.geriOk') }}</button>
+            <button type="button" class="btn btn--primary" [disabled]="!canAdvance" (click)="next()">
+              {{ index() + 1 === total() ? t('ui.bitir') : t('ui.devam') }}
+            </button>
+          </div>
+        </section>
+      }
+
+      <!-- İsim: kartın üstünde görünecek ad. -->
+      @case ('isim') {
+        <section class="panel">
+          <span class="eyebrow">{{ t('kart.sonAdim') }}</span>
+          <h1 class="title title--sm">{{ t('kart.adSoru') }}</h1>
+          <p class="lead">
+            {{ t('kart.adIpucu') }}
+          </p>
+
+          <!-- Fotoğraf: isteğe bağlı, kartın yüzü. Kişi otomatik ayrılır, sonra yerleştirilir. -->
+          <div class="photo">
+            <label class="photo__drop" [class.photo__drop--busy]="photoProcessing()">
+              <input type="file" accept="image/*" class="photo__input" (change)="onPhotoSelected($event)" [attr.aria-label]="t('form.fotoEkle')" />
+              @if (photo(); as src) {
+                <img class="photo__img" [src]="src" alt="" />
+              } @else {
+                <svg class="photo__icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 8h3l2-3h6l2 3h3v11H4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                  <circle cx="12" cy="13" r="3.5" fill="none" stroke="currentColor" stroke-width="1.6" />
+                </svg>
+                <span class="photo__text">{{ t('form.fotoEkle') }}</span>
+              }
+              @if (photoProcessing()) {
+                <span class="photo__busy">{{ t('form.ayriliyor') }}</span>
+              }
+            </label>
+            <div class="photo__side">
+              <span class="photo__label">{{ t('form.fotograf') }}</span>
+              <p class="photo__tip">{{ t('form.fotoIpucu') }}</p>
+              @if (photo()) {
+                <span class="photo__links">
+                  <button type="button" class="photo__link" (click)="openAdjuster()">{{ t('form.fotoYerlestir') }}</button>
+                  <button type="button" class="photo__link" (click)="clearPhoto()">{{ t('form.fotoKaldir') }}</button>
+                </span>
+              }
+              @if (photoNotice(); as notice) {
+                <span class="photo__notice" role="status">{{ notice }}</span>
+              }
+            </div>
+          </div>
+
+          <input
+            class="field"
+            type="text"
+            maxlength="32"
+            [attr.placeholder]="t('kart.adSoyad')"
+            [value]="name()"
+            (input)="onName($event)"
+            [attr.aria-label]="t('kart.adSoyad')"
+          />
+
+          <div class="body-row">
+            <label class="body-row__field">
+              <span class="body-row__label">{{ t('kart.boy') }}</span>
+              <input class="field" type="number" min="100" max="230" inputmode="numeric" [value]="heightCm()" (change)="onNumber('heightCm', $event)" />
+            </label>
+            <label class="body-row__field">
+              <span class="body-row__label">{{ t('kart.kilo') }}</span>
+              <input class="field" type="number" min="30" max="200" inputmode="numeric" [value]="weightKg()" (change)="onNumber('weightKg', $event)" />
+            </label>
+          </div>
+
+          @if (error(); as message) {
+            <p class="error">{{ message }}</p>
+          }
+
+          <div class="row row--nav">
+            <button type="button" class="btn" (click)="startQuiz()">{{ t('kart.yenidenCozGeri') }}</button>
+            <button type="button" class="btn btn--primary" [disabled]="saving()" (click)="save()">
+              {{ saving() ? t('takim.kaydediliyor') : t('kart.olusturDugme') }}
+            </button>
+          </div>
+        </section>
+      }
+
+      <!-- Kart: oluşan kartın kendisi. -->
+      @case ('kart') {
+        <section class="panel panel--result">
+          @if (ownCard(); as card) {
+            <span class="eyebrow">{{ t('kart.hazir') }}</span>
+            <div class="result">
+              <app-player-card [player]="card" size="large" />
+              <div class="result__side">
+                <h1 class="title title--sm">{{ card.input.name }}</h1>
+                <p class="lead">
+                  {{ t('ui.mevkin') }} <strong>{{ t('poz.' + card.ratings.position) }}</strong>, {{ t('ui.reytingin') }}
+                  <strong>{{ card.ratings.overall }}</strong>. {{ t('kart.senin') }}
+                </p>
+                <div class="row row--stack">
+                  <button type="button" class="btn btn--primary" (click)="goJoin()">{{ t('kart.takimaKatil') }}</button>
+                  <button type="button" class="btn" (click)="startQuiz()">{{ t('kart.yenidenCoz') }}</button>
+                  <!-- Anketi yeniden çözmeden yalnızca fotoğrafı değiştir. -->
+                  <label class="btn btn--file" [class.btn--busy]="photoProcessing() || saving()">
+                    <input type="file" accept="image/*" class="photo__input" (change)="onPhotoSelected($event, true)" />
+                    {{ photoProcessing() ? t('form.ayriliyor') : card.input.photoImage ? t('kart.fotoDegistir') : t('form.fotoEkle') }}
+                  </label>
+                  @if (card.input.photoImage) {
+                    <button type="button" class="photo__link" (click)="clearPhoto(true)">{{ t('form.fotoKaldir') }}</button>
+                  }
+                  @if (photoNotice(); as notice) {
+                    <span class="photo__notice" role="status">{{ notice }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+          } @else {
+            <p class="lead">{{ t('kart.bulunamadi') }}</p>
+            <button type="button" class="btn btn--primary" (click)="startQuiz()">{{ t('kart.olustur') }}</button>
+          }
+        </section>
+      }
+
+      <!-- Katıl: kodla takıma dahil olma. -->
+      @case ('katil') {
+        <section class="panel">
+          <span class="eyebrow">{{ t('kart.takimaKatil') }}</span>
+          <h1 class="title title--sm">{{ t('kart.koduGir') }}</h1>
+          <p class="lead">
+            {{ t('kart.kodAciklama') }}
+          </p>
+
+          <input
+            class="field field--code"
+            type="text"
+            maxlength="12"
+            placeholder="ABC123"
+            [value]="code()"
+            (input)="onCode($event)"
+            [attr.aria-label]="t('kart.takimKodu')"
+          />
+
+          <!--
+            Mesaj satırı HER ZAMAN basılır (boşken de): koşullu bir öğe eklenince panel
+            aşağı kayıyordu. CSS ile yer ayırmak yetmedi — ölçüldü, 11px kalıyordu.
+          -->
+          <p
+            class="joinmsg"
+            [class.joinmsg--ok]="!!joinedSquadName()"
+            [class.joinmsg--err]="!joinedSquadName() && !!joinError()"
+            [attr.role]="joinError() ? 'alert' : null"
+          >
+            @if (joinedSquadName(); as squadName) {
+              {{ t('kart.katildin', { takim: squadName }) }}
+            } @else if (joinError()) {
+              {{ joinError() }}
+            } @else if (!ownCard()) {
+              {{ t('mesaj.onceKart') }}
+            }
+          </p>
+
+          <div class="row row--nav">
+            <button type="button" class="btn" (click)="goHome()">{{ t('ortak.menuyeDon') }}</button>
+            @if (!ownCard()) {
+              <!-- Kartsız katılınamaz: hatayı söylemekle kalma, yolunu da göster. -->
+              <button type="button" class="btn btn--primary" (click)="startQuiz()">{{ t('kart.olusturDugme') }}</button>
+            } @else {
+              <button
+                type="button"
+                class="btn btn--primary"
+                [disabled]="joining() || !code().trim()"
+                (click)="join()"
+              >{{ joining() ? t('mesaj.katiliniyor') : t('kart.katil') }}</button>
+            }
+          </div>
+        </section>
+      }
+    }
+    }
+  </main>
+</div>

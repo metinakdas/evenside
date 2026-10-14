@@ -1,0 +1,55 @@
+@use '../../../styles/mac-isik' as isik;
+
+:host {
+  display: inline-block;
+}
+
+.app-button {
+  min-height: 44px;
+  border-radius: var(--radius-pill);
+  padding: var(--space-3) var(--space-6);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 14px;
+  border: 1px solid transparent;
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  transition:
+    transform var(--duration-fast) var(--easing-standard),
+    opacity var(--duration-fast) var(--easing-standard),
+    background var(--duration-fast) var(--easing-standard);
+}
+
+.app-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.app-button:focus-visible {
+  outline: 2px solid var(--color-accent-line);
+  outline-offset: 2px;
+}
+
+.app-button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.app-button--secondary {
+  background: transparent;
+  color: var(--color-text-primary);
+  border-color: var(--color-divider);
+}
+
+.app-button--secondary:hover:not(:disabled) {
+  border-color: var(--color-accent-line);
+}
+
+/* Mac ışığı: birincilde sürekli, ikincilde yalnızca hover/odakta (bkz. styles/_mac-isik.scss). */
+.app-button:not(.app-button--secondary) {
+  @include isik.mac-isik($renk: #fff, $parlak: rgba(5, 19, 10, 0.55));
+}
+
+.app-button--secondary {
+  @include isik.mac-isik($hep: false);
+}

@@ -1,0 +1,844 @@
+<!--
+  Açılış daveti YALNIZCA hoş geldin kartı yokken açılır. İkisi aynı şeyi söylüyor; biri
+  satır içinde ve sessiz, diğeri ekranı kapatan bir modal. Kart duruyorken modal fazlalık —
+  kullanıcıyı iki kez aynı işe çağırmak rahatsız eder.
+-->
+@if (!welcomeVisible()) {
+  <app-onboarding-prompt />
+}
+
+<div class="menu">
+  <!-- Ekran okuyucu için sayfa başlığı (QA D4: bu ekranda h1 yoktu). -->
+  <h1 class="sr-only">{{ t('sayfa.menu') }}</h1>
+  <!--
+    Zemin: fotoğraf DEĞİL, tasarımın kendi katmanları — dört gradyan perde, sol üstte kurdele
+    grafiği, sağ üstte noktalı yay ve soldaki ince ışık sütunu. Yerleşim "Saha42 Menu.dc.html"
+    ile birebir; renkler uygulamanın paletine (siyah · beyaz · neon yeşil) çevrildi.
+  -->
+  <div class="bg bg--base"></div>
+  <div class="bg bg--glow"></div>
+  <div class="bg bg--vignette"></div>
+  <div class="bg bg--floor"></div>
+
+  <svg class="ribbon" viewBox="0 0 760 620" preserveAspectRatio="xMinYMin slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="s42a" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#7dffc0" />
+        <stop offset="55%" stop-color="#00f57a" />
+        <stop offset="100%" stop-color="#0a6e42" />
+      </linearGradient>
+      <linearGradient id="s42b" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#ffffff" />
+        <stop offset="100%" stop-color="#5a5a62" />
+      </linearGradient>
+      <linearGradient id="s42c" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#00f57a" />
+        <stop offset="100%" stop-color="#06331f" />
+      </linearGradient>
+      <radialGradient id="s42fade" cx="0.18" cy="0.2" r="0.85">
+        <stop offset="0%" stop-color="#fff" stop-opacity="1" />
+        <stop offset="55%" stop-color="#fff" stop-opacity="0.7" />
+        <stop offset="100%" stop-color="#fff" stop-opacity="0" />
+      </radialGradient>
+      <mask id="s42mask">
+        <rect x="0" y="0" width="760" height="620" fill="url(#s42fade)" />
+      </mask>
+    </defs>
+    <g mask="url(#s42mask)" fill="none" stroke-linecap="round">
+      <path d="M-40 40 C 120 90, 210 200, 300 330 S 430 470, 520 520" stroke="url(#s42c)" stroke-width="34" opacity="0.85" />
+      <path d="M-40 -10 C 140 50, 240 170, 330 300 S 460 440, 560 500" stroke="url(#s42a)" stroke-width="22" opacity="0.8" />
+      <path d="M-60 110 C 90 150, 190 250, 265 380 S 390 500, 470 560" stroke="#ffffff" stroke-width="12" opacity="0.55" />
+      <path d="M-50 -40 C 130 20, 260 130, 360 260 S 500 410, 610 470" stroke="url(#s42b)" stroke-width="16" opacity="0.75" />
+      <path d="M-30 170 C 110 200, 200 290, 260 420 S 350 530, 420 580" stroke="#0d6b42" stroke-width="26" opacity="0.5" />
+      <g stroke="#00f57a" stroke-width="1.6" opacity="0.45">
+        <path d="M120 30 C 260 90, 380 190, 470 320" />
+        <path d="M110 70 C 250 130, 375 230, 460 360" />
+        <path d="M96 112 C 240 172, 362 272, 448 402" />
+        <path d="M84 156 C 228 216, 348 316, 434 446" />
+        <path d="M72 200 C 214 262, 334 360, 420 490" />
+        <path d="M60 246 C 200 308, 320 404, 404 532" />
+      </g>
+      <g stroke="#ffffff" stroke-width="1.2" opacity="0.3">
+        <path d="M200 0 C 330 70, 450 170, 545 300" />
+        <path d="M240 -10 C 372 60, 492 160, 590 288" />
+        <path d="M285 -20 C 415 50, 536 150, 635 276" />
+      </g>
+      <path class="ribbon__slab" d="M-80 260 L 300 430 L 300 620 L -80 620 Z" fill="#0c0c0f" opacity="0.92" stroke="none" />
+      <path class="ribbon__slab-edge" d="M-80 258 L 302 428" stroke="#2f2f35" stroke-width="2" opacity="0.55" />
+      <path class="ribbon__slab-2" d="M-80 300 L 280 470 L 280 520 L -80 350 Z" fill="#17171c" opacity="0.85" stroke="none" />
+      <g stroke="#00f57a" stroke-width="3" opacity="0.4">
+        <path d="M-20 300 C 60 330, 120 370, 170 420" />
+        <path d="M-20 330 C 55 358, 112 396, 158 444" />
+      </g>
+    </g>
+  </svg>
+
+
+
+
+  <!-- Zemin grafiği: Şampiyonlar Ligi topu (bkz. app-star-ball). Sağ üst köşeden taşar. -->
+  <app-star-ball class="ball" />
+
+  <div class="menu__content">
+    <header class="topbar">
+      <a class="brand marka-link" routerLink="/">EVEN<span class="brand__accent">SIDE</span></a>
+      <div class="topbar__right">
+        <!--
+          Hesabım ÇIKIŞ'ın solunda: ikisi de hesapla ilgili ama biri oturumu bitirir, diğeri
+          hesabı yönetir. Yıkıcı olan (çıkış) en sağda, dışa doğru kalıyor.
+        -->
+        <button type="button" class="signout" (click)="accountOpen.set(true)">{{ t('menu.hesabim') }}</button>
+        <button type="button" class="signout" (click)="signOut()">{{ t('menu.cikis') }}</button>
+      </div>
+    </header>
+
+    <nav class="tabs" role="tablist">
+      @for (sekme of tabs(); track sekme.id) {
+        <button
+          type="button"
+          class="tabs__btn"
+          role="tab"
+          [class.tabs__btn--active]="tab() === sekme.id"
+          [attr.aria-selected]="tab() === sekme.id"
+          (click)="setTab(sekme.id)"
+        >
+          {{ sekme.label }}
+        </button>
+      }
+    </nav>
+
+    @switch (tab()) {
+      @case ('oyna') {
+        @if (welcomeVisible()) {
+          <!--
+            HOŞ GELDİN / YOL HARİTASI — yalnızca yolun başındaki kullanıcıya.
+
+            Statik bir karşılama değil İLERLEME kartı: üç adım tamamlandıkça işaretlenir,
+            üçü de bitince kart kendiliğinden kaybolur. Yeni kullanıcı menüye "ne yapacağım"
+            sorusuyla geliyor; kutular bunu tek tek söylüyor ama SIRAyı söylemiyordu.
+
+            Tek birincil eylem var ve o da SIRADAKİ adıma gider — üç düğme koymak kararı
+            tekrar kullanıcıya yıkmak olurdu.
+          -->
+          @if (welcomeCollapsed()) {
+            <!--
+              KAPALI HÂL: kart yok olmaz, ince bir şeride iner. Nerede kalındığını söyler ve
+              tek dokunuşla geri açılır — kullanıcı rehberi bir daha bulamaz duruma düşmesin.
+            -->
+            <button type="button" class="welcome-bar" (click)="toggleWelcome()">
+              <span class="welcome-bar__label">{{ t('menu.rehber') }}</span>
+              <span class="welcome-bar__progress">{{ welcomeProgress().done }} / {{ welcomeProgress().total }} {{ t('menu.adimKelime') }}</span>
+              <span class="welcome-bar__open">{{ t('menu.ac') }} <span aria-hidden="true">▾</span></span>
+            </button>
+          } @else {
+          <section class="welcome" [attr.aria-label]="t('menu.rehber')">
+            <div class="welcome__intro">
+              <span class="welcome__eyebrow">{{ t('menu.hosgeldin') }}</span>
+              <h2 class="welcome__title">{{ t('menu.ucAdimda') }}<br />{{ t('menu.takiminHazir') }}</h2>
+              <p class="welcome__lead">
+                {{ t('menu.yolOzet') }} <strong>{{ t('menu.besDakika') }}</strong>.
+                {{ t('menu.dengeCumle') }}
+              </p>
+              <!--
+                Eylemler ADIM SATIRLARINDA (kullanıcı isteği): "Adıma başla" / "Bu adımı atla".
+                Buradaki büyük düğme aynı işi ikinci kez sunuyordu ve hangi adıma gittiği
+                satırlara bakmadan anlaşılmıyordu; kaldırıldı.
+              -->
+              <div class="welcome__actions">
+                <button type="button" class="welcome__hide" (click)="toggleWelcome()">{{ t('menu.kapat') }}</button>
+              </div>
+            </div>
+
+            <!--
+              YOL ve KOŞUCU. Kart üç satır bilgi veriyordu ama hiçbir şey "neredesin"i
+              söylemiyordu (kullanıcı: "bir animasyon olsa, adımları gezse"). Sol kenarda
+              gerçek bir ray var; koşucu piktogramı sıradaki adımın hizasında DURUYOR ve adım
+              tamamlanınca bir alttaki istasyona ZIPLIYOR.
+
+              Yan görünüşlü bir koşucu dikey rayda kayıyormuş gibi durur; ayakta bekleyip
+              sıçrayan figür hem fiziksel olarak doğru hem de "adım adım ilerliyorum"
+              anlatısını taşıyor. Ölçüler TypeScript'te hesaplanıyor (satır yükseklikleri
+              içeriğe göre değişiyor: sıradaki adım düğmeleri yüzünden daha yüksek).
+            -->
+            <ol class="welcome__steps" #welcomeSteps [style.--yol-uzunluk.px]="runnerY()">
+              <span class="runner" aria-hidden="true" [class.runner--moving]="runnerMoving()" [style.--y.px]="runnerY()">
+                <span class="runner__body">
+                  <svg class="runner__figure" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <!-- DURUŞ: ayakta bekleyen figür. -->
+                    <g class="runner__pose runner__pose--stand">
+                      <circle cx="11.2" cy="4" r="2" />
+                      <path d="M11.2 6v7.4" />
+                      <path d="M11.2 8 7.9 10.5l-.5 2.8M11.2 8l3.4 2.5.5 2.8" />
+                      <path d="M11.2 13.4 8.8 20.8M11.2 13.4l2.5 7.4" />
+                    </g>
+                    <!-- KOŞU: sıçrarken gövde öne eğilir, kollar ve bacaklar açılır. -->
+                    <g class="runner__pose runner__pose--run">
+                      <circle cx="12.6" cy="3.8" r="2" />
+                      <path d="M12.2 5.9 10.2 12.6" />
+                      <path d="M11.8 8.2 15.4 6.6M11.2 9.8 7.6 11.6" />
+                      <path d="M10.2 12.6 14.4 15.8M10.2 12.6 7.2 18" />
+                    </g>
+                  </svg>
+                  <!-- Top ayağının dibinde: sıçrarken yuvarlanıyor. -->
+                  <span class="runner__ball"></span>
+                </span>
+              </span>
+
+              @for (step of steps(); track step.id; let i = $index) {
+                <li
+                  class="welcome__step"
+                  [class.welcome__step--done]="step.done"
+                  [class.welcome__step--next]="nextStep()?.id === step.id"
+                  [class.welcome__step--skipped]="isSkipped(step.id)"
+                >
+                  <!--
+                    Numara aynı zamanda İPUCU taşıyıcısı: adımın ne olduğunu satıra sığmayan
+                    bir cümleyle anlatır. `title` yerine kendi katmanımız — işletim sisteminin
+                    gecikmeli, biçimsiz balonu menünün diline uymuyor. Klavyeyle de açılsın diye
+                    odaklanabilir ve ekran okuyucuya `aria-label` ile aynı metni veriyor.
+                  -->
+                  <span
+                    class="welcome__num"
+                    tabindex="0"
+                    role="note"
+                    [attr.data-tip]="step.tip"
+                    [attr.aria-label]="step.label + ': ' + step.tip"
+                  >{{ step.done ? '✓' : i + 1 }}</span>
+                  <span class="welcome__step-text">
+                    <span class="welcome__step-label">{{ step.label }}</span>
+                                          <span class="welcome__step-hint">
+                        <!-- Süre çipi: "ne kadar sürer" sorusu kararı en çok geciktiren şey. -->
+                        <span class="welcome__time">{{ step.time }}</span>
+                        {{ step.hint }}
+                      </span>
+                  </span>
+                  @if (step.done) {
+                    <span class="welcome__badge">{{ t('menu.tamam') }}</span>
+                  } @else if (nextStep()?.id === step.id) {
+                    <!-- Sıradaki adım: iki yol da burada, satırın kendi içinde. -->
+                    <span class="welcome__step-actions">
+                      <button type="button" class="welcome__start" (click)="startStep(step.id)">
+                        {{ t('menu.adimaBasla') }}
+                        <span class="welcome__cta-arrow" aria-hidden="true">→</span>
+                      </button>
+                      @if (step.skippable) {
+                        <button type="button" class="welcome__skip" (click)="skipStep(step.id)">{{ t('menu.adimAtla') }}</button>
+                      }
+                    </span>
+                  } @else if (isSkipped(step.id)) {
+                    <span class="welcome__step-actions">
+                      <span class="welcome__badge">{{ t('menu.atlandi') }}</span>
+                      <button type="button" class="welcome__undo" (click)="unskipStep(step.id)">{{ t('menu.geriAl') }}</button>
+                    </span>
+                  }
+                </li>
+              }
+            </ol>
+          </section>
+          }
+        }
+
+        <div class="grid">
+          <!--
+            Birincil kutu: iki yol birden — kendi takımını kur ya da kodla başkasının takımına
+            katıl. İki eylem olduğu için kutunun kendisi düğme değil; her yol kendi düğmesi.
+          -->
+          <div class="tile tile--hero tile--static">
+            <span class="tile--hero__glow"></span>
+            <!-- Aynı top burada da: yeşil kutunun KENDİ mürekkebiyle, çok soluk bir damga gibi. -->
+            <app-star-ball class="tile--hero__ball" />
+            <span class="tile__sheen" aria-hidden="true"></span>
+            <div class="tile--hero__body">
+              @if (!teamsLoaded()) {
+                <!--
+                  YÜKLENİYOR: kutu hiçbir şey İDDİA ETMEZ ve hiçbir şey YAZMAZ. Beklemeden karar
+                  verilseydi menü önce "TAKIM KUR" yazıp veri gelince "KADROYA GEÇ"e dönerdi —
+                  sayfa her yenilendiğinde göze çarpan bir sıçrama. Metin yerine gelecek
+                  içeriğin biçimini taklit eden şeritler var: okunacak bir şey olmadığı hâlde
+                  göz "yükleniyor" yazısına takılmasın (kullanıcı isteği).
+                -->
+                <span class="skeleton skeleton--title" aria-hidden="true"></span>
+                <span class="skeleton skeleton--sub" aria-hidden="true"></span>
+                <span class="skeleton skeleton--line" aria-hidden="true"></span>
+                <span class="skeleton skeleton--btn" aria-hidden="true"></span>
+              } @else if (teams().length) {
+                <!--
+                  Takımı olan kullanıcının menüde yapmak istediği şey neredeyse her zaman
+                  "kadroma git"; kutunun başlığı da bu yüzden doğrudan eylemin adı.
+                -->
+                <span class="wordmark">
+                  <span class="tile__title tile__title--hero">{{ t('menu.kadroyaGec') }}</span>
+                  <span class="wordmark__sub">{{ activeTeam()?.squad?.name || t('ui.takimin') }}</span>
+                </span>
+
+                <!--
+                  Birden fazla takım varsa seçim KUTUNUN İÇİNDE: "hangi takım" sorusu eylemin
+                  hemen yanında cevaplanmalı, başka bir sekmeye gidip gelmeyi gerektirmemeli.
+                  Tek takımda seçici hiç basılmaz.
+                -->
+                @if (teams().length > 1) {
+                  <div class="picker" role="group" [attr.aria-label]="t('menu.takimSec')">
+                    @for (takim of teams(); track takim.squad.id) {
+                      <button
+                        type="button"
+                        class="picker__chip"
+                        [class.picker__chip--on]="activeTeam()?.squad?.id === takim.squad.id"
+                        [attr.aria-pressed]="activeTeam()?.squad?.id === takim.squad.id"
+                        (click)="selectTeam(takim.squad.id)"
+                      >
+                        {{ takim.squad.name || t('ui.adsizTakim') }}
+                        @if (takim.role !== 'kurucu') {
+                          <span class="picker__role">{{ t('menu.uye') }}</span>
+                        }
+                      </button>
+                    }
+                  </div>
+                }
+
+                <span class="tile__lead">
+                  @if (activeIsOwned()) {
+                    {{ t('menu.kutuSahip') }}
+                  } @else {
+                    {{ t('menu.kutuUye') }}
+                  }
+                </span>
+
+                <div class="cta-row">
+                  <!--
+                    Katıldığın takımda da kadroya GİDİLİR; fark yetkide: orada kadro salt
+                    okunur (kadro artık sunucuda, `squad_players`). Eskiden "Kartıma bak"
+                    diyordu çünkü başkasının kadrosu görüntülenemiyordu.
+                  -->
+                  <button type="button" class="cta cta--go" (click)="openSquad(activeTeam()!.squad.id)">
+                    <span class="cta__text">{{ activeIsOwned() ? t('menu.kadroyaGecDugme') : t('menu.kadroyaGit') }}</span>
+                    <span class="cta__arrow" aria-hidden="true">→</span>
+                  </button>
+
+                  <button type="button" class="cta cta--alt" (click)="setTab('takimlar')">
+                    <span class="cta__text">{{ t('menu.takimlarimSayi', { sayi: teams().length }) }}</span>
+                    <span class="cta__arrow" aria-hidden="true">▸</span>
+                  </button>
+                </div>
+              } @else {
+                <span class="wordmark">
+                  <span class="tile__title tile__title--hero">{{ t('menu.takimKur') }}</span>
+                  <span class="wordmark__sub">{{ t('menu.yaDaKatil') }}</span>
+                </span>
+                <span class="tile__lead">
+                  {{ t('menu.takimKurVeyaKatil') }}
+                </span>
+                <div class="cta-row">
+                  <button type="button" class="cta cta--go" (click)="go('/create-team')">
+                    <span class="cta__text">{{ t('menu.takimiKur') }}</span>
+                    <span class="cta__arrow" aria-hidden="true">→</span>
+                  </button>
+                  <button type="button" class="cta cta--alt" (click)="go('/my-card?join=1')">
+                    <span class="cta__text">{{ t('menu.takimaKatil') }}</span>
+                    <span class="cta__arrow" aria-hidden="true">⚯</span>
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!--
+            Yan kutular kendi ızgarasında: koşullu gizlendiklerinde sabit 2x2 yerleşim delik
+            bırakıyordu. Bu kapsayıcı kalan kutu sayısına göre kendini toparlıyor.
+          -->
+          <div class="side">
+          <!--
+            Sıradaki maç: kayıt YOKSA kutu hiç basılmaz (kullanıcı isteği). "Planlanmış maç yok"
+            yazan boş bir kutu, menüde yer kaplayan ama hiçbir şey söylemeyen bir dikdörtgendi.
+          -->
+          @if (nextMatch(); as m) {
+            <button type="button" class="tile tile--lit" (click)="go(squadReady() ? '/pitch' : '/squad')">
+              <span class="tile__label tile__label--lit">{{ t('menu.siradakiMac') }}</span>
+              <!--
+                Ortası boştu (QA K7): "Son maç" kutusundaki düello bloğu burada da var — armalar
+                karşı karşıya, ortada VS ve geri sayım.
+              -->
+              <span class="duel duel--next">
+                <span class="duel__side">
+                  <app-team-badge [team]="badgeTeam(m, 'A')" size="lg" />
+                  <span class="duel__name">{{ takimAdi(m.teamA.name) }}</span>
+                  <span class="duel__avg">{{ t('menu.ortKisa') }} {{ m.teamA.avg }}</span>
+                </span>
+                <span class="duel__mid">
+                  <span class="duel__vs">VS</span>
+                  <span class="duel__countdown">{{ countdown(m) }}</span>
+                </span>
+                <span class="duel__side">
+                  <app-team-badge [team]="badgeTeam(m, 'B')" size="lg" />
+                  <span class="duel__name">{{ takimAdi(m.teamB.name) }}</span>
+                  <span class="duel__avg">{{ t('menu.ortKisa') }} {{ m.teamB.avg }}</span>
+                </span>
+              </span>
+              <span class="tile__big">{{ formatKickoff(m.kickoff) }}</span>
+              <span class="tile__sub">{{ m.venue || '—' }}</span>
+              <span class="tile__go" aria-hidden="true">→</span>
+            </button>
+          }
+
+          <!--
+            KARTIM: kullanıcının kendi kartı. Kura buradan kaldırıldı — kadro tamamlanınca
+            /kadro ekranındaki "Kuraya geç" zaten oraya götürüyor; menüde eksik olan şey
+            kullanıcının kendini tanıtmasıydı.
+          -->
+          <button type="button" class="tile tile--lit tile--card" (click)="go('/my-card')">
+            <span class="tile__head">
+              <span class="tile__label tile__label--lit">{{ t('menu.kartim') }}</span>
+              @if (ownCard(); as card) {
+                <span class="chip">{{ t('poz.' + card.ratings.position) }} · {{ card.ratings.overall }}</span>
+              }
+            </span>
+
+            <!--
+              Kutunun ortası BOŞTU: kartın olup olmadığını yalnızca bir cümle söylüyordu.
+              Kart varsa KARTIN KENDİSİ gösteriliyor (menüde görmek istediğin şey o), yoksa
+              aynı kalkan silüetinde bir hayalet kart duruyor — "buraya kartın gelecek"i
+              cümleden daha hızlı anlatıyor.
+            -->
+            <!--
+              SAHA ÇİZGİLERİ: kutunun zemini. Dikey saha (68:105 değil, kutuya göre esnetilmiş
+              bir şema) — amaç ölçek doğruluğu değil, kartın "sahanın ortasında" durduğunu
+              söylemek. Yalnızca çizgi: dolgu yok, zemin rengi kutununkiyle aynı kalıyor.
+            -->
+            <svg class="pitch-lines" viewBox="0 0 420 272" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+              <g fill="none" stroke="currentColor" stroke-width="1.1">
+                <rect x="6" y="6" width="408" height="260" />
+                <line x1="210" y1="6" x2="210" y2="266" />
+                <circle cx="210" cy="136" r="44" />
+                <!-- Ceza sahaları ve kale alanları (solda ve sağda simetrik). -->
+                <rect x="6" y="56" width="62" height="160" />
+                <rect x="6" y="96" width="26" height="80" />
+                <rect x="352" y="56" width="62" height="160" />
+                <rect x="388" y="96" width="26" height="80" />
+                <!-- Penaltı yayları: ceza sahasının dışında kalan parçalar. -->
+                <path d="M68 108 A 44 44 0 0 1 68 164" />
+                <path d="M352 108 A 44 44 0 0 0 352 164" />
+                <!-- Köşe yayları. -->
+                <path d="M6 18 A 12 12 0 0 0 18 6" />
+                <path d="M402 6 A 12 12 0 0 0 414 18" />
+                <path d="M6 254 A 12 12 0 0 1 18 266" />
+                <path d="M402 266 A 12 12 0 0 1 414 254" />
+              </g>
+              <circle cx="210" cy="136" r="2.4" fill="currentColor" />
+            </svg>
+
+            <!--
+              DİZİLİŞ: kale 1 · defans 3 · orta saha 2 · forvet 1. Tek büyük kart, kutunun
+              konusunu ("kartın") söylüyordu ama BAĞLAMINI söylemiyordu; küçük kartlar sahaya
+              dağılınca kutu "kartın kadroda bir yer tutuyor" diyor. Kullanıcının kendi kartı
+              kendi hattındaki yuvada GERÇEK kart olarak basılır, kalanlar hayalet kalır.
+            -->
+            <span class="lineup">
+              <!-- Saha ile AYNI oranda ortalanan kap: yüzdeler artık çizilen sahaya göre. -->
+              <span class="lineup__field">
+                <!--
+                  Sahada top sektiren oyuncu; imleç yaklaşınca kaçıyor (kullanıcı isteği).
+                  HER DURUMDA basılır: önce yalnızca kartı olmayanda gösteriliyordu ama
+                  kullanıcı kendi ekranında göremedi ("görünmüyor") — kartı olan da sahasında
+                  birini görmek istiyor. Kartın üstüne çıkmasın diye kart bir ENGEL olarak
+                  bileşene bildiriliyor.
+                -->
+                <app-pitch-juggler />
+              @for (spot of lineupSpots(); track spot.id) {
+                <span
+                  class="spot"
+                  [class.spot--mine]="spot.mine"
+                  [style.--x.%]="spot.x"
+                  [style.--y.%]="spot.y"
+                >
+                  @if (spot.mine && ownCard(); as card) {
+                    <app-player-card [player]="card" size="micro" />
+                  } @else {
+                    <!-- Hayalet yuva: kartla aynı kalkan silüeti, ama boş. -->
+                    <span class="spot__ghost" [attr.title]="t('ui.kartiniOlustur', { hat: t('poz.' + spot.line) })">
+                      <span class="spot__plus" aria-hidden="true">+</span>
+                      <span class="spot__line">{{ t('poz.' + spot.line) }}</span>
+                    </span>
+                  }
+                </span>
+              }
+              </span>
+            </span>
+
+            <!--
+              Havuz ŞU ANKİ kullanıcı için yüklenmeden karar verilmez: kutu bir an
+              "Kartın yok" deyip sonra kartı basıyordu (kullanıcı bildirdi).
+            -->
+            <span class="tile__big">{{ poolReady() ? (ownCard() ? ownCard()!.input.name : t('menu.kartinYok')) : t('menu.kartYukleniyor') }}</span>
+            <span class="tile__sub">
+              @if (!poolReady()) {
+                {{ t('menu.kartBekle') }}
+              } @else {
+                {{ ownCard() ? t('menu.kartVar') : t('menu.kartOlustur') }}
+              }
+            </span>
+            <span class="tile__go" aria-hidden="true">→</span>
+          </button>
+
+          <!-- Son maç: oynanmış maç yoksa kutu hiç basılmaz. -->
+          @if (lastMatch(); as m) {
+            <button type="button" class="tile tile--green tile--tight tile--match" (click)="setTab('gecmis')">
+              <span class="tile__label tile__label--green">{{ t('menu.sonMac') }}</span>
+
+              <!--
+                Kutunun ortası bomboştu: iki takım adı tek satırda, armalar hiç yoktu.
+                Maçın konusu EŞLEŞMEDİR — armalar karşı karşıya, ortada skor (yoksa VS).
+              -->
+              <span class="duel">
+                <span class="duel__side" [class.duel__side--lost]="winner(m) === 'B'">
+                  <app-team-badge [team]="badgeTeam(m, 'A')" size="lg" />
+                  <span class="duel__name">{{ takimAdi(m.teamA.name) }}</span>
+                  <span class="duel__avg">{{ t('menu.ortKisa') }} {{ m.teamA.avg }}</span>
+                </span>
+
+                <span class="duel__mid">
+                  @if (m.score; as s) {
+                    <span class="duel__score">
+                      <span class="duel__goal" [class.duel__goal--win]="winner(m) === 'A'">{{ s.a }}</span>
+                      <span class="duel__dash">–</span>
+                      <span class="duel__goal" [class.duel__goal--win]="winner(m) === 'B'">{{ s.b }}</span>
+                    </span>
+                    <span class="duel__state">{{ winner(m) === 'X' ? t('menu.berabere') : t('menu.bitti') }}</span>
+                  } @else {
+                    <span class="duel__vs">VS</span>
+                    <!-- Skoru olmayan maçta kutu bir İŞ gösterir: menünün "yeşil = yapılacak" kuralı. -->
+                    <span class="duel__cta" [class.duel__cta--bekle]="!canScore(m)">{{ canScore(m) ? t('menu.skorGir') : t('menu.skorBekleniyor') }}</span>
+                  }
+                </span>
+
+                <span class="duel__side" [class.duel__side--lost]="winner(m) === 'A'">
+                  <app-team-badge [team]="badgeTeam(m, 'B')" size="lg" />
+                  <span class="duel__name">{{ takimAdi(m.teamB.name) }}</span>
+                  <span class="duel__avg">{{ t('menu.ortKisa') }} {{ m.teamB.avg }}</span>
+                </span>
+              </span>
+
+              <!-- Maçın künyesi: format ve kadro boyu. Armaların altındaki ölü alanı bilgiyle kapatır. -->
+              <span class="duel__meta">
+                <span class="duel__chip">{{ m.format }}v{{ m.format }}</span>
+                <span class="duel__chip">{{ m.teamA.playerCount + m.teamB.playerCount }} {{ t('menu.oyuncu') }}</span>
+              </span>
+
+              <span class="tile__sub">{{ formatKickoff(m.kickoff) }}{{ m.venue ? ' · ' + m.venue : '' }}</span>
+              <span class="tile__go" aria-hidden="true">→</span>
+            </button>
+          }
+          </div>
+        </div>
+      }
+
+      @case ('takimlar') {
+        <div class="grid">
+          <!--
+            SOL KUTU — yalnızca iki eylem: yeni takım kur, takıma katıl. "Takımı düzenle"
+            buradan alındı; o takıma ÖZEL bir eylem ve listedeki satırında duruyor (kullanıcı
+            isteği). Birden fazla takım olduğunda kutuda hangisinin düzenleneceği belirsizdi.
+          -->
+          <div class="tile tile--hero tile--static">
+            <span class="tile--hero__glow"></span>
+            <div class="tile--hero__body">
+              <span class="wordmark">
+                <span class="tile__title tile__title--hero">{{ t('menu.takimlarim') }}</span>
+                <span class="wordmark__sub">
+                  @if (teamsLoaded()) {
+                    {{ teams().length ? t('ui.takimSayisi', { sayi: teams().length }) : t('ui.henuzTakimYok') }}
+                  } @else {
+                    <span class="skeleton skeleton--sub" aria-hidden="true"></span>
+                  }
+                </span>
+              </span>
+              <span class="tile__lead">
+                {{ t('menu.takimlarAciklama') }} {{ t('menu.takimlarDevam') }}
+              </span>
+
+              <div class="cta-row">
+                <!--
+                  İkisi de HER ZAMAN burada: kullanıcı birden fazla takım kurabiliyor, dolayısıyla
+                  "yeni takım oluştur" takımı olsa da geçerli bir eylem. Belirli bir takımı
+                  düzenlemek satırın işi.
+                -->
+                <button type="button" class="cta cta--go" (click)="go('/create-team')">
+                  <span class="cta__text">{{ t('menu.yeniTakim') }}</span>
+                  <span class="cta__arrow" aria-hidden="true">+</span>
+                </button>
+                <button type="button" class="cta cta--alt" (click)="go('/my-card?join=1')">
+                  <span class="cta__text">{{ t('menu.takimaKatil') }}</span>
+                  <span class="cta__arrow" aria-hidden="true">⚯</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="side">
+            @if (!teamsLoaded()) {
+              <!-- Aynı sebep: yüklenmeden "HENÜZ TAKIM YOK" demek yanlış olurdu. -->
+              <div class="tile tile--static">
+                <span class="skeleton skeleton--sub" aria-hidden="true"></span>
+                <span class="skeleton skeleton--line" aria-hidden="true"></span>
+                <span class="skeleton skeleton--line" aria-hidden="true"></span>
+              </div>
+            } @else if (teams().length) {
+              <!--
+                Liste DOĞRUDAN açık (kullanıcı isteği): araya bir özet kutusu koymak, takımına
+                ulaşmak için fazladan bir tık demekti. Kadroya da buradan geçiliyor.
+              -->
+              <div class="tile tile--static grid-panel">
+                <div class="grid-panel__head">
+                  <span class="tile__label tile__label--lit">{{ t('menu.takimlarim') }}</span>
+                  <span class="chip">{{ teams().length }}</span>
+                </div>
+
+                <div class="tbl" role="table" [attr.aria-label]="t('menu.takimlarim')">
+                  <div class="tbl__row tbl__row--head" role="row">
+                    <span role="columnheader">{{ t('menu.takim') }}</span>
+                    <span role="columnheader">{{ t('menu.rol') }}</span>
+                    <span role="columnheader">{{ t('menu.kod') }}</span>
+                    <span role="columnheader" class="tbl__actions-head">{{ t('menu.eylem') }}</span>
+                  </div>
+
+                  @for (takim of teams(); track takim.squad.id) {
+                    <div class="tbl__row" role="row">
+                      <span class="tbl__name" role="cell">{{ takim.squad.name || t('ui.adsizTakim') }}</span>
+                      <span role="cell">
+                        <span class="chip" [class.chip--own]="takim.role === 'kurucu'">
+                          {{ takim.role === 'kurucu' ? t('menu.kurucu') : takim.role === 'yonetici' ? t('menu.yonetici') : t('menu.uye') }}
+                        </span>
+                      </span>
+                      <!-- Kod yalnızca KURUCUNUN işine yarar: paylaşan odur. -->
+                      <span class="tbl__code" role="cell">{{ takim.role === 'kurucu' ? takim.squad.joinCode : '—' }}</span>
+                      <span class="tbl__actions" role="cell">
+                        @if (takim.role === 'kurucu') {
+                          <button type="button" class="tbl__btn" (click)="editTeam(takim.squad.id)">{{ t('menu.duzenle') }}</button>
+                          <button
+                            type="button"
+                            class="tbl__btn tbl__btn--primary"
+                            (click)="openSquad(takim.squad.id)"
+                          >
+                            {{ t('menu.kadroyaGecDugme') }}
+                          </button>
+                        } @else {
+                          <!-- Üye ve yönetici takımdan ayrılabilir (kurucu ayrılamaz; takımı siler). -->
+                          <button type="button" class="tbl__btn tbl__btn--ayril" (click)="leaveTeam(takim.squad.id, takim.squad.name)">{{ t('menu.ayril') }}</button>
+                          <button type="button" class="tbl__btn" (click)="openSquad(takim.squad.id)">{{ t('menu.kadroyaGit') }}</button>
+                        }
+                      </span>
+                    </div>
+                  }
+                </div>
+              </div>
+            } @else {
+              <div class="tile tile--static">
+                <span class="tile__label">{{ t('menu.takimYok') }}</span>
+                <span class="tile__big">{{ t('menu.bos') }}</span>
+                <span class="tile__sub">
+                  {{ t('menu.takimlarBos') }}
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @case ('gecmis') {
+        <!--
+          TAKIM GEÇMİŞİ. İki iş birden yapar: (1) oynanan maçın skorunu almak, (2) o skorları
+          kadro dengesine dair bir yargıya çevirmek. Bu yüzden ekran iki kolon: solda ANALİZ
+          (az sayıda büyük rakam + tek cümlelik yorum), sağda MAÇLAR (skor girilebilir satırlar).
+          Skor girmek ayrı bir ekrana gitmeyi gerektirmiyor — iş satırın içinde biter.
+        -->
+        <div class="hist">
+          <aside class="tile tile--static hist__panel">
+            <span class="tile__label">{{ t('menu.kadroDengesi') }}</span>
+            @if (analysis(); as a) {
+              <div class="hist__metrics">
+                <div class="hist__metric">
+                  <span class="hist__metric-value">{{ a.playedCount }}</span>
+                  <span class="hist__metric-label">{{ t('menu.oynananMac') }}</span>
+                </div>
+                <div class="hist__metric">
+                  <span class="hist__metric-value">{{ oneDecimal(a.avgGoalGap) }}</span>
+                  <span class="hist__metric-label">{{ t('menu.golFarki') }}</span>
+                </div>
+                <div class="hist__metric">
+                  <span class="hist__metric-value">
+                    {{ a.ratingEdgeRate === null || a.edgeGames < minEdgeGames ? '—' : percent(a.ratingEdgeRate) }}
+                  </span>
+                  <span class="hist__metric-label">{{ t('menu.gucluKazandi') }}</span>
+                </div>
+                <div class="hist__metric">
+                  <span class="hist__metric-value">{{ a.draws }}</span>
+                  <span class="hist__metric-label">{{ t('menu.berabere') }}</span>
+                </div>
+              </div>
+              <p class="hist__verdict">{{ edgeVerdict() }}</p>
+
+              @if (a.topPlayers.length) {
+                <!-- Kadro kurarken "kim hangi tarafta kazanıyor" bilgisi: reytingin söylemediği şey. -->
+                <span class="hist__sub">{{ t('menu.enCokKazanan') }}</span>
+                <ul class="hist__players">
+                  @for (p of a.topPlayers; track p.id) {
+                    <li class="hist__player">
+                      <span class="hist__player-name">{{ p.name }}</span>
+                      <span class="hist__player-bar" [style.--fill.%]="p.winRate * 100"></span>
+                      <span class="hist__player-rate">{{ percent(p.winRate) }}</span>
+                      <span class="hist__player-count">{{ p.played }} {{ t('menu.macKelime') }}</span>
+                    </li>
+                  }
+                </ul>
+              }
+              @if (formList().length) {
+                <!-- Skorlar kuraya giriyor: kimin reytingi ne kadar düzeltildi. -->
+                <span class="hist__sub" [attr.title]="t('menu.formIpucu')">{{ t('menu.formBaslik') }}</span>
+                <ul class="hist__players">
+                  @for (p of formList(); track p.id) {
+                    <li class="hist__player hist__player--form">
+                      <span class="hist__player-name">{{ p.name }}</span>
+                      <span class="hist__form" [class.hist__form--down]="p.delta < 0">{{ p.text }}</span>
+                      <span class="hist__player-count">{{ p.played }} {{ t('menu.macKelime') }}</span>
+                    </li>
+                  }
+                </ul>
+              }
+            } @else {
+              <p class="hist__verdict">
+                {{ t('menu.analizBos') }}
+              </p>
+            }
+          </aside>
+
+          @if (records().length) {
+            <ul class="hist__list">
+              @for (m of records(); track m.id) {
+                <li class="tile tile--static hist__match" [class.hist__match--played]="!!m.score">
+                  <div class="hist__head">
+                    <span class="hist__when">{{ formatKickoff(m.kickoff) }}</span>
+                    <span class="hist__venue">{{ m.venue || t('menu.sahaBelirtilmedi') }}</span>
+                    <span class="hist__format">{{ m.format }}v{{ m.format }}</span>
+                  </div>
+
+                  <div class="hist__score-row">
+                    <span class="hist__side" [class.hist__side--win]="winner(m) === 'A'">
+                      <app-team-badge [team]="badgeTeam(m, 'A')" size="sm" />
+                      <span class="hist__team">{{ takimAdi(m.teamA.name) }}</span>
+                      <span class="hist__avg">{{ t('menu.ortKisa') }} {{ m.teamA.avg }}</span>
+                    </span>
+
+                    @if (scoringId() === m.id) {
+                      <!-- Skor girişi satırın İÇİNDE: bu kadar küçük bir iş için ayrı diyalog fazla. -->
+                      <span class="hist__entry">
+                        <input
+                          class="hist__num"
+                          type="text"
+                          inputmode="numeric"
+                          maxlength="2"
+                          [value]="scoreA()"
+                          (input)="onScoreInput('a', $event)"
+                          (keydown.enter)="saveScore(m.id)"
+                          (keydown.escape)="cancelScoring()"
+                          [attr.aria-label]="t('ui.skoru', { takim: takimAdi(m.teamA.name) })"
+                        />
+                        <span class="hist__dash">–</span>
+                        <input
+                          class="hist__num"
+                          type="text"
+                          inputmode="numeric"
+                          maxlength="2"
+                          [value]="scoreB()"
+                          (input)="onScoreInput('b', $event)"
+                          (keydown.enter)="saveScore(m.id)"
+                          (keydown.escape)="cancelScoring()"
+                          [attr.aria-label]="t('ui.skoru', { takim: takimAdi(m.teamB.name) })"
+                        />
+                        <button type="button" class="hist__save ui-btn ui-btn--primary" (click)="saveScore(m.id)">{{ t('menu.kaydet') }}</button>
+                        <button type="button" class="hist__cancel ui-btn ui-btn--ghost" (click)="cancelScoring()">{{ t('menu.vazgec') }}</button>
+                      </span>
+                    } @else if (m.score) {
+                      @if (canScore(m)) {
+                        <button type="button" class="hist__score" (click)="startScoring(m, $event)" [attr.title]="t('menu.skorDuzenle')">
+                          <span class="hist__goals" [class.hist__goals--win]="winner(m) === 'A'">{{ m.score!.a }}</span>
+                          <span class="hist__dash">–</span>
+                          <span class="hist__goals" [class.hist__goals--win]="winner(m) === 'B'">{{ m.score!.b }}</span>
+                        </button>
+                      } @else {
+                        <!-- Takımın ortak maçında skoru yalnızca kurucu/yönetici girer (skor kartları düzeltir). -->
+                        <span class="hist__score hist__score--salt">
+                          <span class="hist__goals" [class.hist__goals--win]="winner(m) === 'A'">{{ m.score!.a }}</span>
+                          <span class="hist__dash">–</span>
+                          <span class="hist__goals" [class.hist__goals--win]="winner(m) === 'B'">{{ m.score!.b }}</span>
+                        </span>
+                      }
+                    } @else if (canScore(m)) {
+                      <button type="button" class="hist__add-score" (click)="startScoring(m, $event)">{{ t('menu.skorGir') }}</button>
+                    } @else {
+                      <span class="hist__pending">{{ t('menu.skorBekleniyor') }}</span>
+                    }
+
+                    <span class="hist__side hist__side--right" [class.hist__side--win]="winner(m) === 'B'">
+                      <span class="hist__avg">{{ t('menu.ortKisa') }} {{ m.teamB.avg }}</span>
+                      <span class="hist__team">{{ takimAdi(m.teamB.name) }}</span>
+                      <app-team-badge [team]="badgeTeam(m, 'B')" size="sm" />
+                    </span>
+                  </div>
+
+                  <div class="hist__foot">
+                    <span class="hist__note">{{ balanceNote(m) }}</span>
+                    <button
+                      type="button"
+                      class="hist__toggle"
+                      [attr.aria-expanded]="isRosterOpen(m.id)"
+                      (click)="toggleRoster(m.id)"
+                    >
+                      {{ isRosterOpen(m.id) ? t('menu.kadroyuGizle') : t('menu.kadroyuGor') }}
+                      <span class="hist__chev" aria-hidden="true">{{ isRosterOpen(m.id) ? '▴' : '▾' }}</span>
+                    </button>
+                  </div>
+
+                  @if (isRosterOpen(m.id)) {
+                    <div class="hist__rosters">
+                      @for (side of [m.teamA, m.teamB]; track side.name) {
+                        <div class="hist__roster">
+                          <span class="hist__roster-title">{{ side.name }}</span>
+                          @if (side.players?.length) {
+                            <ul class="hist__roster-list">
+                              @for (p of side.players; track p.id) {
+                                <li class="hist__roster-row">
+                                  <span class="hist__pos">{{ t('poz.' + p.position) }}</span>
+                                  <span class="hist__pname">{{ p.name }}</span>
+                                  <span class="hist__prating">{{ p.rating }}</span>
+                                </li>
+                              }
+                            </ul>
+                          } @else {
+                            <!-- Eski kayıtlarda kadro tutulmuyordu; uydurmak yerine söylüyoruz. -->
+                            <p class="hist__roster-empty">
+                              {{ t('menu.kadroKayitsiz', { sayi: side.playerCount }) }}
+                            </p>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </li>
+              }
+            </ul>
+          } @else {
+            <div class="tile tile--static hist__empty-tile">
+              <span class="tile__label">{{ t('menu.takimGecmisi') }}</span>
+              <p class="hist__empty">
+                {{ t('menu.macYok') }}
+              </p>
+            </div>
+          }
+        </div>
+      }
+    }
+  </div>
+</div>
+
+@if (accountOpen()) {
+  <app-account-dialog (closed)="accountOpen.set(false)" />
+}

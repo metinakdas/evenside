@@ -1,0 +1,21 @@
+Dert kartlarındaki fotoğraflar — hepsi CC0 (kamu malı, atıf zorunluluğu yok).
+Openverse API (api.openverse.org) ile bulundu; çalışma anında API çağrısı yapılmaz.
+
+kart-halisaha.webp  — "Turf soccer pitch illuminated floodlights" (rawpixel / Wikimedia)
+kart-kaleci.webp    — "Blurred goalkeeper focused goal net" (rawpixel / Wikimedia, Unsplash kaynaklı)
+kart-top.webp       — "Free soccer ball grass player" (rawpixel)
+kart-bos-kale.webp  — "Free soccer goal grass field" (rawpixel)
+
+Bölüm fotoğrafları — hepsi CC0, 2400px, Openverse API → Wikimedia Commons (Unsplash kaynaklı).
+foto-halisaha-gece.webp — "Street Football (Unsplash)"            → problem başlığının arkası
+foto-saha-cizgisi.webp  — "White soccer line (Unsplash)"           → "adalet" dev kelime bandı
+foto-takim-isiklar.webp — "Playing football in evening (Unsplash)" → son çağrı
+foto-saha-kusbakisi.webp— "Drone aerial view of the soccer stadium (Unsplash)", Liane Metzler, CC0
+                          https://commons.wikimedia.org/wiki/File:Drone_aerial_view_of_the_soccer_stadium_(Unsplash).jpg
+                          → "Kaos bitti" (ücretsiz) ekranının zemini. 33° döndürülüp yalnızca sahanın içi
+                            kırpıldı (stat çatıları dışarıda), 2400×1238.
+
+
+
+11 Ekim 2026: bölüm fotoğrafları yayın öncesi WebP'ye çevrildi (en fazla 1920px, aynı görüntü).
+og-saha42.jpg: foto-halisaha-gece görüntüsünden 1200x630 kırpılmış paylaşım önizlemesi.

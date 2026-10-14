@@ -1,0 +1,188 @@
+<details class="settings-details" [open]="expanded()" (toggle)="onToggle($event)">
+  <summary class="settings-details__summary">
+    <span class="text-section-title">{{ t('kadro.formatTakim') }}</span>
+    <span class="settings-details__hint text-mono-label">{{ expanded() ? t('ui.gizle') : t('ui.goster') }}</span>
+  </summary>
+  <div class="settings-wrap">
+    <app-error-banner [message]="clubError()" />
+
+    <div class="settings">
+    <div class="panel panel--format">
+      <span class="text-mono-label">{{ t('kadro.format') }}</span>
+      <div class="format-pills">
+        @for (f of formats; track f) {
+          <!--
+            Yetkisi yokken düğme SESSİZCE hiçbir şey yapmıyordu; kullanıcı bozuk sanıyor
+            (test raporu 3). Artık açıkça kilitli ve sebebi `title`'da.
+          -->
+          <button
+            type="button"
+            class="pill"
+            [class.pill--active]="store.format() === f"
+            [disabled]="!store.canEditSquad()"
+            [attr.title]="store.canEditSquad() ? null : t('ui.sahibiYonetiyor')"
+            (click)="store.setFormat(f)"
+          >
+            {{ f }}v{{ f }}
+          </button>
+        }
+      </div>
+      <p class="text-mono-label settings__need">{{ t('ui.oyuncuGerekiyor', { sayi: store.requiredPlayerCount() }) }}</p>
+    </div>
+
+    @for (side of sides; track side) {
+      <!--
+        Takım kartı iki durumlu: KAPALI (arma + ad) ve DÜZENLEME. Ayarlar bir kez yapılır;
+        sürekli açık form kadro alanından yer çalıyordu (kullanıcı isteği).
+      -->
+      <div class="panel panel--team team-card" [class.team-card--compact]="editingTeam() !== side">
+        <div class="team-card__head">
+          <span class="team-card__side text-mono-label">{{ t('kadro.takimTaraf', { taraf: side }) }}</span>
+          @if (editingTeam() !== side) {
+            @if (store.canEditSquad()) {
+              <button type="button" class="edit-btn" (click)="startEditTeam(side)">{{ t('oyun.duzenle') }}</button>
+            }
+          } @else if (teamAt(side).clubName) {
+            <span class="team-card__tag">{{ teamAt(side).clubName }} · {{ t('ui.formaDahil') }}</span>
+          }
+        </div>
+
+        @if (editingTeam() === side) {
+        <div class="team-card__identity">
+          <button
+            type="button"
+            class="crest"
+            (click)="toggleClubSearch(side)"
+            [attr.aria-label]="t('ui.kulupSecAria', { taraf: side })"
+            [attr.title]="t('kadro.kulupSec')"
+          >
+            <app-team-badge [team]="teamAt(side)" size="lg" />
+            <span class="crest__hint">{{ t('oyun.degistir') }}</span>
+          </button>
+
+          <div class="team-card__fields">
+            <label class="field-row">
+              <span class="text-mono-label field-row__label">{{ t('kadro.takimAdi') }}</span>
+              <input
+                class="team-name"
+                [value]="teamAt(side).name"
+                (input)="onNameInput(side, $event)"
+                (blur)="onNameBlur(side, $event)"
+                [attr.aria-label]="t('ui.takimAdiAria', { taraf: side })"
+              />
+            </label>
+
+            <div class="field-row">
+              <span class="text-mono-label field-row__label">{{ t('kadro.kulup') }}</span>
+              <div class="club-picker">
+                <button
+                  type="button"
+                  class="club-select"
+                  [class.club-select--open]="clubOpen() === side"
+                  (click)="toggleClubSearch(side)"
+                  [attr.aria-expanded]="clubOpen() === side"
+                >
+                  @if (teamAt(side).logoImage) {
+                    <img class="club-select__badge" [src]="teamAt(side).logoImage!" alt="" />
+                  }
+                  <span class="club-select__label">{{ teamAt(side).clubName ?? t('ui.kulupSec') }}</span>
+                  <span class="club-select__caret" aria-hidden="true">▾</span>
+                </button>
+
+                @if (clubOpen() === side) {
+                  <div class="club-menu">
+                    <div class="club-menu__head">
+                      <select
+                        class="club-menu__league"
+                        [value]="league()"
+                        (change)="onLeagueChange(side, $event)"
+                        [attr.aria-label]="t('kadro.ligSec')"
+                      >
+                        @for (l of leagues; track l) {
+                          <option [value]="l">{{ l }}</option>
+                        }
+                      </select>
+                      <input
+                        class="club-menu__search"
+                        type="search"
+                        [value]="clubQuery()[side]"
+                        (input)="onClubQueryInput(side, $event)"
+                        [attr.placeholder]="t('kadro.listedeYoksa')"
+                        [attr.aria-label]="t('ui.kulupAraAria', { taraf: side })"
+                      />
+                    </div>
+
+                    @if (clubSearching() === side) {
+                      <p class="club-menu__status text-mono-label">{{ t('oyun.yukleniyor') }}</p>
+                    } @else if (!clubResults()[side].length) {
+                      <p class="club-menu__status text-mono-label">{{ t('oyun.sonucYok') }}</p>
+                    } @else {
+                      <ul class="club-menu__list">
+                        @for (result of clubResults()[side]; track result.id) {
+                          <li>
+                            <button type="button" class="club-menu__item" (click)="pickClub(side, result)">
+                              @if (result.badgeUrl) {
+                                <img class="club-menu__badge" [src]="result.badgeUrl" alt="" loading="lazy" />
+                              } @else {
+                                <span class="club-menu__badge club-menu__badge--empty"></span>
+                              }
+                              <span class="club-menu__name">{{ result.name }}</span>
+                            </button>
+                          </li>
+                        }
+                      </ul>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- İkinci yol: kendi logosu. Kulüp armasının yerini alır, forma kulüpten kalır. -->
+            <div class="field-row">
+              <span class="text-mono-label field-row__label">{{ t('kadro.kendiLogon') }}</span>
+              <div class="logo-actions">
+                <label class="logo-upload">
+                  <input type="file" accept="image/*" (change)="onLogoSelected(side, $event)" hidden />
+                  <span>{{ hasOwnLogo(side) ? t('ui.logoDegistir') : t('ui.logoYukle') }}</span>
+                </label>
+                @if (hasOwnLogo(side) || teamAt(side).clubName) {
+                  <button type="button" class="ghost-link" (click)="clearClub(side)">{{ t('kadro.temizle') }}</button>
+                }
+              </div>
+            </div>
+
+            <div class="field-row">
+              <span class="text-mono-label field-row__label">{{ t('kadro.renk') }}</span>
+              <div class="swatches">
+                @for (color of swatches; track color) {
+                  <button
+                    type="button"
+                    class="swatch"
+                    [style.background]="color"
+                    [class.swatch--active]="teamAt(side).color === color"
+                    (click)="onColorPick(side, color)"
+                    [attr.aria-label]="t('ui.renkSec', { renk: color })"
+                  ></button>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+          <div class="team-card__foot">
+            <button type="button" class="ghost-link" (click)="cancelEditTeam(side)">{{ t('oyun.vazgec') }}</button>
+            <button type="button" class="save-btn" (click)="saveTeam()">{{ t('oyun.kaydet') }}</button>
+          </div>
+        } @else {
+          <!-- Kapalı hâl: yalnızca kimlik — arma ve ad. -->
+          <button type="button" class="team-summary" (click)="startEditTeam(side)">
+            <app-team-badge [team]="teamAt(side)" size="md" />
+            <span class="team-summary__name">{{ takimAdi(teamAt(side).name) }}</span>
+          </button>
+        }
+      </div>
+    }
+    </div>
+  </div>
+
+</details>

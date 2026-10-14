@@ -1,0 +1,30 @@
+<div class="stepper-row">
+  <span class="stepper-row__label">{{ label() }}</span>
+  <div
+    class="stepper"
+    role="slider"
+    tabindex="0"
+    [attr.aria-label]="label()"
+    aria-valuemin="0"
+    aria-valuemax="10"
+    [attr.aria-valuenow]="value()"
+    [attr.title]="t('form.stepperIpucu')"
+    (keydown)="onKeydown($event)"
+  >
+    @for (segment of segments(); track segment.index) {
+      <!--
+        Segmentler artık `<button>` değil: her biri ayrı bir Tab durağıydı ve tek bir değeri
+        değiştirmek için 10'a kadar Tab'lamak gerekiyordu — popup'ta 60 gereksiz durak
+        oluşuyordu (Tur 7 · D4). Klavye erişimi dıştaki `role="slider"` üzerinden; segmentler
+        yalnızca fare/dokunma hedefi olduğu için `aria-hidden`.
+      -->
+      <span
+        class="stepper__seg"
+        [attr.data-on]="segment.on ? '' : null"
+        (click)="pick(segment.index)"
+        aria-hidden="true"
+      ></span>
+    }
+  </div>
+  <span class="stepper-row__value">{{ value() }}</span>
+</div>

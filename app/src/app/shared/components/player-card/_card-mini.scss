@@ -1,0 +1,17 @@
+// `size="mini"` — kadro yuvaları. Genişlik akışkan, yükseklik en-boy oranından türer; tersi
+// değil (`height: 100%` + `aspect-ratio` ikilisi genişliği yükseklikten hesaplayıp kartları
+// üst üste bindiriyordu — Tur 5 · G1).
+
+.card--mini {
+  width: 100%;
+  max-width: 134px;
+  aspect-ratio: 134 / 208;
+  // İçerik oranı ESNETMESİN: min-height auto kalırsa kart içeriğine göre uzar, kadro
+  // ızgarasındaki kartlar üst üste biner.
+  min-height: 0;
+}
+
+// Mevki 8.4cqw ile 134px'te 11.3px — 11px alt sınırı yine de yazılı kalsın.
+.card--mini .card__position {
+  font-size: max(11px, 8.4cqw);
+}

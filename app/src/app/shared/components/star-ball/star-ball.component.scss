@@ -1,0 +1,68 @@
+/*
+ * Ölçü ve konum KULLANAN ekrana ait: bileşen yalnızca topu çizer. Renk currentColor'dan
+ * gelir; böylece koyu zeminde vurgu yeşili, yeşil kutuda koyu mürekkep olur.
+ */
+:host {
+  display: block;
+  /*
+   * İşaretçiye AÇIK: "yıldızın üzerine gelince hızlansın" ancak hover algılanırsa olur.
+   * Top içeriğin ARKASINDA durduğu için kutuların tıklanmasını engellemez; yine de tıklamayı
+   * yutması istenmeyen yerlerde (hero kutusu) kullanan taraf `pointer-events: none` verir.
+   */
+  pointer-events: auto;
+}
+
+.star-ball {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/*
+ * Yavaş dönüş: 90 saniyede bir tur. Dekoratif bir zemin grafiği için hız değil SÜREKLİLİK
+ * önemli — göz takip etmesin, ama ekran "canlı" olsun. Dönüş yalnızca yüzeyde; küre
+ * silueti sabit durduğu için hareket "kayan sticker" değil "dönen top" gibi okunuyor.
+ *
+ * `transform-box: fill-box` + `transform-origin: 50% 50%`: SVG'de dönüş merkezi varsayılan
+ * olarak kullanıcı uzayının (0,0) noktasıdır; verilmezse top köşeden savrulur.
+ */
+.star-ball__surface {
+  // Merkez KÜRENİN merkezi (430,430), yıldız grubunun sınır kutusunun değil: `fill-box`
+  // ile ikisi 4-17px kayıyor ve top dönerken hafifçe yalpalıyordu (ölçüldü).
+  transform-box: view-box;
+  transform-origin: 430px 430px;
+  animation: star-ball-spin 90s linear infinite;
+}
+
+@keyframes star-ball-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star-ball__surface {
+    animation: none;
+  }
+}
+
+/* Hover hızlandırması: içteki grup varsayılanda duraklatılmış, imleç gelince çalışır. */
+.star-ball__boost {
+  transform-box: view-box;
+  transform-origin: 430px 430px;
+  animation: star-ball-spin 9s linear infinite;
+  animation-play-state: paused;
+}
+
+:host(:hover) .star-ball__boost {
+  animation-play-state: running;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star-ball__boost {
+    animation: none;
+  }
+}

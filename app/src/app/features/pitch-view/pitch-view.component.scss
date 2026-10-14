@@ -1,0 +1,665 @@
+.page {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+}
+
+.page__bg {
+  position: absolute;
+  inset: 0;
+  background-image: url('/stadium.jpg');
+  background-size: cover;
+  background-position: center 42%;
+  filter: brightness(0.5) saturate(1.15);
+  transform: scale(1.02); // kenarlarda blur/filter kesilme payı
+}
+
+// "Şampiyonlar Ligi" atmosferi (bkz. kullanıcı isteği) — sadece bu ekranın arka planına özgü,
+// gecelik lacivert-siyah bir renk aktarımı + tepeden süzülen ışık hüzmeleri (yıldız dokusu
+// dağınık/gürültülü durduğu için kaldırıldı — bkz. kullanıcı geri bildirimi). Sahanın kendisi
+// (yeşil çim, forma renkleri) ve uygulama genelindeki neon yeşil vurgu (butonlar vb.) buna
+// dokunulmadan aynen kalıyor — bkz. proje notları "tasarım dili" ayrımı, burada üçüncü bir katman
+// olarak ekleniyor.
+.page__scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(4, 7, 22, 0.82) 0%, rgba(6, 10, 32, 0.58) 32%, rgba(3, 5, 14, 0.95) 100%),
+    radial-gradient(65% 60% at 50% 12%, rgba(35, 85, 220, 0.28), transparent 70%);
+}
+
+.page__beams {
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(
+    from 205deg at 50% -15%,
+    transparent 0deg,
+    rgba(255, 255, 255, 0.07) 4deg,
+    transparent 9deg,
+    transparent 38deg,
+    rgba(150, 190, 255, 0.06) 42deg,
+    transparent 47deg,
+    transparent 88deg,
+    rgba(255, 255, 255, 0.07) 92deg,
+    transparent 97deg,
+    transparent 138deg,
+    rgba(150, 190, 255, 0.06) 142deg,
+    transparent 147deg,
+    transparent 180deg
+  );
+  mix-blend-mode: screen;
+  opacity: 0.7;
+}
+
+.page__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/*
+ * Üst şerit diğer ekranlarla aynı: düz siyah zemin + nötr ayırıcı (kullanıcı isteği).
+ * Önceden saydamdı ve arkasındaki stadyum fotoğrafı menünün içinden geçiyordu.
+ */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-6);
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-divider);
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.topbar__brand {
+  margin: 0;
+}
+
+.accent {
+  color: var(--color-accent);
+}
+
+.tabs {
+  display: flex;
+  background: rgba(20, 26, 46, 0.75); // Şampiyonlar Ligi teması — bkz. .page__scrim
+  border: 1px solid rgba(90, 130, 220, 0.28);
+  border-radius: var(--radius-pill);
+  padding: 3px;
+  gap: 2px;
+}
+
+.tabs__btn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-pill);
+  padding: 6px 18px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.tabs__btn--active {
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+}
+
+/* Kura geri bildirimi: düğmenin yanında, kehribar ve vurgulu. */
+.topbar__notice {
+  max-width: 46ch;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #f0b429;
+}
+
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/*
+ * Rozetin ALTINDAKİ fark: iki kart arasındaki tek özet, sayı için alt şeride inmeye gerek yok.
+ * Rozetin içine sığmıyordu (60px daire), bu yüzden ayrı bir satır olarak asılı duruyor.
+ */
+.lineups__diff {
+  position: absolute;
+  top: calc(50% + 38px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(8, 10, 22, 0.9);
+  border: 1px solid rgba(90, 130, 220, 0.28);
+  font-size: 11px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.1em;
+}
+
+.link-btn:hover {
+  color: var(--color-accent);
+}
+
+// Tek ekrana sığması gerekiyor (bkz. kullanıcı geri bildirimi) — workbench'in kendisi ASLA
+// scroll etmez; saha kartları kendi yüksekliklerine göre genişliklerini kısıyor
+// (bkz. TeamLineupCardComponent.cardWidthPx), footer-bar ise sabit/az yer kaplayan tek satır.
+.workbench {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: var(--space-3) var(--space-6) var(--space-4);
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: var(--space-3);
+}
+
+/* Çubuktaki küçük eylemler — `app-button`'ın küçük kardeşi, aynı yazı ailesi. */
+/* Alt şeridin dipnotu — vurgulu: bu satır ekranın tek mesaj alanı. */
+.footnote {
+  margin: 0;
+  // Uzun ipucu metni denge çubuğunu ezmesin: sarar, satır ekler.
+  max-width: 38ch;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-text-secondary);
+}
+
+/*
+ * Yer tutucu: akışta kalır, görünmez. Olmasaydı `.compare` boşalan genişliğe yayılıp
+ * satırlarını tek sıraya diziyor ve şerit 127px'ten 66px'e düşüyordu (ölçüldü).
+ */
+.footnote--placeholder {
+  visibility: hidden;
+}
+
+/*
+ * Okunan mesaj: şeridin tamamına yayılıp ORTALANIR. "İndir" görünür kaldığı durumda (uyarı)
+ * sağdan buton kadar pay bırakılır — metin butonun altına girmesin ve kalan alanda ortalansın.
+ */
+.footnote--overlay--inset {
+  padding-right: 148px;
+}
+
+/* Kayıttan sonra sağda "Ana menüye git" duruyor: mesaj onun üstüne binmesin, tıklamayı da yutmasın. */
+.footnote--overlay--menu {
+  padding-right: 230px;
+  pointer-events: none;
+}
+
+/* Kayıttan sonra "Kaydet ve indir" ikincile iner: çerçeveli, dolgusuz. */
+.download-both--ikincil {
+  background: transparent;
+  color: var(--color-accent);
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+}
+
+.download-both--menu {
+  z-index: 2;
+}
+
+.footnote--overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  max-width: none;
+  display: grid;
+  place-items: center;
+  padding: 0 var(--space-6);
+  text-align: center;
+  font-size: 15px;
+}
+
+.compare--hidden,
+.download-both--hidden {
+  visibility: hidden;
+}
+
+.footnote--swap {
+  color: var(--color-accent);
+}
+
+.footnote--warn {
+  color: #f0b429;
+}
+
+.chip-btn {
+  min-height: 32px;
+  padding: 0 14px;
+  border: 1px solid rgba(233, 233, 238, 0.22);
+  border-radius: var(--radius-pill);
+  background: rgba(233, 233, 238, 0.08);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard),
+    color var(--duration-fast) var(--easing-standard);
+}
+
+.chip-btn:hover {
+  background: rgba(233, 233, 238, 0.16);
+  border-color: rgba(233, 233, 238, 0.45);
+}
+
+.chip-btn--ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+.chip-btn--ghost:hover {
+  color: var(--color-text-primary);
+}
+
+.chip-btn--danger {
+  border-color: rgba(239, 68, 68, 0.5);
+  background: rgba(239, 68, 68, 0.14);
+  color: #ffb4b4;
+}
+
+.chip-btn--danger:hover {
+  background: rgba(239, 68, 68, 0.26);
+  border-color: rgba(239, 68, 68, 0.8);
+  color: #fff;
+}
+
+.lineups {
+  position: relative; // .lineups__vs bu kutuya göre ortalanır
+  width: 100%;
+  max-width: 1200px;
+  height: 100%;
+  min-height: 0;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+}
+
+// İki kart arasındaki boş aralığı dolduran, iki takımı bir maç olarak birbirine bağlayan
+// rozet — Şampiyonlar Ligi teması (bkz. kullanıcı isteği: yıldız dokusu yerine bu alana
+// gerçek bir görsel iyileştirme). Mutlak konumlu olduğu için grid akışının dışında, tıklama/
+// sürüklemeyi de engellemesin diye pointer-events kapalı.
+.lineups__vs {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 28%, rgba(46, 68, 130, 0.95), rgba(8, 10, 22, 0.97) 72%);
+  border: 2px solid rgba(160, 195, 255, 0.5);
+  box-shadow:
+    0 0 0 6px rgba(6, 9, 22, 0.55),
+    0 8px 22px rgba(0, 0, 0, 0.55),
+    0 0 26px rgba(70, 110, 220, 0.4);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  font-size: 18px;
+  letter-spacing: 0.03em;
+  color: #fff;
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .workbench {
+    overflow-y: auto; // dar ekranda kartlar alt alta düşüyor, o durumda scroll kabul edilebilir
+  }
+
+  .lineups {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+    height: auto;
+  }
+
+  // TeamLineupCardComponent'in kendi cardWidthPx hesaplaması kartın YÜKSEKLİĞİNE bakarak
+  // genişliğini kısıtlıyor (bkz. o bileşendeki not) — bu satır "height:auto" olunca kartın
+  // yüksekliği de kesin bir değere değil, içine (mutlak konumlu boş bir sahaya) dayanıyordu,
+  // bu da neredeyse sıfıra çöküp kartın komple daralmasına yol açıyordu (bkz. kullanıcı geri
+  // bildirimi: mobilde forma/isim etiketleri üst üste biniyordu). Burada görünüm başına
+  // sabit/viewport-tabanlı bir yükseklik veriliyor ki hesaplama gerçek bir tabana sahip olsun;
+  // sayfa zaten scroll ediyor, tek kartın biraz uzun olması sorun değil.
+  .lineups app-team-lineup-card {
+    height: min(640px, 78vh);
+  }
+
+  .lineups__vs {
+    display: none; // tek sütuna düşünce kartlar arası "boşluk" kalmıyor, rozetin oturacağı yer yok
+  }
+}
+
+// Eskiden İndir butonu + karşılaştırma paneli ayrı ayrı, dikeyde iki blok kaplıyordu — tek
+// ekrana sığması için tek, ince bir satırda birleştirildi (bkz. kullanıcı geri bildirimi).
+.footer-bar {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  background: linear-gradient(180deg, rgba(22, 28, 48, 0.9), rgba(14, 17, 30, 0.9));
+  border: 1px solid rgba(90, 130, 220, 0.28); // Şampiyonlar Ligi teması — bkz. .page__scrim
+  border-radius: var(--radius-sharp);
+  padding: var(--space-3) var(--space-5);
+}
+
+.download-both {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  border: none;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 28px;
+  transition:
+    transform var(--duration-fast) var(--easing-standard),
+    opacity var(--duration-fast) var(--easing-standard);
+}
+
+.download-both:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.download-both:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.download-both__icon {
+  width: 16px;
+  height: 16px;
+}
+
+.compare {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.compare__avg {
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.compare__bar {
+  flex: 1;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  display: flex;
+  background: var(--color-divider);
+}
+
+.compare__bar-fill {
+  height: 100%;
+  /* flex: none — genişlik yüzdesi ezilmesin; iki pay birlikte tam %100 eder. */
+  flex: none;
+  transition: width var(--duration-normal, 0.3s) var(--easing-standard, ease);
+}
+
+.compare__bar-fill--a {
+  background: var(--color-purple);
+}
+
+.compare__bar-fill--b {
+  background: var(--color-accent);
+}
+
+.compare__lines {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.compare__line {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.compare__line-label {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+}
+
+.compare__line-vals {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+}
+
+.compare__line-sep {
+  color: var(--color-text-secondary);
+  opacity: 0.5;
+}
+
+@media (max-width: 900px) {
+  .footer-bar {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .compare {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+.liste {
+  flex: 1;
+  padding: var(--space-5) var(--space-6);
+  min-height: 0;
+}
+
+.redraw-confirm {
+  color: var(--color-text-secondary);
+}
+
+.link-btn--danger {
+  color: #ffb4b5;
+}
+
+/*
+ * Hat farkı göstergesi (kontrol raporu Ö2): sayı çifti tek başına hangi hattın sorunlu
+ * olduğunu söylemiyordu. Eşikler: <=5 dengeli, 6-12 kabul edilebilir, >12 müdahale et.
+ */
+.compare__line-gapbar {
+  display: block;
+  width: 100%;
+  height: 3px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.compare__line-gapfill {
+  display: block;
+  height: 100%;
+  background: currentColor;
+  transition: width var(--duration-normal, 0.3s) var(--easing-standard, ease);
+}
+
+.compare__line--balanced {
+  color: var(--color-accent);
+}
+
+.compare__line--ok {
+  color: #f5a623;
+}
+
+.compare__line--off {
+  color: #ff6b6d;
+}
+
+.compare__spread {
+  margin: 2px 0 0;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+/*
+ * Logo menüdekiyle aynı tipografide: Saira Condensed italik + 0.02em aralıkla "SAHA 42"
+ * gibi ayrık okunuyordu, menüde ise "SAHA42" (test raporu 11). Marka tek biçimde yazılır.
+ */
+.topbar__brand {
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  letter-spacing: 0;
+}
+
+/* ==========================================================================
+ * MOBİL (≤640px) — SAHA
+ *
+ * Telefonda alt şerit kartların ÜSTÜNE biniyor, sayılar soldan kırpılıyor ve
+ * ikinci takım ekranın altında kayboluyordu (ekran görüntüsüyle görüldü).
+ * Telefonda sayfa AKAR: şerit içeriğin altında normal bir blok olur, içindeki
+ * üç parça (ortalamalar · hat karşılaştırması · eylem) alt alta dizilir.
+ * ========================================================================== */
+@media (max-width: 640px) {
+  .page {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .workbench {
+    overflow: visible;
+  }
+
+  .topbar {
+    flex-wrap: wrap;
+    gap: 8px;
+    height: auto;
+    padding: 10px 12px;
+  }
+
+  .tabs__btn,
+  .chip-btn {
+    min-height: 44px;
+  }
+
+  .lineups {
+    max-width: none;
+    gap: 12px;
+    padding: 0 12px;
+  }
+
+  /* Alt şerit: sabit değil, akışta — üstüne binmesin. */
+  .footer-bar {
+    position: static;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .compare {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .compare__lines {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  /* Mesaj satırı: üstüne binen kopya telefonda gereksiz, akışta dursun. */
+  .footnote--overlay,
+  .footnote--overlay--inset {
+    position: static;
+    transform: none;
+    width: auto;
+    text-align: left;
+  }
+
+  .footnote--placeholder {
+    display: none;
+  }
+
+  .download-both {
+    width: 100%;
+    min-height: 48px;
+    justify-content: center;
+  }
+
+  /* Kadro haritası: dizilişi seçme ve isim düzenleme telefonda da tutulabilir olsun. */
+  .lineup__name,
+  .lineup__select {
+    min-height: 44px;
+  }
+}
+
+/* Saha ekranı hedefleri — tarama turu (10 Ekim 2026): masaüstünde 44px altı hedefler. */
+.tabs__btn {
+  position: relative;
+}
+
+.tabs__btn::after {
+  content: '';
+  position: absolute;
+  inset: -8px -0px;
+}
+
+.chip-btn {
+  position: relative;
+}
+
+.chip-btn::after {
+  content: '';
+  position: absolute;
+  inset: -6px -0px;
+}
+
+.download-both {
+  position: relative;
+}
+
+.download-both::after {
+  content: '';
+  position: absolute;
+  inset: -4px -0px;
+}

@@ -1,0 +1,30 @@
+<ol class="steps">
+  @for (adim of adimlar(); track adim.no) {
+    <li class="step" appReveal>
+      <span class="step__foto" aria-hidden="true" [style.background-image]="'url(' + adim.foto + ')'"></span>
+      <span class="step__no" aria-hidden="true">{{ adim.no }}</span>
+      <div class="step__govde">
+        <div class="step__alan">
+          <div class="step__bilgi">
+            <h3 class="step__title">{{ adim.baslik }}</h3>
+            <p class="step__text">{{ adim.metin }}</p>
+          </div>
+          <!-- Üzerine gelince başlığın ve metnin yerinde yükselir; ekran okuyucu başlığı okur. -->
+          <p class="step__motto" aria-hidden="true">
+            @for (k of kelimeler('adim.motto' + adim.no); track $index) {
+              <span [style.--k]="$index">{{ k }}</span>
+            }
+          </p>
+        </div>
+        <span class="step__time">
+          <svg class="step__saat" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10 2h4" />
+            <circle cx="12" cy="13.5" r="8" />
+            <line class="step__saat-ibre" x1="12" y1="13.5" x2="12" y2="8.5" />
+          </svg>
+          <span class="step__sure">{{ adim.sure }}</span>
+        </span>
+      </div>
+    </li>
+  }
+</ol>

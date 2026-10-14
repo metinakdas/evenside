@@ -1,0 +1,104 @@
+<section class="users" [attr.aria-label]="t('kullanici.baslik')">
+  @if (!team()) {
+    <div class="users__empty">
+      <h2 class="users__title">{{ t('kullanici.baslik') }}</h2>
+      <p>{{ t('kullanici.takimYok') }}</p>
+    </div>
+  } @else {
+    <header class="users__head">
+      <div>
+        <h2 class="users__title">{{ t('kullanici.baslik') }}</h2>
+        <p class="users__sub">{{ t('kullanici.ozet', { uye: memberCount(), yonetici: adminCount() }) }}</p>
+      </div>
+      @if (store.isSquadOwner()) {
+        <div class="users__code">
+          <span class="users__code-label">{{ t('kullanici.davetKodu') }}</span>
+          <span class="users__code-value">{{ team()!.squad.joinCode }}</span>
+        </div>
+      }
+    </header>
+
+    <!-- Yetki modeli tek bakışta: kim ne yapabilir. -->
+    <ul class="legend" [attr.aria-label]="t('kullanici.yetkiler')">
+      <li><span class="chip chip--kurucu">{{ t('kullanici.kurucu') }}</span> {{ t('kullanici.kurucuAciklama') }}</li>
+      <li><span class="chip chip--yonetici">{{ t('kullanici.yonetici') }}</span> {{ t('kullanici.yoneticiAciklama') }}</li>
+      <li><span class="chip chip--uye">{{ t('kullanici.uye') }}</span> {{ t('kullanici.uyeAciklama') }}</li>
+    </ul>
+
+    @if (error(); as hata) {
+      <p class="users__error" role="alert">{{ hata }}</p>
+    }
+
+    <ul class="list">
+      @for (row of rows(); track row.key) {
+        <li class="row" [class.row--warn]="row.matches.length > 0">
+          <div class="row__main">
+            <span class="row__card">
+              @if (row.card) {
+                <app-player-card [player]="row.card" size="micro" />
+              } @else {
+                <span class="row__avatar" aria-hidden="true">{{ row.role === 'kurucu' ? '★' : '?' }}</span>
+              }
+            </span>
+            <span class="row__who">
+              <span class="row__name">
+                {{ row.card?.input?.name ?? (row.role === 'kurucu' ? t('kullanici.takimKurucusu') : t('kullanici.kartsiz')) }}
+                @if (row.isMe) {
+                  <span class="row__me">{{ t('kullanici.sen') }}</span>
+                }
+              </span>
+              <span class="row__meta">
+                @if (row.card) {
+                  {{ row.card.ratings.overall }} · {{ t('poz.' + row.card.ratings.position) }}
+                }
+                @if (row.joinedAt) {
+                  <span class="row__dot">·</span> {{ t('kullanici.katildi', { tarih: joined(row.joinedAt) }) }}
+                }
+              </span>
+            </span>
+            <span [class]="'chip chip--' + row.role">{{ roleLabel(row.role) }}</span>
+
+            @if (store.isSquadOwner() && row.member) {
+              <span class="row__actions">
+                <button
+                  type="button"
+                  class="act"
+                  [class.act--primary]="row.role === 'uye'"
+                  [disabled]="busyUser() === row.userId"
+                  (click)="toggleRole(row)"
+                >
+                  {{ row.role === 'yonetici' ? t('kullanici.yetkiyiAl') : t('kullanici.yoneticiYap') }}
+                </button>
+                <button type="button" class="act act--ghost" [disabled]="busyUser() === row.userId" (click)="askRemove(row)">{{ t('kullanici.cikar') }}</button>
+              </span>
+            }
+          </div>
+
+          <!-- Katılan üyenin kartı havuzdaki elle girilmiş bir kartla aynı adı taşıyorsa: uyarı + eşle. -->
+          @for (m of row.matches; track m.poolCard.id) {
+            <div class="match" role="status">
+              <span class="match__icon" aria-hidden="true">⚠</span>
+              <span class="match__text">
+                {{ t('kullanici.eslesmeUyari', { ad: m.poolCard.input.name }) }}
+                <span class="match__hint">{{ t('kullanici.eslesmeIpucu') }}</span>
+              </span>
+              <span class="match__cards" aria-hidden="true">
+                <app-player-card [player]="m.poolCard" size="micro" />
+                <span class="match__arrow">→</span>
+                <app-player-card [player]="m.ownedCard" size="micro" />
+              </span>
+              <span class="match__actions">
+                <button type="button" class="act act--ghost" (click)="dismiss(m)">{{ t('kadro.ayriKalsin') }}</button>
+                <button type="button" class="act act--primary" (click)="link(m)">{{ t('kadro.kartlariEsle') }}</button>
+              </span>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+
+    @if (memberCount() === 0) {
+      <p class="users__none">{{ t('kullanici.henuzYok') }}</p>
+    }
+  }
+</section>

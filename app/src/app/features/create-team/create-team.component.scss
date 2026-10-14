@@ -1,0 +1,401 @@
+/*
+ * "KARTIM" ekranı — menünün görsel dilinde: siyah zemin, keskin köşeler, tek vurgu neon yeşil,
+ * Barlow Condensed başlıklar. Anket ekranı kullanıcının verdiği tasarımdaki yapıyı izler:
+ * üstte ilerleme noktaları, başlık, "Soru n / m", şıklar, altta Geri / Devam.
+ */
+$display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+
+.page {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  color: light-dark(#121216, #fff);
+  font-family: var(--font-body);
+  background: var(--color-bg);
+}
+
+.page__bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(110% 85% at 50% 40%, rgba(0, 0, 0, 0) 45%, light-dark(rgba(255, 255, 255, 0.6), rgba(4, 4, 6, 0.6)) 100%),
+    radial-gradient(60% 45% at 22% 12%, rgba(0, 245, 122, 0.1) 0%, light-dark(rgba(255, 255, 255, 0), rgba(11, 11, 13, 0)) 70%),
+    radial-gradient(120% 95% at 22% 6%, light-dark(#ececf0, #1c1c20) 0%, light-dark(#ffffff, #131316) 40%, light-dark(#f3f3f5, #0b0b0d) 100%);
+}
+
+.topbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 28px;
+}
+
+.brand {
+  font-family: $display;
+  font-style: italic;
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: 0.02em;
+}
+
+.brand__accent {
+  color: light-dark(#067a3f, #00f57a);
+}
+
+.back {
+  min-height: 36px;
+  padding: 0 16px;
+  border: 1px solid light-dark(rgba(18, 18, 22, 0.22), rgba(255, 255, 255, 0.22));
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: light-dark(rgba(18, 18, 22, 0.78), rgba(255, 255, 255, 0.78));
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.back:hover,
+.back:focus-visible {
+  border-color: light-dark(#0fa95b, #00f57a);
+  color: light-dark(#067a3f, #00f57a);
+}
+
+.content {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px 40px;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: min(680px, 100%);
+  text-align: center;
+}
+
+.panel--result {
+  width: min(860px, 100%);
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: light-dark(#067a3f, #00f57a);
+}
+
+.title {
+  margin: 0;
+  font-family: $display;
+  font-style: italic;
+  font-weight: 800;
+  font-size: clamp(34px, 4vw, 52px);
+  line-height: 0.92;
+  text-transform: uppercase;
+}
+
+.title--sm {
+  font-size: clamp(24px, 2.6vw, 32px);
+}
+
+.lead {
+  margin: 0;
+  max-width: 52ch;
+  font-size: 14px;
+  line-height: 1.55;
+  color: light-dark(rgba(18, 18, 22, 0.66), rgba(255, 255, 255, 0.66));
+}
+
+.lead strong {
+  color: light-dark(#121216, #fff);
+}
+
+.counter {
+  margin: 0;
+  font-size: 13px;
+  color: light-dark(rgba(18, 18, 22, 0.5), rgba(255, 255, 255, 0.5));
+}
+
+/* İlerleme noktaları: cevaplanan yeşil, bulunulan soru beyaz ve büyük. */
+.dots {
+  display: flex;
+  gap: 7px;
+  margin-bottom: 4px;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: light-dark(rgba(18, 18, 22, 0.2), rgba(255, 255, 255, 0.2));
+  transition: background var(--duration-fast, 0.15s) ease, transform var(--duration-fast, 0.15s) ease;
+}
+
+.dot--done {
+  background: #00f57a;
+}
+
+.dot--current {
+  background: light-dark(#121216, #fff);
+  transform: scale(1.45);
+}
+
+/* Soru kutusu. */
+.card {
+  width: 100%;
+  margin-top: 8px;
+  padding: 20px;
+  border: 1px solid light-dark(rgba(18, 18, 22, 0.12), rgba(255, 255, 255, 0.12));
+  background: linear-gradient(170deg, light-dark(#ffffff, #141417) 0%, light-dark(#ffffff, #0c0c0f) 100%);
+  text-align: left;
+}
+
+.question {
+  margin: 0 0 14px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/*
+ * Şık: seçilince YEŞİL dolgu + koyu mürekkep — uygulamanın "seçili/birincil" dili. Seçim
+ * kendiliğinden ilerletmez, bu yüzden seçili hâlin belirgin olması şart.
+ */
+.option {
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 1px solid light-dark(rgba(18, 18, 22, 0.14), rgba(255, 255, 255, 0.14));
+  border-radius: 0;
+  background: light-dark(rgba(18, 18, 22, 0.04), rgba(255, 255, 255, 0.04));
+  color: light-dark(rgba(18, 18, 22, 0.86), rgba(255, 255, 255, 0.86));
+  font-family: var(--font-body);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast, 0.15s) ease,
+    background var(--duration-fast, 0.15s) ease,
+    color var(--duration-fast, 0.15s) ease;
+}
+
+.option:hover,
+.option:focus-visible {
+  border-color: light-dark(rgba(15, 169, 91, 0.55), rgba(0, 245, 122, 0.55));
+  color: light-dark(#121216, #fff);
+}
+
+.option--selected {
+  background: #00f57a;
+  border-color: light-dark(#0fa95b, #00f57a);
+  color: #05130a;
+  font-weight: 700;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.row--nav {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.row--stack {
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+}
+
+.btn {
+  min-height: 46px;
+  padding: 0 22px;
+  border: 1px solid light-dark(rgba(18, 18, 22, 0.2), rgba(255, 255, 255, 0.2));
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: light-dark(#121216, #fff);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast, 0.15s) ease,
+    background var(--duration-fast, 0.15s) ease,
+    transform var(--duration-fast, 0.15s) ease;
+}
+
+.btn:hover:not(:disabled),
+.btn:focus-visible:not(:disabled) {
+  border-color: light-dark(#0fa95b, #00f57a);
+  color: light-dark(#067a3f, #00f57a);
+  transform: translateY(-1px);
+}
+
+.btn--primary {
+  background: #00f57a;
+  border-color: light-dark(#0fa95b, #00f57a);
+  color: #05130a;
+}
+
+.btn--primary:hover:not(:disabled),
+.btn--primary:focus-visible:not(:disabled) {
+  background: #2bff96;
+  border-color: light-dark(#121216, #fff);
+  color: #05130a;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.field {
+  width: 100%;
+  max-width: 380px;
+  min-height: 52px;
+  padding: 0 18px;
+  border: 1px solid light-dark(rgba(18, 18, 22, 0.18), rgba(255, 255, 255, 0.18));
+  border-radius: 0;
+  background: light-dark(rgba(18, 18, 22, 0.04), rgba(255, 255, 255, 0.04));
+  color: light-dark(#121216, #fff);
+  font-family: var(--font-body);
+  font-size: 16px;
+}
+
+.field:focus {
+  outline: none;
+  border-color: light-dark(#0fa95b, #00f57a);
+}
+
+/* Kod alanı: harfler tek tek okunsun diye aralıklı ve büyük. */
+.field--code {
+  max-width: 260px;
+  font-family: var(--font-mono);
+  font-size: 22px;
+  letter-spacing: 0.36em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.error {
+  margin: 0;
+  color: light-dark(#c42b2b, #ff8a8a);
+  font-size: 13.5px;
+}
+
+.success {
+  margin: 0;
+  color: light-dark(#067a3f, #00f57a);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+/* Kart sonucu: kart solda, açıklama sağda. */
+.result {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  margin-top: 6px;
+  text-align: left;
+}
+
+.result__side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 340px;
+}
+
+@media (max-width: 720px) {
+  .result {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .result__side {
+    align-items: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot,
+  .option,
+  .btn {
+    transition: none;
+  }
+
+  .btn:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* ---- Takım kurma sihirbazına özel parçalar ---- */
+
+.done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.done__logo {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+}
+
+/* Katılma kodu paylaşılmak için var: iri, aralıklı, tek bakışta okunur. */
+.code {
+  margin: 0;
+  padding: 10px 20px;
+  border: 1px dashed light-dark(rgba(15, 169, 91, 0.5), rgba(0, 245, 122, 0.5));
+  background: rgba(0, 245, 122, 0.07);
+  color: light-dark(#067a3f, #00f57a);
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+}
+
+/* "← Menüye dön" ve benzeri ikincil düğmeler 44px tabanında. */
+.back {
+  min-height: 44px;
+}
+
+@media (max-width: 640px) {
+  .step__actions,
+  .row--nav {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .btn,
+  .field {
+    min-height: 48px;
+  }
+
+  .field {
+    font-size: 16px; /* iOS yakınlaştırmasını engeller */
+  }
+}

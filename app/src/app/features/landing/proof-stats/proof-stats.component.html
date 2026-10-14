@@ -1,0 +1,102 @@
+<!-- 1 · DENGE: terazi sallanır, çubuklar ekolayzer gibi inip kalkar. -->
+<article class="kart" tabindex="0">
+  <span class="kart__isik" aria-hidden="true"></span>
+  <span class="kart__suzme" aria-hidden="true"></span>
+  <span class="kart__hayalet" aria-hidden="true">10</span>
+  <div class="kart__bilgi">
+    <span class="kart__sayi"><span [appCountUp]="10">10</span></span>
+    <span class="kart__etiket">{{ t('kanit.olcut') }}</span>
+  </div>
+  <p class="kart__motto">
+    @for (kelime of kelimeler('kanit.motto1'); track $index) {
+      <span [style.--k]="$index">{{ kelime }}</span>
+    }
+  </p>
+  <div class="kart__cizim cizim--denge" aria-hidden="true">
+    <svg viewBox="0 0 120 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M60 10v44M44 56h32" />
+      <g class="denge__kol">
+        <path d="M22 18h76" />
+        <path d="M22 18l-12 22h24zM98 18l-12 22h24z" />
+        <path d="M10 40q12 8 24 0M86 40q12 8 24 0" />
+      </g>
+      <circle cx="60" cy="10" r="3.5" fill="currentColor" />
+    </svg>
+    <span class="denge__cubuklar">
+      @for (i of [0, 1, 2, 3, 4, 5]; track i) {
+        <i [style.--i]="i"></i>
+      }
+    </span>
+  </div>
+</article>
+
+<!-- 2 · FORMAT: iki takım kendi bölgesinde koşar, top aralarında dolaşır. -->
+<article class="kart" tabindex="0">
+  <span class="kart__isik" aria-hidden="true"></span>
+  <span class="kart__suzme" aria-hidden="true"></span>
+  <span class="kart__hayalet" aria-hidden="true">11</span>
+  <div class="kart__bilgi">
+    <span class="kart__sayi"><span [appCountUp]="4">4</span>v4<span class="kart__birim">→11v11</span></span>
+    <span class="kart__etiket">{{ t('kanit.format') }}</span>
+  </div>
+  <p class="kart__motto">
+    @for (kelime of kelimeler('kanit.motto2'); track $index) {
+      <span [style.--k]="$index">{{ kelime }}</span>
+    }
+  </p>
+  <div class="kart__cizim cizim--saha" aria-hidden="true">
+    <svg viewBox="0 0 132 72" fill="none" stroke="currentColor" stroke-width="1.6">
+      <rect x="2" y="2" width="128" height="68" rx="4" />
+      <path d="M66 2v68" />
+      <circle cx="66" cy="36" r="10" />
+      <rect x="2" y="22" width="12" height="28" />
+      <rect x="118" y="22" width="12" height="28" />
+    </svg>
+    <!-- A takımı (dolu) solda, B takımı (içi boş) sağda; her oyuncu kendi küçük alanında koşar. -->
+    <i class="oyuncu" style="--bx:9%;--by:50%;--dx:2px;--dy:4px;--t:2.8s"></i>
+    <i class="oyuncu" style="--bx:24%;--by:28%;--dx:6px;--dy:5px;--t:2.2s"></i>
+    <i class="oyuncu" style="--bx:24%;--by:72%;--dx:7px;--dy:-4px;--t:2.6s"></i>
+    <i class="oyuncu" style="--bx:38%;--by:42%;--dx:8px;--dy:6px;--t:2.4s"></i>
+    <i class="oyuncu" style="--bx:42%;--by:66%;--dx:6px;--dy:-6px;--t:3s"></i>
+    <i class="oyuncu oyuncu--b" style="--bx:91%;--by:50%;--dx:-2px;--dy:-4px;--t:2.9s"></i>
+    <i class="oyuncu oyuncu--b" style="--bx:76%;--by:30%;--dx:-6px;--dy:6px;--t:2.3s"></i>
+    <i class="oyuncu oyuncu--b" style="--bx:76%;--by:70%;--dx:-7px;--dy:-5px;--t:2.7s"></i>
+    <i class="oyuncu oyuncu--b" style="--bx:62%;--by:40%;--dx:-8px;--dy:5px;--t:2.5s"></i>
+    <i class="oyuncu oyuncu--b" style="--bx:58%;--by:64%;--dx:-6px;--dy:-6px;--t:3.1s"></i>
+    <i class="top"></i>
+  </div>
+</article>
+
+<!-- 3 · SÜRE: 05:00'ten gerçek saniyeyle geri sayar; halka boşalır, ibre döner. -->
+<article class="kart" tabindex="0">
+  <span class="kart__isik" aria-hidden="true"></span>
+  <span class="kart__suzme" aria-hidden="true"></span>
+  <span class="kart__hayalet" aria-hidden="true">05</span>
+  <div class="kart__bilgi">
+    <span class="kart__sayi"><span [appCountUp]="5">5</span><span class="kart__birim">{{ t('ui.dk') }}</span></span>
+    <span class="kart__etiket">{{ t('kanit.sure') }}</span>
+  </div>
+  <p class="kart__motto">
+    @for (kelime of kelimeler('kanit.motto3'); track $index) {
+      <span [style.--k]="$index">{{ kelime }}</span>
+    }
+  </p>
+  <div class="kart__cizim cizim--saat" aria-hidden="true">
+    <svg viewBox="0 0 64 72" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+      <path d="M26 4h12M32 4v8M52 18l4-4" />
+      <circle class="saat__iz" cx="32" cy="42" r="26" />
+      <circle
+        class="saat__halka"
+        cx="32"
+        cy="42"
+        r="26"
+        pathLength="100"
+        transform="rotate(-90 32 42)"
+        [style.stroke-dashoffset]="-halkaBosluk()"
+      />
+      <path class="saat__ibre" d="M32 42V22" [style.transform]="'rotate(' + ibreAci() + 'deg)'" />
+      <circle cx="32" cy="42" r="3" fill="currentColor" />
+    </svg>
+    <span class="saat__dijital">{{ sayacMetni() }}</span>
+  </div>
+</article>

@@ -1,0 +1,27 @@
+@if (visible()) {
+  <!--
+    Perde tıklaması "daha sonra" ile aynı: daveti kapatmak cezalandırılmaz, kullanıcı
+    "bir daha gösterme"yi bilinçli seçmeli.
+  -->
+  <div class="scrim" (click)="snooze()" (keydown.escape)="snooze()" tabindex="-1"></div>
+
+  <div class="prompt" appFocusTrap (keydown.escape)="snooze()" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
+    <span class="prompt__eyebrow">Evenside</span>
+    <h2 class="prompt__title" id="onboarding-title">{{ t('davet.baslik') }}</h2>
+    <p class="prompt__lead">
+      {{ t('davet.metin') }}
+    </p>
+
+    <div class="prompt__choices">
+      <button type="button" class="choice choice--primary" (click)="createCard()">
+        <span class="choice__title">{{ t('davet.olustur') }}</span>
+        <span class="choice__desc">{{ t('davet.ipucu') }}</span>
+      </button>
+    </div>
+
+    <div class="prompt__footer">
+      <button type="button" class="ghost" (click)="snooze()">{{ t('davet.sonra') }}</button>
+      <button type="button" class="ghost ghost--quiet" (click)="dismiss()">{{ t('davet.gosterme') }}</button>
+    </div>
+  </div>
+}

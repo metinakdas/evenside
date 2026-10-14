@@ -1,0 +1,160 @@
+/*
+ * Uygulamanın dili: koyu opak yüzey, ince kenar, vurgu yeşili yalnızca SEÇİLİ satırda.
+ * Yeşil = basılabilir eylem kuralı burada da geçerli — panelin kendisi yeşil değil.
+ */
+:host {
+  position: relative;
+  display: inline-block;
+}
+
+.dil__dugme {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid light-dark(rgba(18, 18, 22, 0.14), rgba(255, 255, 255, 0.14));
+  border-radius: 999px;
+  /* Bulanıklık yok: sabit köşe düğmesi kaydırırken her karede arkasını yeniden bulanıklaştırıyordu. */
+  background: light-dark(rgba(255, 255, 255, 0.96), rgba(24, 26, 28, 0.96));
+  color: light-dark(rgba(18, 18, 22, 0.86), rgba(255, 255, 255, 0.86));
+  font-family: var(--font-body, 'Barlow', system-ui, sans-serif);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+
+/* Hover sağ üstteki "Giriş yap" ile AYNI yeşil (kullanıcı: "aynı renk tüm butonlara hover"). */
+.dil__dugme:hover,
+.dil__dugme:focus-visible {
+  border-color: #00f57a;
+  background: #00f57a;
+  color: #05130a;
+}
+
+.dil__dugme--acik {
+  border-color: light-dark(rgba(15, 169, 91, 0.55), rgba(0, 245, 122, 0.55));
+  color: light-dark(#121216, #fff);
+}
+
+.dil__kure svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  opacity: 0.85;
+}
+
+.dil__ok svg {
+  display: block;
+  width: 11px;
+  height: 8px;
+  opacity: 0.7;
+  transition: transform 0.2s ease;
+}
+
+.dil__dugme--acik .dil__ok svg {
+  transform: rotate(180deg);
+}
+
+/* Panel düğmenin ALTINA, sağ kenara hizalı (seçici sağ üst köşede duruyor). */
+.dil__panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 5;
+  min-width: 210px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border: 1px solid light-dark(rgba(18, 18, 22, 0.12), rgba(255, 255, 255, 0.12));
+  border-radius: 14px;
+  background: light-dark(#ffffff, #16181b);
+  box-shadow: 0 22px 50px light-dark(rgba(20, 20, 30, 0.17), rgba(0, 0, 0, 0.55));
+  animation: dil-ac 0.16s ease-out;
+}
+
+/*
+ * Sağdan sola düzende de panel SAĞA hizalı kalır: seçici her dilde ekranın sağ üst köşesinde
+ * (`.genel-ust` fiziksel `right` ile konumlu). Eskiden RTL'de `left: 0` yazılıydı ve panel
+ * düğmenin sol kenarından sağa doğru açılıp EKRAN DIŞINA taşıyordu (kullanıcı ekran görüntüsü).
+ */
+
+@keyframes dil-ac {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.dil__satir {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: 10px;
+  color: light-dark(rgba(18, 18, 22, 0.82), rgba(255, 255, 255, 0.82));
+  font-family: var(--font-body, 'Barlow', system-ui, sans-serif);
+  font-size: 15px;
+  cursor: pointer;
+  outline: none;
+}
+
+.dil__satir:hover,
+.dil__satir:focus-visible {
+  background: light-dark(rgba(18, 18, 22, 0.08), rgba(255, 255, 255, 0.08));
+  color: light-dark(#121216, #fff);
+}
+
+.dil__satir:focus-visible {
+  box-shadow: inset 0 0 0 1px rgba(0, 245, 122, 0.55);
+}
+
+/* Seçili dil: yeşil mürekkep + sağda tik. Dolgu yeşil DEĞİL — bu bir eylem değil, durum. */
+.dil__satir--secili {
+  color: light-dark(#067a3f, #00f57a);
+}
+
+.dil__rozet {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 24px;
+  border-radius: 7px;
+  background: light-dark(rgba(18, 18, 22, 0.08), rgba(255, 255, 255, 0.08));
+  font-family: var(--font-mono, 'Space Mono', monospace);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: inherit;
+}
+
+.dil__satir--secili .dil__rozet {
+  background: rgba(0, 245, 122, 0.16);
+}
+
+.dil__ad {
+  flex: 1;
+}
+
+.dil__tik svg {
+  display: block;
+  width: 15px;
+  height: 15px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dil__panel {
+    animation: none;
+  }
+
+  .dil__dugme,
+  .dil__ok svg {
+    transition: none;
+  }
+}

@@ -1,0 +1,14 @@
+<div
+  class="badge"
+  [class.badge--sm]="size() === 'sm'"
+  [class.badge--md]="size() === 'md'"
+  [class.badge--lg]="size() === 'lg'"
+  [class.badge--xl]="size() === 'xl'"
+  [style.background]="background()"
+>
+  @if (team().logoImage) {
+    <img class="badge__logo" [src]="team().logoImage" alt="" />
+  } @else {
+    <span class="badge__initials">{{ initials() }}</span>
+  }
+</div>

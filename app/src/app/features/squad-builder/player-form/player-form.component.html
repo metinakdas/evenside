@@ -1,0 +1,291 @@
+<!--
+  Oyuncu formu (2. tasarım, 10 Ekim 2026). Solda canlı kart + mevki uygunluğu, sağda numaralı
+  ADIM ÇUBUĞU ve tek adımın içeriği. Adımın ne istediği diyalog başlığının alt satırında yazar
+  (bkz. stepCaption); gövdede yalnızca alanlar durur. Gezinme ayaktaki Geri/İleri ile ya da
+  adıma tıklayarak; "Kadroya ekle" her adımda çalışır (varsayılanlar geçerli bir karttır).
+-->
+<div class="form-layout">
+  <aside class="preview">
+    <app-player-card [player]="previewPlayer()" size="large" [blank]="cardBlank()" />
+    <!-- Telefonda kartın yerine geçen özet: aynı bilgi, tek satır. -->
+    <span class="preview__badge" aria-hidden="true">
+      <span class="preview__badge-rating">{{ previewPlayer().ratings.overall }}</span>
+      <span class="preview__badge-pos">{{ t('poz.' + previewPlayer().ratings.position) }}</span>
+    </span>
+    <div class="fit" [attr.aria-label]="t('form.mevkiUyum')">
+      <span class="fit__title">{{ t('form.mevkiUyum') }}</span>
+      @if (cardBlank()) {
+        <span class="fit__empty">{{ t('form.kartBos') }}</span>
+      }
+      @for (p of cardBlank() ? [] : positionFit(); track p.id) {
+        <span class="fit__row" [class.fit__row--best]="p.best">
+          <span class="fit__pos">{{ t('poz.' + p.id) }}</span>
+          <span class="fit__bar"><span class="fit__fill" [style.width.%]="p.value"></span></span>
+          <span class="fit__val">{{ p.value }}</span>
+        </span>
+      }
+    </div>
+  </aside>
+
+  <div class="form">
+    <!-- Numaralı adım çubuğu: nerede olduğunu (yeşil), nereleri gördüğünü (tik) söyler. -->
+    <nav class="stepper" [attr.aria-label]="t('form.adimlar')">
+      <span class="stepper__track" aria-hidden="true">
+        <span class="stepper__fill" [style.width.%]="progress()"></span>
+      </span>
+      @for (tab of steps; track tab.id; let i = $index) {
+        <button
+          type="button"
+          class="stepper__item"
+          [class.stepper__item--active]="step() === tab.id"
+          [class.stepper__item--done]="visited().has(tab.id) && step() !== tab.id"
+          [class.stepper__item--locked]="!canOpenStep(i)"
+          [disabled]="!canOpenStep(i)"
+          [attr.aria-current]="step() === tab.id ? 'step' : null"
+          (click)="setStep(tab.id)"
+        >
+          <span class="stepper__dot" aria-hidden="true">
+            @if (visited().has(tab.id) && step() !== tab.id) {
+              ✓
+            } @else {
+              {{ i + 1 }}
+            }
+          </span>
+          <span class="stepper__label">{{ t(tab.label) }}</span>
+        </button>
+      }
+    </nav>
+
+    <app-error-banner [message]="imageError()" />
+    <app-error-banner [message]="saveError()" />
+
+    <!-- Yerleştirme paneli açıkken form gövdesini DEVRALIR: modalın sabit yüksekliğinde iç scroll yok. -->
+    @if (adjustSource(); as photo) {
+      <div class="form__body form__body--adjust">
+        <app-photo-adjuster
+          [source]="photo"
+          (applied)="onPhotoAdjusted($event)"
+          (cancelled)="closeAdjuster()"
+        />
+      </div>
+    } @else {
+    <div class="form__body">
+      @switch (step()) {
+        @case ('kimlik') {
+          <div class="kimlik">
+            <!-- Fotoğraf solda büyük bir avatar: kartın yüzü buradan geliyor. -->
+            <div class="avatar">
+              <label class="avatar__drop" [class.avatar__drop--busy]="photoProcessing()">
+                <input type="file" accept="image/*" class="upload-input" (change)="onPhotoSelected($event)" />
+                @if (form().photoImage; as photo) {
+                  <img class="avatar__img" [src]="photo" alt="" />
+                } @else {
+                  <svg class="avatar__icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 8h3l2-3h6l2 3h3v11H4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                    <circle cx="12" cy="13" r="3.5" fill="none" stroke="currentColor" stroke-width="1.6" />
+                  </svg>
+                  <span class="avatar__text">{{ t('form.fotoEkle') }}</span>
+                }
+                @if (photoProcessing()) {
+                  <span class="avatar__busy">{{ t('form.ayriliyor') }}</span>
+                }
+              </label>
+              @if (form().photoImage) {
+                <span class="avatar__links">
+                  <button type="button" class="link-btn" (click)="openAdjuster()">{{ t('form.fotoYerlestir') }}</button>
+                  <button type="button" class="link-btn" (click)="clearPhoto()">{{ t('form.fotoKaldir') }}</button>
+                </span>
+              }
+            </div>
+
+            <div class="kimlik__main">
+              <div class="row row--name">
+                <label class="field">
+                  <span class="lbl">{{ t('form.adSoyad') }} <span class="lbl__req" aria-hidden="true">*</span></span>
+                  <input
+                    class="input"
+                    [class.input--invalid]="nameError()"
+                    maxlength="32"
+                    [value]="form().name"
+                    (input)="onTextInput('name', $event)"
+                    [attr.placeholder]="t('form.adOrnek')"
+                    [attr.aria-invalid]="nameError() ? 'true' : null"
+                    [attr.aria-describedby]="nameError() ? 'player-name-error' : null"
+                    aria-required="true"
+                  />
+                  @if (nameError()) {
+                    <span class="field__error" id="player-name-error" role="alert">{{ nameError() }}</span>
+                  }
+                </label>
+                <label class="field">
+                  <span class="lbl">{{ t('form.formaNo') }}</span>
+                  <input
+                    class="input input--center"
+                    maxlength="2"
+                    inputmode="numeric"
+                    [value]="form().shirtNumber"
+                    (input)="onTextInput('shirtNumber', $event)"
+                    placeholder="9"
+                  />
+                </label>
+              </div>
+
+              <p class="photo-tip">{{ t('form.fotoIpucu') }}</p>
+              @if (cutoutNotice(); as notice) {
+                <span class="photo-notice">{{ notice }}</span>
+              }
+            </div>
+          </div>
+
+          <div class="group">
+            <span class="group__title">{{ t('form.fiziksel') }}</span>
+            <div class="row row--three">
+              <label class="field">
+                <span class="lbl">{{ t('form.boyKisa') }}</span>
+                <span class="unit">
+                  <input
+                    class="input"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="3"
+                    [class.input--invalid]="showMetricErrors() && metricErrors().heightCm"
+                    [attr.aria-invalid]="showMetricErrors() && metricErrors().heightCm ? 'true' : null"
+                    [value]="metricText().heightCm"
+                    (input)="onMetricInput('heightCm', $event)"
+                    (blur)="onMetricBlur()"
+                  />
+                  <span class="unit__suffix" aria-hidden="true">cm</span>
+                </span>
+                @if (showMetricErrors() && metricErrors().heightCm; as hata) {
+                  <span class="field__error" role="alert">{{ hata }}</span>
+                }
+              </label>
+              <label class="field">
+                <span class="lbl">{{ t('form.kiloKisa') }}</span>
+                <span class="unit">
+                  <input
+                    class="input"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="3"
+                    [class.input--invalid]="showMetricErrors() && metricErrors().weightKg"
+                    [attr.aria-invalid]="showMetricErrors() && metricErrors().weightKg ? 'true' : null"
+                    [value]="metricText().weightKg"
+                    (input)="onMetricInput('weightKg', $event)"
+                    (blur)="onMetricBlur()"
+                  />
+                  <span class="unit__suffix" aria-hidden="true">kg</span>
+                </span>
+                @if (showMetricErrors() && metricErrors().weightKg; as hata) {
+                  <span class="field__error" role="alert">{{ hata }}</span>
+                }
+              </label>
+              <label class="field">
+                <span class="lbl">{{ t('form.yas') }} <span class="lbl__opt">{{ t('form.istegeBagli') }}</span></span>
+                <span class="unit">
+                  <input
+                    class="input"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="3"
+                    placeholder="—"
+                    [class.input--invalid]="showMetricErrors() && metricErrors().age"
+                    [attr.aria-invalid]="showMetricErrors() && metricErrors().age ? 'true' : null"
+                    [value]="metricText().age"
+                    (input)="onMetricInput('age', $event)"
+                    (blur)="onMetricBlur()"
+                  />
+                </span>
+                @if (showMetricErrors() && metricErrors().age; as hata) {
+                  <span class="field__error" role="alert">{{ hata }}</span>
+                }
+              </label>
+            </div>
+
+            <div class="row row--foot">
+              <div class="field">
+                <span class="lbl" id="foot-label">{{ t('form.ayak') }}</span>
+                <div class="seg" role="radiogroup" aria-labelledby="foot-label">
+                  @for (ft of feet; track ft.id) {
+                    <button
+                      type="button"
+                      class="seg__btn"
+                      role="radio"
+                      [class.seg__btn--on]="form().preferredFoot === ft.id"
+                      [attr.aria-checked]="form().preferredFoot === ft.id"
+                      (click)="setFoot(ft.id)"
+                    >{{ t(ft.label) }}</button>
+                  }
+                </div>
+              </div>
+              <label class="toggle">
+                <span class="lbl">{{ t('form.sigara') }}</span>
+                <span class="toggle__row">
+                  <input
+                    type="checkbox"
+                    class="switch"
+                    [checked]="form().smoker"
+                    (change)="onSmokerToggle($event)"
+                    [attr.aria-label]="t('form.sigara')"
+                  />
+                  <span class="toggle__state">{{ form().smoker ? t('form.evet') : t('form.hayir') }}</span>
+                </span>
+              </label>
+            </div>
+          </div>
+        }
+
+        @default {
+          @if (step() === 'kale') {
+            <label class="no-keeper" [class.no-keeper--on]="form().noKeeper">
+              <input type="checkbox" [checked]="form().noKeeper" (change)="onNoKeeperToggle($event)" />
+              <span class="no-keeper__text">
+                {{ t('form.kaleyeGecemez') }}
+                <span class="no-keeper__hint">{{ t('form.kaleyeGecemezIpucu') }}</span>
+              </span>
+            </label>
+          }
+          @if (step() !== 'kale' || !form().noKeeper) {
+          <div class="skills">
+            @for (key of stepSkills(); track key) {
+              <div class="skill">
+                <app-stat-stepper [label]="t('beceri.' + key)" [value]="skillValue(key)" (valueChange)="setSkill(key, $event)" />
+                <span class="skill__anchor">
+                  <span class="skill__band" [attr.data-band]="bandLevel(key)">{{ band(key) }}</span>
+                  {{ anchor(key) }}
+                </span>
+              </div>
+            }
+          </div>
+          }
+          @if (step() === 'hucum') {
+            <label class="field field--inline">
+              <span class="lbl">{{ t('form.golOrtalamasi') }}</span>
+              <input
+                class="input input--short"
+                type="text"
+                inputmode="decimal"
+                maxlength="4"
+                placeholder="0,5"
+                [class.input--invalid]="showMetricErrors() && metricErrors().goalsPerMatch"
+                [value]="metricText().goalsPerMatch"
+                (input)="onMetricInput('goalsPerMatch', $event)"
+                (blur)="onMetricBlur()"
+              />
+            </label>
+            @if (showMetricErrors() && metricErrors().goalsPerMatch; as hata) {
+              <span class="field__error" role="alert">{{ hata }}</span>
+            }
+          }
+          <p class="faces">
+            <span class="faces__label">{{ t('form.etkiledigi') }}</span>
+            @for (fc of stepFaces(); track fc.label) {
+              <span class="faces__chip">{{ t(fc.label) }} <strong>{{ fc.value }}</strong></span>
+            }
+          </p>
+        }
+      }
+    </div>
+    }
+  </div>
+</div>

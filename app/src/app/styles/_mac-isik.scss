@@ -1,0 +1,100 @@
+/*
+ * "MAC IŞIĞI" — düğme ve kart yüzeyleri için ortak ışık dili (11 Ekim 2026, kullanıcı:
+ * "Mac bilgisayarlardaki light efekti, tüm butonlara ekleyebilirsin").
+ *
+ *  - Kenarda tur atan ışık: `::before`, dönen konik gradyan yalnızca 1.5px'lik çerçeveyi
+ *    boyar (maske: content-box hariç). `--aci` açısı `styles.scss`'teki `@property` ile
+ *    canlandırılır (kayıtlı özellik olmadan açı geçiş yapmaz, yalnızca sıçrar).
+ *  - Işık süzmesi: `::after`, yüzeyin üstünden çapraz beyaz bir parıltı geçer. Taşma
+ *    gerektirmesin diye kayan şey öğe değil, `background-position` — `overflow: hidden`
+ *    düğmelerin 44px dokunma hedefi hilelerini (`::after` ile büyütme) bozardı.
+ *
+ * Bu dosya CSS ÜRETMEZ, yalnızca mixin taşır: bileşen stillerine `@use` edilince ekran
+ * başına kopya kural basmaz. Animasyonlar (`mac-kenar`, `mac-suz`) global `styles.scss`'te:
+ * bileşende tanımlansalardı Angular adlarına önek ekler, her bileşen ayrı kopya taşırdı.
+ *
+ * Kullanım koşulu: öğenin kendi `::before`/`::after`'ı OLMAMALI.
+ *
+ * $suz: parıltının rengi (beyaz yüzeyde beyaz görünmez — orada yeşil verin).
+ * $dongu: true → parıltı hover beklemeden birkaç saniyede bir kendiliğinden geçer (kartlar).
+ *
+ * $hep: true  → ışık durgunken de yavaşça tur atar (birincil eylem, öne çıkan kart).
+ *       false → ışık yalnızca hover/odakta yanar (ikincil eylemler — her şey yanıp sönmesin).
+ */
+@mixin mac-isik($renk: #00f57a, $parlak: rgba(255, 255, 255, 0.9), $hep: true, $kalinlik: 1.5px, $suz: rgba(255, 255, 255, 0.55), $dongu: false) {
+  position: relative;
+  isolation: isolate;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    padding: $kalinlik;
+    border-radius: inherit;
+    background: conic-gradient(
+      from var(--aci, 0deg),
+      transparent 0% 56%,
+      rgba(255, 255, 255, 0) 60%,
+      $parlak 72%,
+      $renk 80%,
+      transparent 92%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+    @if $hep {
+      opacity: 1;
+    } @else {
+      opacity: 0;
+    }
+
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    background: linear-gradient(105deg, transparent 38%, $suz 50%, transparent 62%)
+      no-repeat;
+    background-size: 260% 100%;
+    background-position: 170% 0;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    &::before {
+      animation: mac-kenar 4.5s linear infinite;
+    }
+
+    @if $dongu {
+      &::after {
+        animation: mac-suz-dongu 7s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+      }
+    }
+
+    &:hover:not(:disabled)::before,
+    &:focus-visible::before {
+      opacity: 1;
+      animation-duration: 1.6s;
+    }
+
+    &:hover:not(:disabled)::after,
+    &:focus-visible::after {
+      animation: mac-suz 0.85s cubic-bezier(0.45, 0, 0.2, 1) both;
+    }
+  }
+
+  &:disabled::before,
+  &:disabled::after {
+    display: none;
+  }
+}

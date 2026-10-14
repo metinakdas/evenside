@@ -1,0 +1,54 @@
+<div class="saat" role="navigation" [attr.aria-label]="t('saat.etiket')">
+  <span class="saat__uc saat__uc--bas" aria-hidden="true">0'</span>
+
+  <!-- Raya basılıp sürüklenince sayfa kayar (çentikler hariç: onlar bölüme gider). -->
+  <div class="saat__ray" (pointerdown)="tut($event)">
+    <span class="saat__iz" aria-hidden="true"></span>
+    <span class="saat__dolu" aria-hidden="true"></span>
+    <span class="saat__devre" aria-hidden="true"></span>
+
+    @for (c of cetikler(); track c.i) {
+      <button
+        type="button"
+        class="saat__centik"
+        [style.--k]="c.konum"
+        [attr.data-konum]="c.konum"
+        [attr.aria-label]="c.etiket"
+        (click)="git(c.i)"
+      >
+        <span class="saat__etiket" aria-hidden="true">{{ c.etiket }}</span>
+      </button>
+    }
+
+    <!-- Top: kaydırdıkça iner ve döner; yanındaki çip dakikayı söyler. Aynı zamanda TUTAMAÇ:
+         sürüklenir, klavyede ok/Home/End ile sayfayı kaydırır. -->
+    <span
+      class="saat__top"
+      role="slider"
+      tabindex="0"
+      aria-orientation="vertical"
+      aria-valuemin="0"
+      aria-valuemax="90"
+      aria-valuenow="0"
+      [attr.aria-label]="t('saat.etiket')"
+      (keydown)="tus($event)"
+    >
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10.6" fill="#fff" />
+        <path d="M12 8l3.8 2.76-1.45 4.48h-4.7L8.2 10.76z" fill="#111" />
+        <path
+          d="M12 8V1.4M15.8 10.76l6.28-2.04M14.35 15.24l3.88 5.34M9.65 15.24l-3.88 5.34M8.2 10.76L1.92 8.72"
+          stroke="#111"
+          stroke-width="1.1"
+        />
+        <circle cx="12" cy="12" r="10.6" fill="none" stroke="#111" stroke-width="1.2" />
+      </svg>
+      <span class="saat__dakika">0'</span>
+    </span>
+  </div>
+
+  <span class="saat__uc saat__uc--son" aria-hidden="true">90'</span>
+</div>
+
+<!-- Telefonda: tepede ince ilerleme çizgisi. -->
+<span class="saat-ince" aria-hidden="true"></span>

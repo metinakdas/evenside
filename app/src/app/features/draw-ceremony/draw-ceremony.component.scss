@@ -1,0 +1,899 @@
+@use 'ceremony-keyframes';
+@use 'ceremony-layout';
+
+// Sahne — tören anının kendisi (ülke/mevki/kulüp fazları, prizma, ışın, konfeti, kart).
+// Üst bar + yan panel stilleri `_ceremony-layout.scss`'te, keyframe'ler `_ceremony-keyframes.scss`'te.
+
+/*
+ * Sahne zemini: stadyum fotoğrafı. Önceden düz #08080a idi ve tören ekranı — sahanın ince
+ * çizgileri ve küçük kartlar dışında — kapkaranlık, ölü bir dikdörtgendi. Fotoğraf ham hâliyle
+ * konsaydı yeşil saha grafiği kendi yeşiliyle çarpışırdı; bu yüzden karartılıp doygunluğu
+ * düşürülüyor, hafifçe bulanıklaştırılıyor (odak kartlarda kalsın) ve kenarlarda vinyet ile
+ * söndürülüyor.
+ */
+.scene {
+  position: relative;
+  overflow: hidden;
+  background: #08080a;
+  isolation: isolate;
+}
+
+/*
+ * Fotoğraf katmanları `z-index: -1` ile İÇERİĞİN ALTINA gider; `.scene`'deki
+ * `isolation: isolate` sayesinde sayfanın daha da altına kaçmaz.
+ *
+ * DİKKAT: burada bir kez `.scene > * { position: relative; z-index: 1 }` yazılmıştı ve tüm
+ * tören ekranını bozdu. Angular'ın emüle kapsüllemesinde o kural
+ * `.scene[_ngcontent] > *[_ngcontent]` (1 sınıf + 2 öznitelik) hâline geliyor ve
+ * `.scene__pitch[_ngcontent]` (1 sınıf + 1 öznitelik) kuralından DAHA SPESİFİK oluyor —
+ * saha `absolute` olmaktan çıkıp akışa giriyor, ekranı taşıracak kadar büyüyor, başlangıç
+ * ekranı da sahanın altına düşüyordu. Çocuklara toplu kural yazmayın.
+ */
+.scene::before,
+.scene::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.scene::before {
+  // Tribün ve ışıklar üstte, çim altta kalsın diye alt kenara yaslı.
+  background: url('/kura-stadium.jpg') center 78% / cover no-repeat;
+  filter: saturate(0.68) brightness(0.5) contrast(1.04) blur(1.2px);
+  transform: scale(1.06);
+}
+
+.scene::after {
+  background:
+    // Büyük kartın ve eylemin arkası: fotoğrafın tribün detayı metinle yarışmasın.
+    radial-gradient(42% 36% at 50% 48%, rgba(8, 8, 10, 0.3), transparent 74%),
+    radial-gradient(68% 58% at 50% 46%, transparent 40%, rgba(8, 8, 10, 0.55) 78%, rgba(8, 8, 10, 0.92) 100%),
+    linear-gradient(180deg, rgba(8, 8, 10, 0.72), transparent 26%, transparent 62%, rgba(8, 8, 10, 0.78)),
+    linear-gradient(150deg, rgba(123, 47, 247, 0.08), transparent 62%);
+}
+
+.scene--shake {
+  animation: camera-shake 0.6s ease;
+}
+
+.scene__glow {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  transition: background 0.35s ease;
+  pointer-events: none;
+}
+
+.beams {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  left: 50%;
+  width: 900px;
+  height: 900px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: repeating-conic-gradient(from 0deg, rgba(185, 140, 255, 0.22) 0deg 6deg, transparent 6deg 16deg);
+  animation: beam-spin 14s linear infinite;
+  pointer-events: none;
+}
+
+.prisms {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.prisms__side {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  padding: 0 var(--space-4);
+}
+
+.prism {
+  width: 22px;
+  height: 260px;
+  background: linear-gradient(180deg, var(--color-lilac), var(--color-purple));
+  box-shadow: 0 0 12px rgba(0, 245, 122, 0.4);
+  transform: skewX(-6deg);
+  opacity: 0;
+  animation: prism-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.position-reveal,
+.team-stamp {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: var(--space-4);
+  pointer-events: none;
+}
+
+// Mevkiye özel simge — her mevki kendi şeklini ve kendi giriş animasyonunu taşır
+// (bkz. kullanıcı isteği: kalecide duvar, defansta kalkan, forvette gol).
+.position-icon {
+  width: 132px;
+  height: 132px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 0 26px rgba(123, 47, 247, 0.65));
+}
+
+.position-icon__svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+// KAL — duvara diziliyormuş gibi aşağıdan yükselen tuğlalar.
+.wall-brick {
+  fill: var(--color-lilac);
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: brick-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.wall-brick--1 {
+  animation-delay: 0.05s;
+}
+.wall-brick--2 {
+  animation-delay: 0.12s;
+}
+.wall-brick--3 {
+  animation-delay: 0.2s;
+}
+.wall-brick--4 {
+  animation-delay: 0.27s;
+}
+.wall-brick--5 {
+  animation-delay: 0.34s;
+}
+
+// DEF — hızla büyüyüp hafif geri sekerek "çarpan" bir kalkan, arkasında genişleyen bir halka.
+.shield-body {
+  fill: var(--color-purple);
+  stroke: #fff;
+  stroke-opacity: 0.35;
+  stroke-width: 1.5;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: shield-slam 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.shield-ring {
+  fill: none;
+  stroke: var(--color-lilac);
+  stroke-width: 2;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ring-pulse 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
+}
+
+// OS — oyunu okuyup yön veren, dönerek yerleşen bir pusula.
+.compass-ring {
+  fill: none;
+  stroke: var(--color-lilac);
+  stroke-width: 2;
+  opacity: 0;
+  animation: fade-in 0.35s ease forwards;
+}
+
+.compass-needle {
+  fill: var(--color-purple);
+  stroke: #fff;
+  stroke-opacity: 0.35;
+  stroke-width: 1.5;
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: compass-spin-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.08s forwards;
+}
+
+.compass-dot {
+  fill: #fff;
+  opacity: 0;
+  animation: fade-in 0.25s ease 0.5s forwards;
+}
+
+// FOR — köşeden gelip ağa giren top, çarpma anında ağın titremesi.
+.goal-net {
+  fill: none;
+  stroke: var(--color-lilac);
+  stroke-width: 2;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation:
+    fade-in 0.3s ease forwards,
+    net-ripple 0.35s ease 0.55s;
+}
+
+.goal-ball {
+  fill: #fff;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ball-fly-in 0.55s cubic-bezier(0.3, 0.7, 0.4, 1) forwards;
+}
+
+.position-text {
+  color: #fff;
+  text-shadow: 0 0 80px rgba(123, 47, 247, 0.8);
+  opacity: 0;
+  animation: position-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
+}
+
+.team-stamp__name {
+  animation: stamp-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  text-transform: uppercase;
+  text-shadow: 0 8px 40px rgba(0, 0, 0, 0.75);
+}
+
+/* Arma: yaylı bir giriş + takım renginde halo. */
+.team-stamp__badge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: badge-pop 0.62s cubic-bezier(0.2, 1.5, 0.35, 1) both;
+  filter: drop-shadow(0 0 46px color-mix(in srgb, var(--team-color, #7b2ff7) 70%, transparent));
+}
+
+/* Armadan dışa açılan iki halka — "damga vuruldu" hissi. */
+.team-stamp__ring {
+  position: absolute;
+  inset: -6%;
+  border-radius: 50%;
+  border: 2px solid var(--team-color, #7b2ff7);
+  opacity: 0;
+  animation: stamp-ring 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.12s infinite;
+}
+
+.team-stamp__ring--late {
+  animation-delay: 0.55s;
+}
+
+/* Konfeti patlaması: merkezden dışa fırlayan 36 parça. */
+.burst {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.burst__piece {
+  position: absolute;
+  border-radius: 1px;
+  background: var(--team-color, #7b2ff7);
+  transform: rotate(var(--a)) translateY(0) scale(0.4);
+  opacity: 0;
+  animation: burst-fly 1.25s cubic-bezier(0.15, 0.7, 0.3, 1) both;
+}
+
+.burst__piece--white {
+  background: #ffffff;
+}
+
+.burst__piece--accent {
+  background: var(--color-accent, #00f57a);
+}
+
+@keyframes badge-pop {
+  0% {
+    transform: scale(0.35) rotate(-14deg);
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes stamp-ring {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.75;
+  }
+  80% {
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+}
+
+@keyframes burst-fly {
+  0% {
+    transform: rotate(var(--a)) translateY(0) rotate(0deg) scale(0.4);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(var(--a)) translateY(calc(var(--d) * -1)) rotate(var(--spin)) scale(1);
+    opacity: 0;
+  }
+}
+
+.confetti {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.confetti__piece {
+  position: absolute;
+  top: -6vh;
+  border-radius: 1px;
+  animation-name: confetti-fall;
+  animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  animation-fill-mode: forwards;
+}
+
+.scene__card {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: card-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease;
+}
+
+.scene__card--landing {
+  opacity: 0;
+  transform: scale(0.25) translateY(20%);
+}
+
+.cta {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Bekleme eyleminin çevresi: sıra bilgisi + buton + merak cümlesi, dikey bir blok. */
+.cta--next {
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.cta__step {
+  color: var(--color-accent, #00f57a);
+  letter-spacing: 0.24em;
+}
+
+.cta__hint {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  opacity: 0.85;
+}
+
+/* Butonun arkasında yavaşça açılan halka — sahnede tıklanacak yer burası. */
+.cta--next app-button {
+  position: relative;
+}
+
+.cta--next app-button::before,
+.cta--next app-button::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-accent, #00f57a);
+  opacity: 0;
+  pointer-events: none;
+  animation: cta-pulse 2.4s ease-out infinite;
+}
+
+.cta--next app-button::after {
+  animation-delay: 1.2s;
+}
+
+@keyframes cta-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  70% {
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+
+/*
+ * Bitiş eylemi sahnenin ORTASINDA değil altında: tören bittiğinde ekranın ortasında görülmesi
+ * gereken şey iki kadronun dizildiği saha, butonun kendisi değil.
+ */
+.cta--bottom {
+  align-items: flex-end;
+  padding-bottom: var(--space-6);
+  pointer-events: none;
+}
+
+.cta--bottom app-button {
+  pointer-events: auto;
+}
+
+/*
+ * Başlangıç ekranı — kura başlamadan sahneyi kapatır.
+ *
+ * Zemin üç katman: (1) fotoğraf, doygunluğu ve parlaklığı düşürülmüş, kenarlardan sahneye
+ * karışsın diye radyal maskeyle soluyor; (2) metnin arkasını çökerten koyu perde; (3) tören
+ * paletiyle (mor) evlendiren çok hafif bir tint. Fotoğraf ham hâliyle konsaydı mavi bir
+ * dikdörtgen olarak kalır, metin de üstünde okunmazdı.
+ */
+.start {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  text-align: center;
+  overflow: hidden;
+  background: #08080a;
+  isolation: isolate;
+}
+
+.start::before,
+.start::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.start::before {
+  // Konum ortada değil: ilgi merkezi (top ve ışıklar) sağ altta, metin sol/üst yarıda kalsın.
+  background: url('/kura-bg.webp') 58% 42% / cover no-repeat;
+  filter: saturate(1) brightness(0.86) contrast(1.02);
+  opacity: 0.68;
+  // Kenarlarda sert bir foto kenarı kalmasın: ortadan dışa doğru sahneye karışır.
+  mask-image: radial-gradient(78% 70% at 50% 46%, #000 35%, rgba(0, 0, 0, 0.35) 68%, transparent 100%);
+  transform: scale(1.04);
+  animation: start-drift 26s ease-in-out infinite alternate;
+}
+
+.start::after {
+  background:
+    radial-gradient(56% 44% at 50% 47%, rgba(8, 8, 10, 0.78), rgba(8, 8, 10, 0.42) 55%, transparent 78%),
+    linear-gradient(180deg, rgba(8, 8, 10, 0.72), transparent 28%, transparent 72%, rgba(8, 8, 10, 0.82)),
+    linear-gradient(150deg, rgba(123, 47, 247, 0.1), transparent 58%);
+}
+
+/* Fotoğraf ölü durmasın diye çok yavaş bir kayma; hareketi azaltılmış modda kapanır. */
+@keyframes start-drift {
+  from {
+    transform: scale(1.04) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.1) translate3d(-1.5%, -1%, 0);
+  }
+}
+
+.start > * {
+  position: relative;
+  z-index: 1;
+}
+
+/*
+ * Üst satır başlıkla AYNI ailede (display, italik, uppercase) — mono etiket olarak kaldığında
+ * başlığın yanında yabancı duruyordu. Boyutu başlığın yaklaşık üçte biri: aynı ses, daha alçak
+ * perdeden.
+ */
+.start__eyebrow {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  font-size: clamp(15px, 1.5vw, 24px);
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent, #00f57a);
+}
+
+/*
+ * Başlık sahnenin tek konusu: ekranla birlikte büyür. `.text-display-2` 28px'te sabitti ve
+ * 2000px'lik bir sahnenin ortasında küçük bir etiket gibi duruyordu.
+ */
+.start__title {
+  margin: 0;
+  font-size: clamp(34px, 4.2vw, 68px);
+  line-height: 0.96;
+}
+
+.start__hint {
+  margin: 0;
+  max-width: 44ch;
+  font-size: clamp(15px, 1.15vw, 19px);
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.start__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+/*
+ * İkincil eylem de bir BUTON: aynı yükseklik ve pill biçimi, ama boş bir çerçeve. Üzerine
+ * gelindiğinde dolar; aynı anda birincil butonun vurgusu geri çekilir (:has) — iki eylem aynı
+ * anda bağırmaz, imleç hangisindeyse vurgu onda olur.
+ */
+.start__secondary {
+  // Tipografi `app-button` ile BİREBİR aynı (bkz. app-button.component.scss): iki eylem yan
+  // yana duruyor, birinin mono diğerinin gövde yazısı olması ikisini farklı bir ailedenmiş
+  // gibi gösteriyordu.
+  padding: var(--space-3) var(--space-6);
+  border: 1px solid rgba(233, 233, 238, 0.22);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: inherit;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast, 0.15s) ease,
+    border-color var(--duration-fast, 0.15s) ease,
+    color var(--duration-fast, 0.15s) ease,
+    transform var(--duration-fast, 0.15s) ease;
+}
+
+.start__secondary:hover,
+.start__secondary:focus-visible {
+  background: var(--color-accent, #00f57a);
+  border-color: var(--color-accent, #00f57a);
+  color: #05130a;
+  transform: translateY(-1px);
+}
+
+.start__actions app-button {
+  transition:
+    opacity var(--duration-fast, 0.15s) ease,
+    filter var(--duration-fast, 0.15s) ease;
+}
+
+.start__actions:has(.start__secondary:hover) app-button,
+.start__actions:has(.start__secondary:focus-visible) app-button {
+  opacity: 0.45;
+  filter: saturate(0.35);
+}
+
+.start__note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+}
+
+/*
+ * BİTİŞ EKRANI. Kura bittiğinde sahnenin ortasında tek bir düğme duruyordu; asıl haber ise
+ * eşleşmenin kendisi. İki takım karşı karşıya, ortada korlu bir VS mührü (maç öncesi gerilim),
+ * altında birincil eylem.
+ */
+.finale {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  // Eylem, eşleşme bloğuna yapışmasın: ekran yüksekliğine göre nefes payı.
+  gap: clamp(var(--space-5), 4vh, 48px);
+  padding: var(--space-6);
+  text-align: center;
+}
+
+.finale__eyebrow {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  font-size: clamp(13px, 1.3vw, 20px);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.finale__match {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(var(--space-4), 4vw, 72px);
+}
+
+.finale__team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  max-width: 34vw;
+  animation: finale-team-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* İki takım dışarıdan içeri girer: karşılaşma hissi. */
+.finale__team--a {
+  animation-name: finale-team-in-left;
+}
+
+.finale__team--b {
+  animation-name: finale-team-in-right;
+}
+
+.finale__team-name {
+  font-size: clamp(20px, 2.4vw, 40px);
+  line-height: 1.05;
+  text-shadow: 0 6px 26px rgba(0, 0, 0, 0.75);
+}
+
+/* Kor: VS mührünün arkasında yanan turuncu-kırmızı hare, yavaşça nefes alır. */
+.finale__vs {
+  position: relative;
+  flex: none;
+  width: clamp(76px, 8vw, 118px);
+  height: clamp(76px, 8vw, 118px);
+  display: grid;
+  place-items: center;
+  animation: finale-vs-in 0.5s 0.25s cubic-bezier(0.2, 1.5, 0.35, 1) both;
+}
+
+.finale__vs-ember {
+  position: absolute;
+  inset: -60%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(255, 138, 40, 0.55), rgba(255, 60, 30, 0.25) 45%, transparent 70%);
+  filter: blur(6px);
+  animation: finale-ember 2.6s ease-in-out infinite;
+}
+
+.finale__vs-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 196, 120, 0.9);
+  background: radial-gradient(circle at 38% 30%, rgba(70, 30, 10, 0.95), rgba(12, 8, 10, 0.98) 72%);
+  box-shadow:
+    0 0 26px rgba(255, 120, 40, 0.55),
+    inset 0 0 18px rgba(255, 120, 40, 0.35);
+}
+
+.finale__vs-text {
+  position: relative;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  font-size: clamp(26px, 3vw, 44px);
+  color: #ffd9b0;
+  text-shadow: 0 0 18px rgba(255, 140, 60, 0.8);
+}
+
+/* Birincil eylem: kura sonrası tek iş. */
+.finale__cta {
+  min-height: 52px;
+  padding: 0 40px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 14px 34px rgba(0, 245, 122, 0.28);
+  transition:
+    transform var(--duration-fast) var(--easing-standard),
+    box-shadow var(--duration-fast) var(--easing-standard);
+}
+
+.finale__cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 42px rgba(0, 245, 122, 0.4);
+}
+
+@keyframes finale-team-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes finale-team-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes finale-vs-in {
+  from {
+    opacity: 0;
+    transform: scale(0.4) rotate(-12deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+@keyframes finale-ember {
+  0%,
+  100% {
+    opacity: 0.65;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+}
+
+.skip-link {
+  position: absolute;
+  bottom: var(--space-4);
+  right: var(--space-4);
+  z-index: 9;
+  background: transparent;
+  color: var(--color-text-secondary);
+  opacity: 0.6;
+  border: none;
+  letter-spacing: 0.14em;
+}
+
+.skip-link:hover {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .finale__team,
+  .finale__vs,
+  .finale__vs-ember,
+  .start::before,
+  .team-stamp__badge,
+  .team-stamp__ring,
+  .burst__piece,
+  .cta--next app-button::before,
+  .cta--next app-button::after,
+  .scene--shake,
+  .beams,
+  .prism,
+  .wall-brick,
+  .shield-body,
+  .shield-ring,
+  .compass-ring,
+  .compass-needle,
+  .compass-dot,
+  .goal-net,
+  .goal-ball,
+  .position-text,
+  .team-stamp__name,
+  .scene__card {
+    animation: none;
+  }
+
+  // Yukarıdaki animasyonların bir kısmı 0 opaklıktan başlıyor — animasyon
+  // iptal olunca elle tam görünür yapılmaları gerekiyor.
+  .wall-brick,
+  .shield-ring,
+  .compass-ring,
+  .compass-needle,
+  .compass-dot,
+  .goal-net,
+  .position-text {
+    opacity: 1;
+  }
+
+  .goal-ball {
+    transform: translate(36px, -38px) scale(0.82);
+  }
+}
+
+/*
+ * Logo menüdekiyle aynı tipografide: Saira Condensed italik + 0.02em aralıkla "SAHA 42"
+ * gibi ayrık okunuyordu, menüde ise "SAHA42" (test raporu 11). Marka tek biçimde yazılır.
+ */
+.topbar__brand,
+.brand {
+  // Flex + gap logoyu iki parçaya bölüyordu; logo tek bir kelime olarak akar.
+  display: block;
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  letter-spacing: 0;
+}
+
+/*
+ * MOBİL (≤640px) — kura töreni
+ * Hız düğmeleri ve tören eylemleri telefonda da parmakla kullanılmalı; üst çubuk sarar.
+ */
+@media (max-width: 640px) {
+  .topbar {
+    flex-wrap: wrap;
+    gap: 8px;
+    height: auto;
+    padding: 10px 12px;
+  }
+
+  .playback__btn,
+  .chip-btn {
+    min-height: 44px;
+    padding: 0 12px;
+  }
+
+  .speed {
+    flex-wrap: wrap;
+  }
+
+  .cta {
+    min-height: 52px;
+    width: min(100%, 320px);
+  }
+}
+
+/* Kura ekranı hedefleri — tarama turu (10 Ekim 2026): masaüstünde 44px altı hedefler. */
+.playback__btn {
+  position: relative;
+}
+
+.playback__btn::after {
+  content: '';
+  position: absolute;
+  inset: -8px -0px;
+}
+
+.start__secondary {
+  position: relative;
+}
+
+.start__secondary::after {
+  content: '';
+  position: absolute;
+  inset: -1px -0px;
+}

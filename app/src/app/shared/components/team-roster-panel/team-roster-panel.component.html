@@ -1,0 +1,22 @@
+<aside class="panel-side">
+  <div class="panel-side__head" [style.background]="'linear-gradient(180deg,' + team().color + '33,transparent)'">
+    <app-team-badge [team]="team()" size="md" />
+    <div class="panel-side__heading">
+      <div class="text-heading">{{ takimAdi(team().name) }}</div>
+      <div class="text-mono-label">{{ t('ui.oyuncuSayac', { a: players().length, b: totalCount() ?? players().length }) }}</div>
+    </div>
+  </div>
+  <div class="panel-side__list">
+    @for (p of players(); track p.id) {
+      <div class="panel-side__row">
+        <span class="text-mono-data panel-side__rating">{{ p.ratings.overall }}</span>
+        <span class="panel-side__name">{{ p.input.name }}</span>
+        <span class="text-mono-label panel-side__pos">{{ t('poz.' + p.ratings.position) }}</span>
+      </div>
+    }
+  </div>
+  <div class="panel-side__avg">
+    <span class="text-mono-label">{{ t('oyun.ortalama') }}</span>
+    <span class="text-display-2">{{ avg() }}</span>
+  </div>
+</aside>

@@ -1,0 +1,12 @@
+# Evenside — arama motorları için.
+# Tanıtım ve yasal sayfalar dizine alınır; giriş gerektiren uygulama ekranları alınmaz
+# (oturumsuz ziyaretçiyi zaten tanıtım sayfasına yönlendirirler).
+User-agent: *
+Allow: /
+Disallow: /squad
+Disallow: /draw
+Disallow: /pitch
+Disallow: /my-card
+Disallow: /create-team
+
+Sitemap: https://evenside.pages.dev/sitemap.xml

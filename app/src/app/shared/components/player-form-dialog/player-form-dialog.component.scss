@@ -1,0 +1,298 @@
+/*
+ * Oyuncu formu diyaloğu — önce `squad-builder` içinde yaşıyordu; `/saha` ekranından da
+ * oyuncu düzenlenebilsin diye ortak bileşene taşındı. Ölçüler aynı: sabit 720x560,
+ * 56px başlık / 1fr gövde / 64px ayak, iç scroll yok (Tur 5 · M1-M3).
+ */
+:host {
+  display: contents;
+}
+
+.form-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+  animation: form-overlay-in var(--duration-base) var(--easing-standard);
+}
+
+
+
+@keyframes form-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+
+
+/*
+ * Sabit 720x560 (Tur 4 · Bölüm 5). Eskiden 860x880'e kadar büyüyüp kendi içinde scroll
+ * açıyordu; form üç adıma bölününce gövde sabit yüksekliğe sığıyor. Satırlar: başlık 56 ·
+ * gövde 1fr · aksiyon 64.
+ */
+.form-drawer {
+  /* 2. tasarım: 6 adımlık form için biraz daha geniş/uzun; iç scroll yok kuralı aynı. */
+  width: min(820px, calc(100vw - 32px));
+  height: min(700px, calc(100dvh - 48px));
+  display: grid;
+  grid-template-rows: 68px minmax(0, 1fr) 72px;
+  /* Sütun içeriğe göre genişlemesin: başlık altındaki uzun adım cümlesi (nowrap) ızgarayı
+     519px'e açıp telefonda diyaloğu yana kaydırıyordu (ölçüldü). */
+  grid-template-columns: minmax(0, 1fr);
+  border-radius: 18px;
+  border: 1px solid var(--color-divider);
+  overflow: hidden;
+  background: var(--color-panel);
+  border-radius: var(--radius-sharp);
+  box-shadow: var(--shadow-elevated);
+  animation: form-drawer-in var(--duration-base) var(--easing-standard);
+}
+
+
+
+@keyframes form-drawer-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+
+.form-drawer__head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+
+
+.form-drawer__close {
+  flex: none;
+  /* 44px dokunma hedefi (QA O2: 32px'ti). */
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 22px;
+  line-height: 1;
+  transition:
+    background var(--duration-fast) var(--easing-standard),
+    color var(--duration-fast) var(--easing-standard);
+}
+
+
+
+.form-drawer__close:hover {
+  background: light-dark(rgba(18, 18, 22, 0.08), rgba(255, 255, 255, 0.08));
+  color: var(--color-text-primary);
+}
+
+
+
+.form-drawer__body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+
+
+/*
+ * Kaydedilmemiş değişiklik onayı (Tur 3 · A13). Başlıkla gövde arasına girip gövdeyi
+ * aşağı itiyordu (Tur 5 · E17); artık modalın EN ALTINDA, kendi satırında — silme onayının
+ * alt çubuğu devralması gibi.
+ */
+.form-drawer__confirm {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: rgba(245, 166, 35, 0.12);
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: #ffd591;
+}
+
+
+
+.form-drawer__confirm-yes,
+.form-drawer__confirm-no {
+  border: 1px solid currentColor;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: inherit;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+
+
+
+.form-drawer__confirm-no {
+  color: var(--color-text-secondary);
+}
+
+
+
+/*
+ * Modalın ayağı (Tur 5 · M1-M3): sabit 64px, gövdenin akışında değil. Böylece "Güncelle"
+ * her sekmede aynı yerde — sağ alt köşede — duruyor, sekme değişince zıplamıyor.
+ */
+.form-drawer__foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 64px;
+  padding: 0 20px;
+  border-top: 1px solid var(--color-divider);
+}
+
+
+
+.form-drawer__foot-spacer {
+  flex: 1;
+}
+
+
+
+.form-drawer__foot-msg {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: light-dark(#c42b2b, #ffb4b5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* MOBİL: modal değil, TAM EKRAN sayfa. */
+@media (max-width: 640px) {
+  .form-overlay {
+    padding: 0;
+  }
+
+  .form-drawer {
+    width: 100vw;
+    height: 100dvh;
+    max-width: none;
+    border-radius: 0;
+    grid-template-rows: 56px minmax(0, 1fr) 72px;
+  }
+
+  .form-drawer__head {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .form-drawer__close {
+    width: 44px;
+    height: 44px;
+    font-size: 26px;
+  }
+
+  .form-drawer__foot {
+    height: 72px;
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  .form-drawer__foot .btn {
+    min-height: 48px;
+  }
+}
+
+/* --- 2. tasarım: başlık alt satırı, metin düğmesi, İleri vurgusu ------- */
+.form-drawer__title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.form-drawer__sub {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.form-drawer__head {
+  padding: 0 16px 0 24px;
+  gap: 16px;
+}
+
+.form-drawer__foot {
+  height: 72px;
+  padding: 0 24px;
+  gap: 10px;
+}
+
+/* İkincil, geri alınabilir eylem: kutu değil metin — birincil eylemle yarışmasın. */
+.form-drawer__text-btn {
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--color-text-secondary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+.form-drawer__text-btn:hover:not(:disabled) {
+  color: var(--color-text-primary);
+}
+
+/* "İleri" ikincil ama yönlendiren eylem: yeşil kontur. */
+.form-drawer__next {
+  border-color: var(--color-accent-line);
+  color: var(--color-accent-text);
+}
+
+@media (max-width: 640px) {
+  .form-drawer {
+    border-radius: 0;
+    border: 0;
+    grid-template-rows: 64px minmax(0, 1fr) 72px;
+  }
+
+  .form-drawer__head {
+    padding: 0 8px 0 16px;
+  }
+
+  .form-drawer__foot {
+    padding: 0 12px;
+    gap: 6px;
+  }
+
+  .form-drawer__text-btn {
+    display: none;
+  }
+}

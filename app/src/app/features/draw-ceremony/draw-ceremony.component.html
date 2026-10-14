@@ -1,0 +1,302 @@
+<div class="page">
+  <!-- Ekran okuyucu için sayfa başlığı (QA D4: bu ekranda h1 yoktu). -->
+  <h1 class="sr-only">{{ t('sayfa.kura') }}</h1>
+  <div class="sr-only" aria-live="polite">{{ announcement() }}</div>
+
+  <header class="topbar">
+    <!-- Tek satır: satır sonu bir METİN DÜĞÜMÜ üretiyor ve flex şeritte "SAHA 42" gibi ayrılıyordu. -->
+    <a class="topbar__brand text-display-2 marka-link" routerLink="/">EVEN<span class="accent">SIDE</span></a>
+    <div class="topbar__right">
+      <!--
+        Hız ve ilerleme yalnızca tören AKARKEN anlamlı: başlamadan "0 / 16" sürprizi bozuyordu,
+        bittikten sonra da ("16 / 16") yapacak iş kalmıyor — bitiş ekranı tek başına kalsın.
+      -->
+      @if (started() && !sequence.finished()) {
+        <div class="speed">
+          <span class="text-mono-label">{{ t('kura.hizEtiketi') }}</span>
+          @for (s of speeds; track s) {
+            <button
+              type="button"
+              class="speed__btn"
+              [class.speed__btn--active]="sequence.speed() === s"
+              (click)="setSpeed(s)"
+            >
+              {{ s }}×
+            </button>
+          }
+        </div>
+        <div class="progress">
+          <span class="text-mono-label">{{ t('kura.ilerleme') }}</span>
+          <span class="text-mono-data progress__value">{{ sequence.progressText() }}</span>
+        </div>
+      }
+      <!--
+        Tören eylemleri topbar'da (kullanıcı isteği: eski yerleri). Metinler ikonsuz:
+        "Otomatik ilerlet" açıkken "Durdur"a döner — otomatik modda bekleme kutusu hiç
+        görünmediği için kapatma yolu burada olmak zorunda.
+      -->
+      @if (started() && !sequence.finished()) {
+        <div class="playback">
+          <button
+            type="button"
+            class="playback__btn"
+            [class.playback__btn--active]="sequence.autoPlay()"
+            (click)="toggleAutoPlay()"
+            [attr.title]="t('kura.otomatikIpucu')"
+          >
+            {{ sequence.autoPlay() ? t('ui.durdur') : t('ui.otoIlerlet') }}
+          </button>
+          <button type="button" class="playback__btn" (click)="skipAll()" [attr.title]="t('kura.bitirIpucu')">
+            {{ t('kura.sonucuGoster') }}
+          </button>
+        </div>
+      }
+      <!--
+        Bu ekranda çıkış değil GERİ DÖNÜŞ lazım: kura ortasında hesaptan çıkmak isteyen yok,
+        kadroya dönüp bir oyuncu düzeltmek isteyen çok. Kura sonucu store'da duruyor, dönüş
+        bir şey silmiyor.
+      -->
+      <button type="button" class="playback__btn" (click)="goToSquad()">{{ t('oyun.kadroyaDon') }}</button>
+    </div>
+  </header>
+
+  @if (started()) {
+    <div class="mobile-summary">
+    <span class="text-mono-label" [style.color]="teamPanelA().team.color">{{ takimAdi(teamPanelA().team.name) }}</span>
+    <span class="text-mono-data">{{ teamPanelA().revealed.length }}/{{ teamPanelA().total }}</span>
+    <span class="text-mono-label">—</span>
+    <span class="text-mono-data">{{ teamPanelB().revealed.length }}/{{ teamPanelB().total }}</span>
+    <span class="text-mono-label" [style.color]="teamPanelB().team.color">{{ takimAdi(teamPanelB().team.name) }}</span>
+  </div>
+  }
+
+  <!--
+    Tören başlamadan yan paneller YOK: "0 / 8 oyuncu" yazan iki boş sütun sahneyi daraltmaktan
+    başka bir iş yapmıyordu. Başlamadan sahne tüm genişliği alır (layout--solo).
+  -->
+  <div class="layout" [class.layout--solo]="!started()">
+    @if (started()) {
+      <app-team-roster-panel
+        side="A"
+        [team]="teamPanelA().team"
+        [players]="teamPanelA().revealed"
+        [totalCount]="teamPanelA().total"
+        [avg]="teamPanelA().avg"
+      />
+    }
+
+    <div class="scene" [class.scene--shake]="sequence.shaking()">
+      <!--
+        Sahne zemininde ÇİZİLİ SAHA YOK (kullanıcı isteği): tören sırasında yuvaların çoğu boş
+        duruyor ve stadyum fotoğrafının üstünde soluk bir şema olarak okunuyordu. Açılan
+        oyuncular yan panellerde listeleniyor, dizilişin kendisi `/pitch` ekranında.
+      -->
+      <div class="scene__glow" [style.background]="sceneGlow()"></div>
+
+      @if (showBeams()) {
+        <div class="beams"></div>
+      }
+
+      @if (showPrisms()) {
+        <div class="prisms">
+          @for (side of ['left', 'right']; track side) {
+            <div class="prisms__side" [class.prisms__side--right]="side === 'right'">
+              @for (i of prisms; track i) {
+                <div class="prism" [style.--i]="i" [style.animation-delay.ms]="i * 40"></div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      @if (showPosition() && currentPlayer(); as player) {
+        <div class="position-reveal">
+          <div class="position-icon">
+            @switch (player.ratings.position) {
+              @case ('KAL') {
+                <!-- Kaleci: sırayla dizilen bir "insan duvarı" -->
+                <svg viewBox="0 0 100 60" class="position-icon__svg" aria-hidden="true">
+                  <rect class="wall-brick wall-brick--1" x="21" y="4" width="26" height="22" rx="3" />
+                  <rect class="wall-brick wall-brick--2" x="53" y="4" width="26" height="22" rx="3" />
+                  <rect class="wall-brick wall-brick--3" x="5" y="32" width="26" height="22" rx="3" />
+                  <rect class="wall-brick wall-brick--4" x="37" y="32" width="26" height="22" rx="3" />
+                  <rect class="wall-brick wall-brick--5" x="69" y="32" width="26" height="22" rx="3" />
+                </svg>
+              }
+              @case ('DEF') {
+                <!-- Defans: çarpıp yerleşen bir kalkan -->
+                <svg viewBox="0 0 100 110" class="position-icon__svg" aria-hidden="true">
+                  <circle class="shield-ring" cx="50" cy="52" r="46" />
+                  <path
+                    class="shield-body"
+                    d="M50 4 L92 20 V54 C92 82 74 100 50 108 C26 100 8 82 8 54 V20 Z"
+                  />
+                </svg>
+              }
+              @case ('OS') {
+                <!-- Orta saha: oyunu yönlendiren, dönerek yerleşen pusula -->
+                <svg viewBox="0 0 100 100" class="position-icon__svg" aria-hidden="true">
+                  <circle class="compass-ring" cx="50" cy="50" r="42" />
+                  <path class="compass-needle" d="M50 12 L61 50 L50 88 L39 50 Z" />
+                  <circle class="compass-dot" cx="50" cy="50" r="5" />
+                </svg>
+              }
+              @case ('FOR') {
+                <!-- Forvet: kaleye giren top, ağın titremesi -->
+                <svg viewBox="0 0 100 90" class="position-icon__svg" aria-hidden="true">
+                  <g class="goal-net">
+                    <rect x="6" y="6" width="88" height="58" />
+                    @for (i of [1, 2, 3, 4]; track i) {
+                      <line [attr.x1]="6 + i * 17.6" y1="6" [attr.x2]="6 + i * 17.6" y2="64" />
+                    }
+                    @for (i of [1, 2, 3]; track i) {
+                      <line x1="6" [attr.y1]="6 + i * 14.5" x2="94" [attr.y2]="6 + i * 14.5" />
+                    }
+                  </g>
+                  <circle class="goal-ball" cx="14" cy="78" r="9" />
+                </svg>
+              }
+            }
+          </div>
+          <div class="position-text text-display-1">{{ t('poz.' + player.ratings.position) }}</div>
+        </div>
+      }
+
+      @if (showTeamStamp() && sequence.currentTeam(); as team) {
+        <!--
+          Takım damgası törenin en yüksek perdesi: büyük arma, arkasında açılan iki halka ve
+          36 parçalık konfeti patlaması. Parçacıklar tohumlu (bkz. burstPieces) — her seferinde
+          aynı desen, animasyon yeniden başlamıyor.
+        -->
+        <div class="team-stamp" [style.--team-color]="team.color">
+          <div class="team-stamp__badge">
+            <span class="team-stamp__ring"></span>
+            <span class="team-stamp__ring team-stamp__ring--late"></span>
+            <app-team-badge [team]="team" size="xl" />
+          </div>
+          <span class="team-stamp__name text-display-1">{{ takimAdi(team.name) }}</span>
+
+          <div class="burst" aria-hidden="true">
+            @for (p of burstPieces; track p.i) {
+              <span
+                class="burst__piece"
+                [class.burst__piece--white]="p.tone === 1"
+                [class.burst__piece--accent]="p.tone === 2"
+                [style.--a]="p.angle + 'deg'"
+                [style.--d]="p.distance + 'px'"
+                [style.--spin]="p.spin + 'deg'"
+                [style.animation-delay.ms]="p.delay"
+                [style.width.px]="p.width"
+                [style.height.px]="p.height"
+              ></span>
+            }
+          </div>
+        </div>
+      }
+
+      @if (sequence.shaking()) {
+        <div class="confetti">
+          @for (c of sequence.confetti(); track c.id) {
+            <div
+              class="confetti__piece"
+              [style.left.%]="c.left"
+              [style.width.px]="c.size"
+              [style.height.px]="c.size * 1.6"
+              [style.background]="c.color"
+              [style.animation-duration.ms]="c.duration"
+              [style.animation-delay.ms]="c.delay"
+            ></div>
+          }
+        </div>
+      }
+
+      @if (showBigCard() && currentPlayer(); as player) {
+        <div class="scene__card" [class.scene__card--landing]="sequence.phase() === 'land'">
+          <app-player-card
+            [player]="player"
+            size="large"
+            [teamLogo]="sequence.currentTeam()?.logoImage ?? null"
+            [displayRating]="sequence.displayRating()"
+            [revealedStats]="sequence.revealedStats()"
+          />
+        </div>
+      }
+
+      @if (!started()) {
+        <!--
+          Başlangıç ekranı: kura başlamadan hiçbir oyuncu, hiçbir kadro görünmez. Sahnedeki
+          saha da boş yuvalarla duruyor (ceremonySlots maskesi), yan paneller 0/N.
+        -->
+        <div class="start">
+          <span class="start__eyebrow">{{ t('kura.hazir') }}</span>
+          <h2 class="start__title text-display-2">{{ store.players().length }} {{ t('kura.oyuncuIkiTakim') }}</h2>
+          <p class="start__hint">{{ t('kura.aciklama') }}</p>
+          <div class="start__actions">
+            <app-button (click)="startCeremony()">{{ t('kura.basla') }}</app-button>
+            <button type="button" class="start__secondary" (click)="revealAll()">
+              {{ t('kura.dogrudanGoster') }}
+            </button>
+          </div>
+        </div>
+      }
+
+      @if (started() && sequence.phase() === 'idle' && !sequence.finished()) {
+        <!--
+          Bekleme anının tek eylemi. Sahanın ortasında yalnız bir buton "duraklamış" gibi
+          duruyordu; artık sırayı söyleyen bir satırla birlikte geliyor ve nabız gibi atan bir
+          halka gözü üstüne çekiyor.
+        -->
+        <div class="cta cta--next">
+          <span class="cta__step text-mono-label">{{ sequence.progressText() }}</span>
+          <app-button (click)="next()">{{ t('kura.siradaki') }}</app-button>
+          <span class="cta__hint">{{ t('kura.kimCikacak') }}</span>
+        </div>
+      }
+
+      @if (sequence.locked()) {
+        <button type="button" class="skip-link text-mono-label" (click)="skip()">{{ t('kura.gec') }}</button>
+      }
+
+      @if (sequence.finished()) {
+        <!--
+          Bitiş ekranı: kura bittiğinde ortada duran şey artık bir düğme değil, MAÇ. İki takım
+          armaları ve ortalamalarıyla karşı karşıya, aralarında korlu bir VS mührü; asıl eylem
+          ("Saha görünümü") tam altında ve büyük.
+        -->
+        <div class="finale">
+          <span class="finale__eyebrow">{{ t('kura.tamamlandi') }}</span>
+
+          <div class="finale__match">
+            <div class="finale__team finale__team--a">
+              <app-team-badge [team]="teamPanelA().team" size="xl" />
+              <span class="finale__team-name text-display-2">{{ takimAdi(teamPanelA().team.name) }}</span>
+            </div>
+
+            <div class="finale__vs" aria-hidden="true">
+              <span class="finale__vs-ember"></span>
+              <span class="finale__vs-ring"></span>
+              <span class="finale__vs-text">VS</span>
+            </div>
+
+            <div class="finale__team finale__team--b">
+              <app-team-badge [team]="teamPanelB().team" size="xl" />
+              <span class="finale__team-name text-display-2">{{ takimAdi(teamPanelB().team.name) }}</span>
+            </div>
+          </div>
+
+          <button type="button" class="finale__cta" (click)="goToPitch()">{{ t('kura.sahaGorunumu') }}</button>
+        </div>
+      }
+    </div>
+
+    @if (started()) {
+      <app-team-roster-panel
+        side="B"
+        [team]="teamPanelB().team"
+        [players]="teamPanelB().revealed"
+        [totalCount]="teamPanelB().total"
+        [avg]="teamPanelB().avg"
+      />
+    }
+  </div>
+</div>

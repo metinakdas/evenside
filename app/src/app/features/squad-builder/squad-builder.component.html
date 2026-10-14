@@ -1,0 +1,241 @@
+<div class="shell" [attr.inert]="store.formOpen() ? '' : null" [attr.aria-hidden]="store.formOpen() ? 'true' : null">
+  <!-- Ekran okuyucu için sayfa başlığı (QA D4: bu ekranda h1 yoktu). -->
+  <h1 class="sr-only">{{ t('sayfa.kadro') }}</h1>
+  <header class="topbar">
+    <a class="topbar__brand text-display-2 marka-link" routerLink="/">EVEN<span class="accent">SIDE</span></a>
+    <div class="tabs">
+      <button type="button" class="tabs__btn" [class.tabs__btn--active]="tab() === 'kart'" (click)="setTab('kart')">{{ t('kadro.kart') }}</button>
+      <button type="button" class="tabs__btn" [class.tabs__btn--active]="tab() === 'liste'" (click)="setTab('liste')">{{ t('oyun.liste') }}</button>
+      <!-- Takıma kodla katılanlar, yetkiler ve eşleme uyarıları. Rozet: eşlenmeyi bekleyen kart. -->
+      <button
+        type="button"
+        class="tabs__btn tabs__btn--users"
+        [class.tabs__btn--active]="tab() === 'kullanicilar'"
+        [disabled]="!store.canEditSquad()"
+        [attr.title]="store.canEditSquad() ? null : t('kullanici.sekmeKilitli')"
+        (click)="setTab('kullanicilar')"
+        [attr.aria-label]="pendingMatches() ? t('kullanici.sekmeUyari', { sayi: pendingMatches() }) : null"
+      >
+        {{ t('kullanici.sekme') }}
+        @if (pendingMatches() > 0) {
+          <span class="tabs__badge" aria-hidden="true">{{ pendingMatches() }}</span>
+        }
+      </button>
+    </div>
+    <!--
+      Çıkış burada DEĞİL (kullanıcı isteği): bu ekranın çıkışı ana menüye dönmektir, hesaptan
+      çıkmak menünün işi. /kura ve /saha ekranlarındaki "← Kadroya dön" ile aynı mantık.
+    -->
+    @if (!store.canEditSquad()) {
+      <!--
+        Katıldığın takımın kadrosu: görülür, değiştirilemez. Şerit üst çubukta duruyor çünkü
+        "neden hiçbir şey ekleyemiyorum" sorusu ekrana girer girmez cevaplanmalı.
+      -->
+      <span class="readonly-note">{{ t('kadro.saltOkunur') }}</span>
+    }
+    <!-- Takım arkadaşlarını puanla: üyeler dahil herkes (kendi kartı hariç). -->
+    <a class="topbar__back topbar__rate" routerLink="/rate">{{ t('puan.dugme') }}</a>
+    <button type="button" class="topbar__back" (click)="goHome()">{{ t('oyun.menuyeDon') }}</button>
+  </header>
+
+  @if (tab() === 'kart') {
+    <div class="bench">
+      <!--
+        Sol: yalnızca takım kartları. Denge özeti paneli KALDIRILDI (kullanıcı isteği) —
+        aynı bilgi Liste sekmesindeki şeritte ve kura/saha ekranlarının alt şeridinde zaten var.
+      -->
+      <aside class="bench__col bench__col--settings">
+        <!-- Kadronun adı ve katılma kodu — arkadaşlar kodla kendi kartlarıyla katılır. -->
+        <app-squad-identity />
+        <!-- Havuzda aynı isimli "kendi kartı" varsa eşleme önerisi (bkz. CardMatchService). -->
+        @if (store.canEditSquad()) {
+          <app-card-match-panel />
+        }
+        <app-match-settings />
+
+      </aside>
+
+      <!-- Mobilde orta ve sağ kolon sekmeye döner; geniş ekranda bu satır görünmez. -->
+      <div class="bench__tabs" role="tablist">
+        <button
+          type="button"
+          class="bench__tab"
+          role="tab"
+          [class.bench__tab--active]="benchTab() === 'kadro'"
+          [attr.aria-selected]="benchTab() === 'kadro'"
+          (click)="setBenchTab('kadro')"
+        >
+          {{ t('kadro.kadro') }} {{ store.players().length }}/{{ store.requiredPlayerCount() }}
+        </button>
+        <button
+          type="button"
+          class="bench__tab"
+          role="tab"
+          [class.bench__tab--active]="benchTab() === 'havuz'"
+          [attr.aria-selected]="benchTab() === 'havuz'"
+          (click)="setBenchTab('havuz')"
+        >
+          {{ t('kadro.havuz') }}
+        </button>
+      </div>
+
+      <!-- Orta: sabit sayıda yuva. Izgara oyuncu sayısıyla uzamaz; hücreler kalan yüksekliği
+           paylaşır, ekran kısaldıkça kart küçülür ve sayfa asla kaymaz. -->
+      <section class="bench__col bench__col--squad" [attr.aria-label]="t('kadro.kadro')" [hidden]="narrow() && benchTab() !== 'kadro'">
+        <div class="bench__head">
+          <h2 class="text-heading">{{ t('kadro.kadro') }}</h2>
+          <span class="text-mono-data bench__counter" [class.bench__counter--full]="store.atCapacity()">
+            {{ store.players().length }}/{{ store.requiredPlayerCount() }}
+            @if (store.isSquadComplete()) {
+              · {{ t('ui.dolu') }}
+            }
+          </span>
+        </div>
+
+        <div class="slots" [style.--slot-cols]="store.format()">
+          @for (slot of store.squadSlots(); track $index) {
+            @if (slot.player; as player) {
+              <div class="slot" [class.slot--excess]="isExcess($index)">
+                <div class="slot__inner">
+                  <app-player-card [player]="player" size="mini" [nameLabel]="nameLabel(player)" />
+
+                  <!--
+                    Aksiyonlar kartın KENDİ üstünde, aynı kalkana kırpılmış bir perdede.
+                    Kalkanın ucuna oturtulduklarında yarısı kırpılıyor ve hangi karta ait
+                    oldukları okunmuyordu. Perde tam olarak o kartı karartıyor — sahiplik
+                    belirsiz kalmıyor. Dokunmatikte perde yok, düğmeler kartın altında durur.
+                  -->
+                  @if (store.canEditSquad()) {
+                  <div class="slot__actions">
+                    <button
+                      type="button"
+                      class="slot__action"
+                      (click)="editPlayer(player.id)"
+                      [attr.aria-label]="t('ui.duzenleAd', { ad: player.input.name })"
+                      [attr.title]="t('oyun.duzenle')"
+                    >
+                      ✎
+                    </button>
+                    <button
+                      type="button"
+                      class="slot__action slot__action--remove"
+                      (click)="removeFromSquad(player.id)"
+                      [attr.aria-label]="t('ui.kadrodanCikarAd', { ad: player.input.name })"
+                      [attr.title]="t('kadro.cikar')"
+                    >
+                      −
+                    </button>
+                  </div>
+                  }
+
+                  @if (isExcess($index)) {
+                    <span class="slot__excess" [attr.title]="t('kadro.fazla')">{{ t('kadro.fazlaRozet') }}</span>
+                  }
+                </div>
+              </div>
+            } @else {
+              <!-- Üyede boş yuva TIKLANAMAZ: düğme olarak durması "ekleyebilirim" diye okunuyordu. -->
+              <button
+                type="button"
+                class="slot slot--empty"
+                [disabled]="!store.canEditSquad()"
+                (click)="addNewFromList()"
+                [attr.aria-label]="store.canEditSquad() ? t('ui.oyuncuEkle') : t('ui.bosYuvaSalt')"
+                [attr.title]="store.canEditSquad() ? t('ui.yeniOyuncuEkle') : t('ui.sahibiYonetiyor')"
+              >
+                <span class="slot__plus" aria-hidden="true">+</span>
+                @if (store.canEditSquad()) {
+                  <span class="slot__add" aria-hidden="true">{{ t('ui.oyuncuEkle') }}</span>
+                }
+              </button>
+            }
+          }
+        </div>
+
+        <!-- Izgaranın altında artan alan boş durmasın: kullanıcı dengeli kadro kurarken
+             zaten hatlara bakıyor (Tur 5 · E5). -->
+        @if (balance(); as b) {
+          <div class="lines-strip" [attr.aria-label]="t('kadro.hatDagilimi')">
+            @for (line of b.lines; track line.label) {
+              <!-- Şerit yalnızca DAĞILIM: hat kotası yok, "eksik hat" diye bir şey yok (kullanıcı isteği). -->
+              <div class="lines-strip__item">
+                <span class="lines-strip__label">{{ line.label }}</span>
+                <span class="lines-strip__count">{{ line.count }}</span>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- Sağ: havuz. Sayfadaki TEK kayan alan burası. -->
+      <aside class="bench__col bench__col--pool" [hidden]="narrow() && benchTab() !== 'havuz'">
+        <app-squad-list />
+      </aside>
+    </div>
+  } @else if (tab() === 'kullanicilar' && store.canEditSquad()) {
+    <app-squad-users class="users-host" />
+  } @else {
+    <div class="liste">
+      <!-- Liste, dengeyi sayılarla incelemek için en uygun görünüm; denge bilgisini
+           taşımayan tek görünüm olmasın (Tur 5 · E18). -->
+      @if (balance(); as b) {
+        <p class="liste__balance">
+          @if (b.gapText) {
+            <span class="liste__balance-gap" [class]="'liste__balance-gap--' + b.level">±{{ b.gapText }}</span>
+            <span>{{ t('saha.dagilim') }} ±{{ b.spreadA }} / ±{{ b.spreadB }}</span>
+            @if (b.winText) {
+              <span [attr.title]="t('saha.kazanmaIpucu')">{{ b.winText }}</span>
+            }
+            @if (b.formText) {
+              <span [attr.title]="t('saha.formIpucu')">{{ b.formText }}</span>
+            }
+          } @else {
+            <span class="liste__balance-gap liste__balance-gap--pending">—</span>
+            @if (statusText(); as status) {
+              <span>{{ status }}</span>
+            }
+          }
+          <span [class.liste__balance-warn]="b.keeperWarn">{{ b.keeperText }}</span>
+          <span>
+            @for (line of b.lines; track line.label) {
+              {{ line.label }} {{ line.count }}{{ $last ? '' : ' · ' }}
+            }
+          </span>
+        </p>
+      }
+
+      <div class="liste__toolbar">
+        <input
+          class="liste__search"
+          type="text"
+          [attr.placeholder]="t('kadro.oyuncuAraIpucu')"
+          [value]="listSearch()"
+          (input)="onListSearch($event)"
+          [attr.aria-label]="t('kadro.oyuncuAra')"
+        />
+        @if (store.canEditSquad()) {
+          <button type="button" class="liste__add" (click)="addNewFromList()">{{ t('ui.yeniOyuncuArti') }}</button>
+        }
+      </div>
+      <app-rating-table [rows]="ratingRows()" [showSquadActions]="store.canEditSquad()" (squadToggled)="toggleSquad($event)" />
+    </div>
+  }
+
+  <footer class="actionbar">
+    @if (statusText(); as status) {
+      <span class="actionbar__status">{{ status }}</span>
+    }
+    <!-- Depo VE sunucu hataları aynı yerde: kullanıcı için ikisi de "kaydedilemedi" demek. -->
+    <app-error-banner class="actionbar__error" [message]="store.saveError()" />
+    <!-- Üye kurayı çekemez: düğme kilitli GÖRÜNMELİ, tıklayınca sessizce ölmemeli. -->
+    <app-button
+      [disabled]="!store.isSquadComplete()"
+      [disabledReason]="drawBlockedReason()"
+      (click)="goToDraw()"
+      >{{ t('kadro.kurayaGec') }}</app-button
+    >
+  </footer>
+</div>
+
+<!-- Oyuncu formu diyaloğu: /kadro ve /saha aynı bileşeni kullanır. -->
+<app-player-form-dialog />

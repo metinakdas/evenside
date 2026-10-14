@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <title>Evenside — Halı saha kadro kurma ve adil takım kurası</title>
+  <!--
+    ARAMA VE PAYLAŞIM (11 Ekim 2026, yayın öncesi).
+    - Başlık/açıklama aranan kelimeleri taşır: halı saha, kadro kurma, takım kurma, kura, adil takım.
+    - Ekranlara göre başlık ve açıklama çalışma anında da değişir (SeoService); buradakiler
+      JavaScript çalıştırmayan önizleyiciler (WhatsApp, Telegram) için varsayılandır.
+    - og:image/og:url MUTLAK adres ister: yayın adresi https://evenside.pages.dev (Cloudflare Pages); kendi alan adı bağlanırsa burası değişmeli
+      (göreli adres bazı önizleyicilerde görünmez). Görsel 1200x630, ~90 kB.
+  -->
+  <meta name="description" content="Halı saha kadronu iki dakikada adil kur: Evenside oyuncuları reyting, kaleci ve mevki dengesine göre iki takıma böler, kurayı çeker, saha görselini WhatsApp grubuna atarsın. 4v4’ten 11v11’e, ücretsiz, kurulum yok." />
+  <meta name="keywords" content="halı saha, kadro kurma, takım kurma, adil takım, takım bölme, kura çekme, halı saha uygulaması, futbol kadro, 7v7, 6v6, 8v8, oyuncu kartı" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta name="author" content="Evenside" />
+  <meta name="application-name" content="Evenside" />
+  <meta name="apple-mobile-web-app-title" content="Evenside" />
+  <meta name="theme-color" content="#08080a" />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Evenside" />
+  <meta property="og:locale" content="tr_TR" />
+  <meta property="og:locale:alternate" content="en_US" />
+  <meta property="og:locale:alternate" content="de_DE" />
+  <meta property="og:locale:alternate" content="fr_FR" />
+  <meta property="og:locale:alternate" content="es_ES" />
+  <meta property="og:locale:alternate" content="ar_AR" />
+  <meta property="og:title" content="Halı saha kadron iki dakikada adil kurulsun — Evenside" />
+  <meta property="og:description" content="Kadroyu gir, kurayı çek. Takımlar reyting, kaleci ve mevki dengesine göre bölünür; sahaya çıkan görseli gruba atarsın. Ücretsiz." />
+  <meta property="og:image" content="https://evenside.pages.dev/og-saha42.jpg" />
+  <meta property="og:url" content="https://evenside.pages.dev/welcome" />
+  <link rel="canonical" href="https://evenside.pages.dev/welcome" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Gece ışıkları altında halı saha maçı" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Halı saha kadron iki dakikada adil kurulsun — Evenside" />
+  <meta name="twitter:description" content="Kadroyu gir, kurayı çek. Kim kiminle oynayacak tartışması biter." />
+  <meta name="twitter:image" content="https://evenside.pages.dev/og-saha42.jpg" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/icon-180.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+  <!-- Yapılandırılmış veri: Google'ın uygulama ve SSS zengin sonuçları için. Çalıştırılmaz (veri bloğu). -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebApplication","name":"Evenside","alternateName":"Even Side","applicationCategory":"SportsApplication","operatingSystem":"Web","inLanguage":["tr","en","de","fr","es","ar"],"description":"Halı saha kadro kurma ve adil takım bölme uygulaması: oyuncu kartları, reyting, kaleci ve mevki dengesine göre kura, saha dizilişi ve paylaşılabilir kadro görseli. 4v4’ten 11v11’e, ücretsiz.","offers":{"@type":"Offer","price":"0","priceCurrency":"TRY"},"featureList":["Adil takım kurası (10 ölçütle denge)","FIFA tarzı oyuncu kartı ve reyting","Kaleci dağıtımı ve kale sırası","4v4–11v11 saha dizilişleri","WhatsApp için kadro görseli","Maç skoru ve takım geçmişi"]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Ücretli mi?","acceptedAnswer":{"@type":"Answer","text":"Hayır. Kart çıkarmak, takım kurmak, kura çekmek ve saha görselini indirmek ücretsiz. Kredi kartı istemiyoruz."}},{"@type":"Question","name":"Kaç kişiyle oynanır?","acceptedAnswer":{"@type":"Answer","text":"4v4’ten 11v11’e kadar. Format seçince kadro yuvaları ve saha dizilişi kendiliğinden ona göre kurulur; her format için dört farklı diziliş var."}},{"@type":"Question","name":"Arkadaşlarımın da kayıt olması gerekiyor mu?","acceptedAnswer":{"@type":"Answer","text":"Gerekmiyor. İstersen herkesi sen girersin. Kodla katılırlarsa kendi kartlarını kendileri günceller — bu daha az iş demek."}},{"@type":"Question","name":"Kaleci sorununu çözüyor mu?","acceptedAnswer":{"@type":"Answer","text":"Evet. Gerçek kaleciler iki takıma dağıtılır. Kaleci yoksa kale sırası çıkarılır: kim kaçıncı periyotta kaleye geçecek, baştan bellidir."}},{"@type":"Question","name":"Takımlar gerçekten dengeli mi oluyor?","acceptedAnswer":{"@type":"Answer","text":"Kura on ölçütü birlikte dengeler: toplam reyting, en zayıf oyuncuların dağılımı, kaleci, hız, şut, pas, top sürme, defans, fizik ve reyting yayılımı. 8v8’e kadar olası bütün bölüşümleri tek tek dener. Aynı derecede adil birden çok bölüşüm varsa aralarından rastgele seçer — her seferinde aynı sonuç çıkmaz."}},{"@type":"Question","name":"Telefonda çalışıyor mu?","acceptedAnswer":{"@type":"Answer","text":"Çalışıyor. Uygulama tarayıcıdan açılır, indirme gerekmez; kadro, kura ve saha ekranları telefona göre kurulmuştur."}},{"@type":"Question","name":"Verilerim ne oluyor?","acceptedAnswer":{"@type":"Answer","text":"Kart ve takım bilgileri hesabına bağlı tutulur; reklam ya da takip amacıyla kullanılmaz. Fotoğrafın arka planı tarayıcında silinir; ham fotoğraf sunucuya gitmez, yalnızca karttaki kesilmiş hâli kaydedilir. Hesabını istediğin an silebilirsin."}},{"@type":"Question","name":"Maçtan sonra ne oluyor?","acceptedAnswer":{"@type":"Answer","text":"Maçı kaydedip skorunu girersin. Biriken kayıtlar kuranın sahada tutup tutmadığını ve kimin hangi tarafta kazandığını gösterir."}}]}]}</script>
+  <base href="/">
+  <!--
+    Güvenlik başlıkları. En iyisi sunucu başlığıdır ama barındırma her yerde bizim elimizde
+    değil; meta ile verilen CSP tarayıcıda aynı şekilde uygulanır (frame-ancestors HARİÇ: meta'da
+    tarayıcı onu yok sayıp konsola hata basar; o kural yalnızca public/_headers'ta durur).
+    connect-src: Supabase (REST + Realtime websocket), TheSportsDB ve görsel proxy.
+    img-src data:/blob: — kart fotoğrafları data URL taşır. 'wasm-unsafe-eval': MediaPipe WASM.
+  -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' data: blob: https://*.supabase.co wss://*.supabase.co https://www.thesportsdb.com https://r2.thesportsdb.com https://images.weserv.nl; upgrade-insecure-requests">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:ital,wght@0,700;0,800;0,900;1,800;1,900&family=Barlow+Condensed:ital,wght@0,600;0,700;1,700;1,800&family=Barlow:ital,wght@0,400;0,500;0,600;1,700&family=Space+Mono:wght@400;700&family=Oswald:wght@400;500;600;700&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+  <!-- Açılış güvenlik ağı: Angular paketinin DIŞINDA, ana koddan ÖNCE (bkz. public/onarim.js). -->
+  <script src="/onarim.js"></script>
+</head>
+<body>
+  <app-root></app-root>
+  <noscript>
+    <h1>Evenside — Halı saha kadro kurma ve adil takım kurası</h1>
+    <p>Oyuncu kartlarını oluştur, kadroyu kur, kurayı çek: takımlar reyting, kaleci ve mevki dengesine göre iki takıma bölünür. Evenside'ı kullanmak için JavaScript'i açın.</p>
+  </noscript>
+</body>
+</html>

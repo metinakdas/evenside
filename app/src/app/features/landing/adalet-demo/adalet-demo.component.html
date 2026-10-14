@@ -1,0 +1,93 @@
+<!-- Excalidraw görünümü: çizgileri titreten "kalem" filtresi (SVG gürültüsü + yer değiştirme). -->
+<svg class="kalem-filtresi" width="0" height="0" aria-hidden="true" focusable="false">
+  <filter id="saha42-kalem" x="-5%" y="-5%" width="110%" height="110%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="gurultu" />
+    <feDisplacementMap in="SourceGraphic" in2="gurultu" scale="2.2" xChannelSelector="R" yChannelSelector="G" />
+  </filter>
+</svg>
+<div class="demo">
+  <div class="saha" aria-hidden="true">
+    <span class="saha__havuz">{{ t('adalet.havuz') }}</span>
+    <span class="saha__takim saha__takim--a">{{ t('adalet.takim', { t: 'A' }) }}</span>
+    <span class="saha__takim saha__takim--b">{{ t('adalet.takim', { t: 'B' }) }}</span>
+    <span class="saha__cizgi"></span>
+    <span class="saha__yuvarlak"></span>
+    <!-- Üzerine gelince takım etiketlerinin yerinde motivasyon sözü yükselir (kelime kelime). -->
+    <p class="motto motto--saha">
+      @for (k of kelimeler('adalet.motto1'); track $index) {
+        <span [style.--k]="$index">{{ k }}</span>
+      }
+    </p>
+    @for (o of oyuncular(); track o.r) {
+      <span
+        class="cip"
+        [attr.data-tier]="o.tier"
+        [style.--hx.%]="o.hx"
+        [style.--tx.%]="o.tx"
+        [style.--ty.%]="o.ty"
+        [style.--d]="o.sira"
+      >
+        <b>{{ o.r }}</b>
+        <small>{{ t('poz.' + o.p) }}</small>
+      </span>
+    }
+  </div>
+
+  <div class="olcu">
+    <span class="olcu__deger">{{ ortalama().sol }}</span>
+    <svg class="olcu__terazi" viewBox="0 0 120 56" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M60 12v38M46 52h28" />
+      <g class="olcu__kol">
+        <path d="M18 14h84" />
+        <path d="M18 14l-10 18h20zM102 14l-10 18h20z" />
+        <path d="M8 32q10 7 20 0M92 32q10 7 20 0" />
+      </g>
+      <circle cx="60" cy="12" r="3.2" fill="currentColor" />
+    </svg>
+    <span class="olcu__deger">{{ ortalama().sag }}</span>
+  </div>
+  <button type="button" class="demo__tekrar" (click)="tekrar()">
+    <span class="demo__tekrar-ikon" aria-hidden="true">↻</span>{{ t('adalet.tekrar') }}
+  </button>
+</div>
+
+<div class="adimlar">
+  <div class="adimlar__ust">
+    <p class="adimlar__etiket">{{ t('adalet.etiket') }}</p>
+    <h3 class="adimlar__baslik">{{ t('adalet.baslik') }}</h3>
+    <!-- Üzerine gelince başlığın yerinde motivasyon sözü yükselir; ekran okuyucu başlığı okur. -->
+    <p class="motto motto--adim" aria-hidden="true">
+      @for (k of kelimeler('adalet.motto2'); track $index) {
+        <span [style.--k]="$index">{{ k }}</span>
+      }
+    </p>
+  </div>
+  <ol class="adimlar__liste">
+    <li>
+      <span class="adimlar__no">1</span>
+      <div>
+        <b>{{ t('adalet.adim1') }}</b>
+        <p>{{ t('adalet.adim1Metin') }}</p>
+      </div>
+    </li>
+    <li>
+      <span class="adimlar__no">2</span>
+      <div>
+        <b>{{ t('adalet.adim2') }}</b>
+        <p>{{ t('adalet.adim2Metin') }}</p>
+      </div>
+    </li>
+    <li>
+      <span class="adimlar__no">3</span>
+      <div>
+        <b>{{ t('adalet.adim3') }}</b>
+        <p>{{ t('adalet.adim3Metin') }}</p>
+      </div>
+    </li>
+  </ol>
+</div>
+
+<!-- Silginin arkasında kalan kısa ömürlü iz (havuz; bkz. silgi açıklaması). -->
+@for (i of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]; track i) {
+  <span class="silgi-izi" aria-hidden="true"></span>
+}

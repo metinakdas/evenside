@@ -1,0 +1,27 @@
+:host {
+  display: block;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.user-menu__signout {
+  min-height: 44px;
+  padding: 0 16px;
+  background: none;
+  background: var(--color-panel);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  padding: 3px 10px;
+}
+
+.user-menu__signout:hover {
+  border-color: var(--color-accent-line);
+  color: var(--color-accent-text);
+}

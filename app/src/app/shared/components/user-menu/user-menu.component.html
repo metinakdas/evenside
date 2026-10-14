@@ -1,0 +1,5 @@
+@if (auth.user(); as user) {
+  <div class="user-menu">
+    <button type="button" class="user-menu__signout" (click)="signOut()">{{ t('oyun.cikis') }}</button>
+  </div>
+}

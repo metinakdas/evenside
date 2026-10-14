@@ -1,0 +1,187 @@
+// Üst bar, yan paneller ve genel sayfa iskeleti — sahne dışındaki her şey.
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.topbar__brand {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.topbar__tag {
+  font-style: normal;
+}
+
+.accent {
+  color: var(--color-accent);
+}
+
+.topbar__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.speed {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.speed__btn {
+  background: transparent;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 3px 10px;
+}
+
+.speed__btn--active {
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  border-color: var(--color-accent);
+}
+
+.progress {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.playback {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.playback__btn {
+  background: transparent;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 12px;
+  padding: 6px 14px;
+  transition:
+    border-color var(--duration-fast) var(--easing-standard),
+    background var(--duration-fast) var(--easing-standard);
+}
+
+.playback__btn:hover {
+  border-color: var(--color-accent);
+}
+
+.playback__btn--active {
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  border-color: var(--color-accent);
+}
+
+.progress__value {
+  color: var(--color-accent);
+  font-size: 18px;
+}
+
+.mobile-summary {
+  display: none;
+}
+
+.layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 280px 1fr 280px;
+  // Tek (örtük) satırın .layout'un TÜM yüksekliğini kullanması için — bu olmadan satır
+  // içeriğe göre "auto" boyutlanıyordu; yan paneller görünürken onların yığılmış listesi
+  // yeterli yükseklik sağlıyordu ama 1024px altında paneller `display:none` olunca geriye
+  // hiçbir "gerçek" içerik kalmıyordu (.scene'in tek çocuğu mutlak konumlu, kendiliğinden
+  // yükseklik katmıyor) — satır neredeyse sıfıra çöküyor, saha da onun içinde küçücük bir
+  // kutuya sıkışıyordu (bkz. kullanıcı geri bildirimi: mobilde saha küçük bir kutuda kalıyor).
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.scene {
+  height: 100%;
+  min-height: 0;
+}
+
+/* Tören başlamadan sahne tek başına: yan paneller DOM'da yok, sütunları da olmamalı. */
+.layout--solo {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (max-width: 1024px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  app-team-roster-panel {
+    display: none;
+  }
+
+  .mobile-summary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    border-bottom: 1px solid var(--color-divider);
+  }
+}
+
+@media (max-width: 640px) {
+  .topbar {
+    flex-wrap: wrap;
+    row-gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .topbar__tag {
+    display: none; // "KURA · CANLI" — dar ekranda yer kazanmak için gizleniyor, marka zaten yeterince açık
+  }
+
+  .topbar__right {
+    width: 100%;
+    justify-content: space-between;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+  }
+
+  .speed__btn {
+    padding: 3px 8px;
+  }
+
+  .playback__btn {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+}
+
+// Panellerin İÇERİĞİ artık app-team-roster-panel'in kendi (encapsulated) stilinde —
+// burada sadece sahneye göre kenarlık/konum kalıyor.
+app-team-roster-panel {
+  border-right: 1px solid var(--color-divider);
+  min-height: 0;
+}
+
+app-team-roster-panel:last-child {
+  border-right: none;
+  border-left: 1px solid var(--color-divider);
+}

@@ -1,0 +1,183 @@
+<div class="lineup" [style.width.px]="cardWidthPx()">
+  <div class="lineup__header" [style.background]="'linear-gradient(100deg,' + team().color + 'cc,' + team().color + '55)'">
+    @if (editingName()) {
+      <input
+        class="lineup__name-input"
+        type="text"
+        [value]="nameDraft()"
+        (input)="onNameDraftInput($event)"
+        (blur)="commitEditName()"
+        (keydown.enter)="commitEditName()"
+        (keydown.escape)="cancelEditName()"
+        #nameInput
+      />
+    } @else {
+      <button type="button" class="lineup__name" (click)="startEditName()">
+        <svg class="lineup__pencil" viewBox="0 0 20 20" aria-hidden="true">
+          <path
+            d="M3 17 L3 14 L13 4 L16 7 L6 17 Z M12 5 L15 8"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linejoin="round"
+            stroke-linecap="round"
+          />
+        </svg>
+        <span>{{ takimAdi(team().name) }}</span>
+      </button>
+    }
+    <app-team-badge class="lineup__badge" [team]="team()" size="md" />
+  </div>
+
+  <div class="lineup__controls">
+    <label class="lineup__control">
+      <span class="text-mono-label">{{ t('saha.dizilis') }}</span>
+      <select class="lineup__select" [value]="formation().id" (change)="onFormationSelect($event)">
+        @for (p of presets(); track p.id) {
+          <option [value]="p.id">{{ p.label }}</option>
+        }
+      </select>
+    </label>
+    <label class="lineup__control lineup__control--switch">
+      <span class="text-mono-label">{{ t('saha.ratingGoster') }}</span>
+      <input
+        type="checkbox"
+        class="lineup__switch"
+        [checked]="showRating()"
+        (change)="toggleRating()"
+        [attr.aria-label]="t('ui.reytingGoster', { taraf: side() })"
+      />
+    </label>
+  </div>
+
+  <div class="lineup__pitch" #pitchEl>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <linearGradient [attr.id]="'jerseyShade-' + side()" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#fff" stop-opacity="0.28" />
+          <stop offset="35%" stop-color="#fff" stop-opacity="0" />
+          <stop offset="100%" stop-color="#000" stop-opacity="0.28" />
+        </linearGradient>
+      </defs>
+    </svg>
+
+    <svg class="lineup__grass" viewBox="0 0 100 120" preserveAspectRatio="none" aria-hidden="true">
+      <rect class="grass__base" x="0" y="0" width="100" height="120" />
+      <g class="grass__stripes">
+        @for (i of [0, 1, 2, 3, 4, 5]; track i) {
+          @if (i % 2 === 0) {
+            <rect x="0" [attr.y]="i * 20" width="100" height="20" fill="rgba(255,255,255,.025)" />
+          }
+        }
+      </g>
+      <g class="grass__lines">
+        <line x1="1" y1="0" x2="1" y2="120" />
+        <line x1="99" y1="0" x2="99" y2="120" />
+        <line x1="0" y1="1" x2="100" y2="1" />
+        <rect x="25" y="0" width="50" height="24" />
+        <rect x="38" y="0" width="24" height="9" />
+        <circle class="grass__spot" cx="50" cy="14" r="0.6" />
+        <path d="M 38.5 24 A 12 12 0 0 0 61.5 24" />
+        <line x1="0" y1="108" x2="100" y2="108" />
+        <path d="M 32 108 A 18 18 0 0 1 68 108" />
+        <path d="M 0 118 A 3 3 0 0 0 3 121" />
+        <path d="M 100 118 A 3 3 0 0 1 97 121" />
+      </g>
+    </svg>
+
+    <div class="lineup__markers">
+      @for (slot of slots(); track slot.line + '-' + slot.x) {
+        <div
+          class="marker"
+          [class.marker--dragging]="slot.player && draggingId() === slot.player.id"
+          [style.left.%]="slot.displayX"
+          [style.top.%]="slot.displayY"
+        >
+          @if (slot.player; as player) {
+            <div
+              class="marker__jersey"
+              role="button"
+              tabindex="0"
+              [attr.data-player-id]="player.id"
+              [class.marker__jersey--selected]="isSelected(player.id)"
+              [class.marker__jersey--gk]="slot.mevki === 'KAL'"
+              [class.marker__jersey--drag-over]="dragOverId() === player.id"
+              [class.marker__jersey--off-position]="slot.fit === 'shifted' && !isStandInKeeper(slot)"
+              [class.marker__jersey--stand-in]="isStandInKeeper(slot)"
+              [class.marker__jersey--target]="swapTargetsActive()"
+              (keydown.enter)="onMarkerClick(player.id)"
+              (keydown.space)="$event.preventDefault(); onMarkerClick(player.id)"
+              (pointerdown)="onPointerDown($event, player.id)"
+              [attr.aria-label]="markerLabel(player, slot)"
+              [attr.title]="markerLabel(player, slot)"
+            >
+              @if (showRating()) {
+                <span class="marker__rating">{{ player.ratings.overall }}</span>
+              }
+              @if (player.input.photoImage) {
+                <img class="marker__photo" [src]="player.input.photoImage" alt="" draggable="false" />
+              } @else if (kitFor(slot)) {
+                <!--
+                  Kulüp forması (TheSportsDB). Kaleci kulübün DEPLASMAN formasını giyer: API'de
+                  kaleci forması yok ama kaleci sahada ayrışmak zorunda. Deplasman forması da
+                  yoksa `kitFor` null döner ve kaleci yeşil vektör formasında kalır.
+                -->
+                <img class="marker__kit" [src]="kitFor(slot)!" alt="" draggable="false" />
+                <span class="marker__number marker__number--kit">{{ jerseyLabel(player) }}</span>
+              } @else {
+                <svg class="marker__jersey-svg" viewBox="0 0 60 64" aria-hidden="true">
+                  <path
+                    [style.fill]="slot.mevki === 'KAL' ? keeperColor() : team().color"
+                    d="M22 2 Q30 9 38 2 L47 6 Q58 10 57 17 L49 26 Q48 25 47 23 L47 58 Q47 62 43 62 L17 62 Q13 62 13 58 L13 23 Q12 25 11 26 L3 17 Q2 10 13 6 Z"
+                  />
+                  <path
+                    class="marker__jersey-shade"
+                    stroke="none"
+                    [attr.fill]="'url(#jerseyShade-' + side() + ')'"
+                    d="M22 2 Q30 9 38 2 L47 6 Q58 10 57 17 L49 26 Q48 25 47 23 L47 58 Q47 62 43 62 L17 62 Q13 62 13 58 L13 23 Q12 25 11 26 L3 17 Q2 10 13 6 Z"
+                  />
+                  <path class="marker__jersey-collar" d="M22 2 Q30 9 38 2" fill="none" stroke="#000" stroke-opacity="0.3" stroke-width="1.2" />
+                </svg>
+                <span class="marker__number">{{ jerseyLabel(player) }}</span>
+              }
+            </div>
+
+            <!--
+              Oyuncunun üstündeki TEK eylem: takas. Düzenleme ve kadrodan çıkarma buradan
+              kaldırıldı (kullanıcı isteği) — ikisi de `/squad` ekranında.
+
+              DOM'da hep var, görünürlüğü CSS'te: ÜZERİNE GELİNCE (hover/focus) ya da oyuncu
+              seçiliyken açılır. `@if` ile yalnızca seçilide basılsaydı hover'la belirmesi
+              mümkün olmazdı (CSS DOM'a eleman ekleyemez).
+            -->
+            <div class="marker__actions" [class.marker__actions--open]="isSelected(player.id)">
+                <button
+                  type="button"
+                  class="marker__act marker__act--swap"
+                  (click)="onActionClick($event); swapRequested.emit(player.id)"
+                  [attr.title]="t('saha.takas')"
+                  [attr.aria-label]="t('saha.takas')"
+                >
+                  ⇄
+                </button>
+              </div>
+            @if (isStandInKeeper(slot)) {
+              <span class="marker__op marker__op--stand-in" aria-hidden="true">{{ t('saha.vekilKaleci') }}</span>
+            } @else if (slot.fit === 'shifted') {
+              <span class="marker__op" aria-hidden="true">{{ slot.mevki }}</span>
+            }
+            <span class="marker__name">{{ surname(player) }}</span>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  @if (rotationText(); as rotation) {
+    <p class="lineup__rotation">
+      <span class="lineup__rotation-title">{{ t('saha.kaleciSirasi') }}</span>
+      <span class="lineup__rotation-order">{{ rotation }}</span>
+      <span class="lineup__rotation-note">{{ t('ui.periyotSayi', { sayi: keeperRotation()!.periods }) }}</span>
+    </p>
+  }
+</div>

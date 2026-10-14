@@ -1,0 +1,26 @@
+# GÜVENLİK BAŞLIKLARI (Netlify / Cloudflare Pages biçimi)
+#
+# `index.html`'deki <meta> CSP tarayıcıda çalışır ama iki şeyi YAPAMAZ:
+#   * frame-ancestors (tarayıcı meta'dan geleni yok sayar — ölçüldü),
+#   * HSTS (HTTPS zorunluluğu) — meta ile verilemez.
+# Bu yüzden asıl yer barındırma katmanı. Dosyayı olduğu gibi bırakın: Netlify ve
+# Cloudflare Pages `public/_headers` dosyasını otomatik okur. Vercel için vercel.json,
+# nginx için ayrı bir örnek GUVENLIK-YAPILACAKLAR.md'de.
+/*
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' data: blob: https://*.supabase.co wss://*.supabase.co https://www.thesportsdb.com https://r2.thesportsdb.com https://images.weserv.nl; upgrade-insecure-requests
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+
+# ÖNBELLEK: özetli js/css dosyalarına "1 yıl değişmez" (immutable) VERİLMEZ (12 Ekim 2026).
+# Olmayan bir parça istenince tek sayfa kuralı HTML döndürüyor; immutable o HTML'i bir yıl
+# parça yerine önbellekte tutuyordu ve eski sekmesi açık telefonlarda site açılmıyordu.
+# Cloudflare Pages varsayılanı (ETag ile yeniden doğrulama) yeterli.
+/index.html
+  Cache-Control: no-cache
+/onarim.js
+  Cache-Control: no-cache

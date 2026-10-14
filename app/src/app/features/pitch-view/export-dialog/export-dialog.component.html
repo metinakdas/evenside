@@ -1,0 +1,75 @@
+<div class="overlay" (click)="cancel()">
+  <div
+    class="dialog"
+    appFocusTrap
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="export-dialog-title"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="dialog__head">
+      <span class="text-heading" id="export-dialog-title">{{ t('saha.macKaydet') }}</span>
+      <button type="button" class="dialog__close" (click)="cancel()" [attr.aria-label]="t('oyun.kapat')">×</button>
+    </div>
+
+    <p class="dialog__hint">
+      {{ t('saha.kayitAciklama') }}
+    </p>
+
+    <div class="dialog__body">
+      <label class="field">
+        <span class="text-mono-label field__label">{{ t('saha.sahaAdres') }}</span>
+        <input
+          class="input"
+          [class.input--invalid]="venueError()"
+          type="text"
+          [value]="details().venue"
+          (input)="onInput('venue', $event)"
+          [attr.placeholder]="t('saha.sahaOrnek')"
+          maxlength="60"
+          [attr.aria-invalid]="venueError() ? 'true' : null"
+        />
+        @if (venueError(); as err) {
+          <span class="field__error">{{ err }}</span>
+        }
+      </label>
+
+      <!--
+        Tarih ve saat TEK alanda: `datetime-local` tarayıcının yerleşik takvim + saat
+        seçicisini açar (kullanıcı isteği). Ayrı bir UI kütüphanesi (DevExtreme vb.) gerekmez —
+        proje kuralı da harici UI kütüphanesi kullanmamak.
+      -->
+      <label class="field">
+        <span class="text-mono-label field__label">{{ t('saha.tarihSaat') }}</span>
+        <input
+          class="input"
+          [class.input--invalid]="kickoffError()"
+          type="datetime-local"
+          [value]="details().kickoff"
+          (input)="onInput('kickoff', $event)"
+          (click)="openPicker($event)"
+          (focus)="openPicker($event)"
+          [attr.aria-invalid]="kickoffError() ? 'true' : null"
+        />
+        @if (kickoffError(); as err) {
+          <span class="field__error">{{ err }}</span>
+        }
+      </label>
+    </div>
+
+    <!--
+      İki yol, tek form: maçı kaydetmek asıl iş, görsel indirmek onun yanında gelen şey.
+      Birincil eylem ikisini birden yapar; görsel istemeyen "Yalnızca kaydet" der.
+    -->
+    <div class="dialog__foot">
+      <!--
+        ÜÇ KADEME: iptal sessiz, ikincil eylem çerçeveli, ana eylem dolu. Önce "Vazgeç" ile
+        "Yalnızca kaydet" aynı sınıftaydı (ikisi de .ghost) — iptal, gerçek bir eylem gibi
+        görünüyordu (kullanıcı geri bildirimi).
+      -->
+      <button type="button" class="ui-btn ui-btn--ghost dialog__cancel" (click)="cancel()">{{ t('oyun.vazgec') }}</button>
+      <button type="button" class="ui-btn ui-btn--secondary" (click)="confirm(false)">{{ t('saha.yalnizcaKaydet') }}</button>
+      <button type="button" class="ui-btn ui-btn--primary" (click)="confirm(true)">{{ t('saha.kaydetIndir') }}</button>
+    </div>
+  </div>
+</div>

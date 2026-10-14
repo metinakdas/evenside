@@ -1,0 +1,44 @@
+<!--
+  Saha ÇİZGİLERİ: zemin. Dikey değil yatay bir şema — amaç ölçek doğruluğu değil, kartın
+  "sahanın içinde bir yer tuttuğunu" söylemek. Yalnızca çizgi: dolgu yok.
+-->
+<span class="saha">
+  <span class="saha__alan">
+    <svg class="saha__cizgi" viewBox="0 0 420 272" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <g fill="none" stroke="currentColor" stroke-width="1.1">
+        <rect x="6" y="6" width="408" height="260" />
+        <line x1="210" y1="6" x2="210" y2="266" />
+        <circle cx="210" cy="136" r="44" />
+        <rect x="6" y="56" width="62" height="160" />
+        <rect x="6" y="96" width="26" height="80" />
+        <rect x="352" y="56" width="62" height="160" />
+        <rect x="388" y="96" width="26" height="80" />
+        <path d="M68 108 A 44 44 0 0 1 68 164" />
+        <path d="M352 108 A 44 44 0 0 0 352 164" />
+        <path d="M6 18 A 12 12 0 0 0 18 6" />
+        <path d="M402 6 A 12 12 0 0 0 414 18" />
+        <path d="M6 254 A 12 12 0 0 1 18 266" />
+        <path d="M402 266 A 12 12 0 0 1 414 254" />
+      </g>
+      <circle cx="210" cy="136" r="2.4" fill="currentColor" />
+    </svg>
+
+    @if (juggler()) {
+      <app-pitch-juggler />
+    }
+
+    @for (spot of spots(); track spot.id) {
+      <span class="yuva" [class.yuva--benim]="spot.mine" [style.--x.%]="spot.x" [style.--y.%]="spot.y">
+        @if (spot.mine && card(); as kart) {
+          <app-player-card [player]="kart" size="micro" />
+        } @else {
+          <!-- Hayalet yuva: kartla aynı kalkan silüeti, ama boş. -->
+          <span class="hayalet">
+            <span class="hayalet__arti" aria-hidden="true">+</span>
+            <span class="hayalet__hat">{{ t('poz.' + spot.line) }}</span>
+          </span>
+        }
+      </span>
+    }
+  </span>
+</span>

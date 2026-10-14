@@ -1,0 +1,187 @@
+// Kura töreni sahnesinin animasyon karakterleri. Süreler/eğriler prototipten taşındı
+// (bkz. FIFA kadro kurma prototip/uploads/revizyon-promptu.md §3), zamanlaması ise
+// `SequenceService`'in faz süreleriyle eşleşecek şekilde ayarlandı.
+
+// Mevkiye özel simge animasyonları — bkz. draw-ceremony.component.html "position-icon".
+@keyframes brick-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.6);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes shield-slam {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(-30px);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.15) translateY(0);
+  }
+  75% {
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes ring-pulse {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes compass-spin-in {
+  0% {
+    opacity: 0;
+    transform: rotate(-140deg) scale(0.4);
+  }
+  70% {
+    opacity: 1;
+    transform: rotate(12deg) scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+@keyframes net-ripple {
+  0%,
+  100% {
+    transform: scaleX(1);
+  }
+  50% {
+    transform: scaleX(1.06) scaleY(0.96);
+  }
+}
+
+@keyframes ball-fly-in {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  70% {
+    transform: translate(34px, -36px) scale(0.82);
+  }
+  85% {
+    transform: translate(38px, -40px) scale(0.78);
+  }
+  100% {
+    transform: translate(36px, -38px) scale(0.82);
+  }
+}
+
+@keyframes position-in {
+  0% {
+    opacity: 0;
+    letter-spacing: 0.6em;
+    transform: scale(2.2);
+  }
+  45% {
+    opacity: 1;
+    letter-spacing: 0.02em;
+    transform: scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes stamp-in {
+  0% {
+    opacity: 0;
+    transform: scale(2.2) rotate(-10deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(0.94) rotate(-4deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(-4deg);
+  }
+}
+
+@keyframes prism-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(140%);
+  }
+  100% {
+    opacity: 0.9;
+    transform: translateY(0);
+  }
+}
+
+@keyframes beam-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes confetti-fall {
+  0% {
+    opacity: 1;
+    transform: translateY(-10vh) rotate(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(85vh) rotate(720deg);
+  }
+}
+
+@keyframes camera-shake {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(-9px, 5px);
+  }
+  40% {
+    transform: translate(8px, -6px);
+  }
+  60% {
+    transform: translate(-6px, -4px);
+  }
+  80% {
+    transform: translate(5px, 5px);
+  }
+}
+
+@keyframes card-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(50vh) scale(0.6);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

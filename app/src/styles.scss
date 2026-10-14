@@ -1,0 +1,288 @@
+@use 'app/styles/tokens';
+@use 'app/styles/typography';
+@use 'app/styles/animations';
+@use 'app/styles/actions';
+
+// ---- "Mac ışığı" (bkz. app/styles/_mac-isik.scss) ----
+// Açı kayıtlı bir özellik olmalı, yoksa konik gradyan dönmez, sıçrar. Animasyonlar da burada:
+// bileşen stillerinde tanımlansalar Angular adlarına önek ekler.
+@property --aci {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/* Tanıdık dertler girişindeki SPOT IŞIĞI (landing): konum ve yarıçap kayıtlı olmalı, yoksa maske
+   kare kare akmaz, sıçrar. Varsayılan yarıçap dev: animasyon dışındayken fotoğraf tamamen açık. */
+@property --spot-x {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 50%;
+}
+
+@property --spot-y {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 50%;
+}
+
+@property --spot-r {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 4000px;
+}
+
+@keyframes mac-kenar {
+  to {
+    --aci: 360deg;
+  }
+}
+
+/* Döngünün çoğu beklemede: parıltı 7 sn'nin ilk ~1,3 sn'sinde akar. */
+@keyframes mac-suz-dongu {
+  0% {
+    background-position: 170% 0;
+  }
+  18%,
+  100% {
+    background-position: -70% 0;
+  }
+}
+
+@keyframes mac-suz {
+  from {
+    background-position: 170% 0;
+  }
+  to {
+    background-position: -70% 0;
+  }
+}
+
+// ---- Global sıfırlama ----
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+input,
+button,
+select,
+textarea {
+  font-family: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+a {
+  color: inherit;
+}
+
+// ---- Odak (focus) ----
+// Sadece klavye/erişilebilirlik odağında görünür; fare tıklamasında görünmez.
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sharp);
+}
+
+// ---- Ekran okuyucu için görsel olarak gizli, erişilebilirlik ağacında kalan içerik ----
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// ---- Kaydırma çubuğu (prototiple aynı ince stil) ----
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-divider);
+  border-radius: var(--radius-pill);
+}
+
+/*
+ * DİL SEÇİCİ SAĞ ÜST KÖŞEDE (bkz. app.component). Ekranların kendi üst çubuklarındaki
+ * düğmeler onun altına girmesin diye sağda yer bırakılıyor. Kural GLOBAL: bileşen stilleri
+ * kapsüllü olduğu için her ekranın SCSS'ine ayrı ayrı yazmak gerekirdi.
+ */
+.topbar {
+  padding-right: 184px !important;
+}
+
+@media (max-width: 640px) {
+  .topbar {
+    padding-right: 150px !important;
+  }
+}
+
+/*
+ * Sağdan sola düzende (Arapça) yön okları ters bakıyordu: "→ ileri" ok, akışın tersini
+ * gösteriyordu. `transform` değil ayrı `scale` özelliği: bileşenlerin hover'daki
+ * translateX animasyonlarını ezmeden aynalar (tarama, 10 Ekim 2026).
+ */
+[dir='rtl'] {
+  .tile__go,
+  .cta__arrow,
+  .welcome__cta-arrow,
+  .auth-submit__ok,
+  .ok-ileri {
+    display: inline-block;
+    scale: -1 1;
+  }
+}
+
+
+/* ------------------------------------------------------------------ SAYFA GEÇİŞLERİ
+ * 11 Ekim 2026 (yayın öncesi). View Transitions API: tarayıcı eski ve yeni ekranın görüntüsünü
+ * alır, aradaki hareketi burada tanımlarız. Yön `<html data-gecis>`'ten gelir
+ * (bkz. core/utils/route-transition.ts): derine gidince yeni ekran sağdan gelir, geri dönünce
+ * soldan; aynı katta yumuşak bir solma. Sağ üstteki dil/giriş çubuğu (`.genel-ust`) kendi
+ * katmanında yerinde kalır — her geçişte zıplamaz. Desteklemeyen tarayıcıda ekran doğrudan değişir.
+ */
+.genel-ust {
+  view-transition-name: genel-ust;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.22, 0.8, 0.24, 1);
+  animation-fill-mode: both;
+}
+
+/* Aynı kat (varsayılan): eski ekran hafifçe geri çekilip söner, yeni ekran öne gelir. */
+::view-transition-old(root) {
+  animation-name: gecis-sonuk-cik;
+}
+::view-transition-new(root) {
+  animation-name: gecis-sonuk-gir;
+}
+
+html[data-gecis='ileri']::view-transition-old(root) {
+  animation-name: gecis-sola-cik;
+}
+html[data-gecis='ileri']::view-transition-new(root) {
+  animation-name: gecis-sagdan-gir;
+}
+html[data-gecis='geri']::view-transition-old(root) {
+  animation-name: gecis-saga-cik;
+}
+html[data-gecis='geri']::view-transition-new(root) {
+  animation-name: gecis-soldan-gir;
+}
+
+@keyframes gecis-sonuk-cik {
+  to {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+}
+@keyframes gecis-sonuk-gir {
+  from {
+    opacity: 0;
+    transform: scale(1.015);
+  }
+}
+@keyframes gecis-sola-cik {
+  to {
+    opacity: 0;
+    transform: translateX(-6%) scale(0.98);
+  }
+}
+@keyframes gecis-sagdan-gir {
+  from {
+    opacity: 0;
+    transform: translateX(8%);
+  }
+}
+@keyframes gecis-saga-cik {
+  to {
+    opacity: 0;
+    transform: translateX(6%) scale(0.98);
+  }
+}
+@keyframes gecis-soldan-gir {
+  from {
+    opacity: 0;
+    transform: translateX(-8%);
+  }
+}
+
+/* Sağdan sola dillerde (Arapça) yön de aynalanır: "ileri" soldan gelir. */
+html[dir='rtl'][data-gecis='ileri']::view-transition-old(root) {
+  animation-name: gecis-saga-cik;
+}
+html[dir='rtl'][data-gecis='ileri']::view-transition-new(root) {
+  animation-name: gecis-soldan-gir;
+}
+html[dir='rtl'][data-gecis='geri']::view-transition-old(root) {
+  animation-name: gecis-sola-cik;
+}
+html[dir='rtl'][data-gecis='geri']::view-transition-new(root) {
+  animation-name: gecis-sagdan-gir;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root),
+  ::view-transition-group(genel-ust) {
+    animation: none !important;
+  }
+}
+
+/* ------------------------------------------------------------------ LOGO = ANA MENÜ
+ * 11 Ekim 2026 (kullanıcı isteği): her ekranın logosu ana menüye götüren bir bağlantı.
+ * Görünüm değişmez (renk, yazı); yalnızca imleç, hafif parlama ve klavye odağı halkası eklenir.
+ */
+a.marka-link {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: filter 0.15s ease, opacity 0.15s ease;
+}
+a.marka-link:hover {
+  filter: drop-shadow(0 0 10px rgba(0, 245, 122, 0.45));
+}
+a.marka-link:active {
+  opacity: 0.85;
+}
+a.marka-link:focus-visible {
+  outline: 2px solid var(--color-accent, #00f57a);
+  outline-offset: 4px;
+}

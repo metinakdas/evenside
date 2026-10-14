@@ -1,0 +1,21 @@
+@if (gorunur()) {
+  <!--
+    Şerit bir DİYALOG değil: sayfayı kilitlemiyor, içerik okunmaya devam ediyor. Zorunlu
+    depolama olmadan uygulama zaten çalışmadığı için burada "reddet" bir kapı değil, isteğe
+    bağlı kategorilere verilen yanıt (bugün böyle bir kategori yok).
+  -->
+  <aside class="cerez" role="region" [attr.aria-label]="t('cerez.baslik')">
+    <div class="cerez__soz">
+      <h2 class="cerez__baslik">{{ t('cerez.baslik') }}</h2>
+      <p class="cerez__metin">{{ t('cerez.metin') }}</p>
+      <nav class="cerez__baglanti">
+        <a routerLink="/cookies">{{ t('cerez.politika') }}</a>
+        <a routerLink="/privacy">{{ t('cerez.gizlilik') }}</a>
+      </nav>
+    </div>
+    <div class="cerez__eylem">
+      <button type="button" class="cerez__ikincil" (click)="zorunlu()">{{ t('cerez.reddet') }}</button>
+      <button type="button" class="cerez__birincil" (click)="kabul()">{{ t('cerez.kabul') }}</button>
+    </div>
+  </aside>
+}

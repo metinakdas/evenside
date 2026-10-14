@@ -1,0 +1,132 @@
+/*
+ * Yasal belge ekranı: uzun metin için OKUNURLUK önceliği — dar ölçü, yüksek satır aralığı,
+ * yüksek kontrast. Sayfanın geri kalanının gösterişi burada yok; amaç metnin okunması.
+ */
+:host {
+  display: block;
+  min-height: 100dvh;
+  padding: clamp(24px, 5vw, 64px) clamp(16px, 5vw, 48px) clamp(60px, 8vw, 110px);
+  background: light-dark(#f3f3f5, #08080a);
+  color: light-dark(rgba(18, 18, 22, 0.86), rgba(255, 255, 255, 0.86));
+  font-family: var(--font-body, 'Barlow', system-ui, sans-serif);
+}
+
+.yasal {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.yasal__satir {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.yasal__geri {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: light-dark(#067a3f, #00f57a);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.yasal__geri:hover,
+.yasal__geri:focus-visible {
+  text-decoration: underline;
+}
+
+.yasal__baslik {
+  margin: 10px 0 8px;
+  font-family: var(--font-display, 'Barlow Condensed', system-ui, sans-serif);
+  font-style: italic;
+  font-weight: 700;
+  font-size: clamp(30px, 5vw, 52px);
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: light-dark(#121216, #fff);
+}
+
+.yasal__tarih {
+  margin: 0 0 18px;
+  font-family: var(--font-mono, 'Space Mono', monospace);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: light-dark(rgba(18, 18, 22, 0.55), rgba(255, 255, 255, 0.55));
+}
+
+.yasal__giris {
+  margin: 0 0 30px;
+  font-size: clamp(16px, 1.5vw, 18px);
+  line-height: 1.7;
+}
+
+.yasal__bolum {
+  margin: 0 0 26px;
+  padding: 18px 20px;
+  border: 1px solid light-dark(rgba(18, 18, 22, 0.08), rgba(255, 255, 255, 0.08));
+  border-radius: 14px;
+  background: light-dark(#ffffff, #0e0e10);
+}
+
+.yasal__bolum h2 {
+  margin: 0 0 10px;
+  font-family: var(--font-display, 'Barlow Condensed', system-ui, sans-serif);
+  font-style: italic;
+  font-weight: 700;
+  font-size: clamp(19px, 2vw, 24px);
+  text-transform: uppercase;
+  color: light-dark(#121216, #fff);
+}
+
+.yasal__bolum p {
+  margin: 0 0 10px;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.yasal__liste {
+  margin: 0 0 8px;
+  padding-left: 20px;
+}
+
+.yasal__liste li {
+  margin-bottom: 6px;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.yasal__bolum strong {
+  color: light-dark(#121216, #fff);
+}
+
+.yasal__diger {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  padding-top: 18px;
+  border-top: 1px solid light-dark(rgba(18, 18, 22, 0.08), rgba(255, 255, 255, 0.08));
+}
+
+.yasal__diger a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: light-dark(rgba(18, 18, 22, 0.72), rgba(255, 255, 255, 0.72));
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.yasal__diger a:hover,
+.yasal__diger a:focus-visible {
+  color: light-dark(#121216, #fff);
+  text-decoration: underline;
+}
+
+/* Arapçada düzen sağdan sola: liste girintisi de yön değiştirmeli. */
+:host-context([dir='rtl']) .yasal__liste {
+  padding-left: 0;
+  padding-right: 20px;
+}

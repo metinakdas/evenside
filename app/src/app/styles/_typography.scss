@@ -1,0 +1,179 @@
+// Tipografi ölçeği. Yazı tipleri Google Fonts CDN üzerinden `src/index.html`'de
+// yükleniyor (Saira Condensed, Barlow, Space Mono) — bu dosya sadece yazı tipi
+// ailelerini token'lar ve kullanım ölçeklerini tanımlar.
+
+:root {
+  // Display: geniş/kalın/italik condensed sans — başlıklar, reyting sayıları, mevki yazıları.
+  --font-display: 'Saira Condensed', 'Arial Narrow', sans-serif;
+  // Gövde: temiz geometrik sans.
+  --font-body: 'Barlow', -apple-system, BlinkMacSystemFont, sans-serif;
+  // Veri/etiket: dar harf aralıklı monospace.
+  /* Kart tipografisi — referans "Futbolcu Karti" tasarimindaki Oswald. */
+  --font-card: 'Oswald', 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --font-mono: 'Space Mono', 'Courier New', monospace;
+}
+
+// ---- Display (Saira Condensed, italik, 900) ----
+// Büyük tören/başlık metinleri: kart reytingi, mevki kısaltması, ekran başlıkları.
+.text-display-1 {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  font-size: clamp(40px, 6vw, 96px);
+  line-height: 0.9;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.text-display-2 {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  font-size: 28px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+// ---- Gövde (Barlow) ----
+.text-heading {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.text-body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.text-body-strong {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+// ---- Veri/etiket (Space Mono) ----
+// Tablo başlıkları, rozetler, sayaçlar — sıkı harf aralığı, çoğunlukla büyük harf.
+// Etiket. Ölçüm (kontrol raporu §3): 11px yazıda %16 tracking en yorucu kombinasyondu ve
+// tek ekranda 285 büyük harfli öğe vardı. Harf aralığı üçte birine indirildi, punto bir
+// tık büyütüldü; GENİŞ tracking artık yalnızca birinci seviye başlıkta (.text-section-title).
+// Etiket. Ölçüm (Tur 3): tek ekranda 321 büyük harfli öğe vardı ve hiyerarşi kayboluyordu.
+// Büyük harf artık YALNIZCA `.text-section-title`'da; etiketler normal cümle düzeninde.
+.text-mono-label {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--color-text-secondary);
+  opacity: 0.75;
+  margin: 0;
+}
+
+// Birinci seviye bölüm başlığı — büyük harf + geniş tracking yalnızca burada.
+.text-section-title {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+// Değer kademesi: etiketten belirgin şekilde büyük ve opak — sayıyı okumak için etiketi
+// okumak zorunda kalınmasın (Tur 3 · Ö3).
+.text-mono-data {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+/*
+ * Buton ölçeği — üç kademe (Tur 5 · S1/S3). Ölçümde 9 farklı buton yüksekliği ve 32 butonda
+ * hiç tanımlanmamış punto (tarayıcı varsayılanı 13.3333px) vardı. Tüm butonlar bu üçe girer:
+ *   sm 32 — kart içi/ikon düğmeleri
+ *   md 40 — form ve hap düğmeleri
+ *   lg 44 — birincil eylem, dokunma hedefi
+ */
+button {
+  font-size: inherit;
+  font-family: inherit;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard),
+    color var(--duration-fast) var(--easing-standard);
+}
+
+.btn--sm {
+  height: 32px;
+  padding: 0 12px;
+}
+
+/* 44px dokunma hedefi (QA O2: 40px'ti) — modal ayağı 64px, sığıyor. */
+.btn--md {
+  height: 44px;
+  padding: 0 16px;
+}
+
+.btn--lg {
+  height: 44px;
+  padding: 0 24px;
+  font-size: 14px;
+}
+
+.btn--primary {
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+}
+
+.btn--ghost {
+  background: transparent;
+  border-color: var(--color-divider);
+  color: var(--color-text-primary);
+}
+
+.btn--ghost:hover:not(:disabled) {
+  border-color: var(--color-accent-line);
+}
+
+.btn--danger {
+  background: #ef4444;
+  color: #fff;
+}
+
+.btn--danger-ghost {
+  border-color: rgba(255, 107, 109, 0.5);
+  color: light-dark(#c42b2b, #ff6b6d);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

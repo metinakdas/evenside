@@ -1,0 +1,1005 @@
+/*
+ * "Kadro Tezgâhı" (Tur 4 · Bölüm 4). Dikey yığın bırakıldı: kadro ve havuz alt alta iki
+ * ızgara olduğu için sayfa kadro büyüdükçe uzuyor ve 868px'lik bir ekranda 234px taşıyordu.
+ * Artık üç kolon yan yana ve SAYFA HİÇ KAYMIYOR — kayan tek alan havuz listesi.
+ *
+ * `min-height: 0` satırları taşımayı kesen parça: grid çocukları varsayılan olarak
+ * min-content'in altına küçülmez, bu yüzden her katmana açıkça verilir.
+ */
+.shell {
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: 56px 1fr 64px;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+.bench {
+  display: grid;
+  // Sol 288→300 (uzun takım adları kesilmesin), sağ 300→320 (havuz satırında ada yer kalsın).
+  // Havuz 320→280: orta kolon genişler, 7v7'de kart 123→132px olur ve oluk her formatta 14px.
+  grid-template-columns: 300px minmax(0, 1fr) 280px;
+  gap: 20px;
+  padding: 16px 24px;
+  min-height: 0;
+}
+
+.bench > * {
+  min-height: 0;
+}
+
+.bench__col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+/*
+ * Kadro kolonunun arka planı: soyunma odası fotoğrafı. Kartlar okunur kalsın diye üstüne
+ * koyu bir perde (`--squad-bg-scrim`) çekiliyor — fotoğraf atmosferi veriyor, kontrastı
+ * kartlar taşıyor.
+ */
+/*
+ * Kadro kolonunun arka planı: soyunma odası fotoğrafı. Kartlar okunur kalsın diye üstüne
+ * koyu bir perde (`--squad-bg-scrim`) çekiliyor — fotoğraf atmosferi veriyor, kontrastı
+ * kartlar taşıyor.
+ */
+.bench__col--squad {
+  position: relative;
+  border-radius: var(--radius-sharp);
+  overflow: hidden;
+  padding: 12px;
+  // Fotoğraf ayrı bir katmana alındı ki BULANIKLAŞTIRILABİLSİN: perdeyi koyultmak tek
+  // başına yetmiyordu, fotoğrafın kendi kontrastlı detayları boş yuvaların ince
+  // etiketlerini yutuyordu (test raporu 5). İçerik bulanıklıktan etkilenmesin diye
+  // filtre ::before üzerinde, .bench__col--squad'ın kendisinde değil.
+  background: light-dark(rgba(255, 255, 255, 0.92), rgba(9, 9, 11, 0.92));
+  isolation: isolate;
+}
+
+.bench__col--squad::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: url('/squad-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  filter: blur(4px) brightness(0.34) saturate(0.55);
+  opacity: 0.42;
+}
+
+/*
+ * Açık temada karartılmış fotoğraf beyaz perdenin altında çamurlu bir gri-kahve kat
+ * bırakıyordu. Orada fotoğraf AYDINLATILIR ve yalnızca doku olarak, çok sönük kalır.
+ */
+:host-context([data-theme='light']) .bench__col--squad::before {
+  filter: blur(4px) brightness(1.15) saturate(0.35);
+  opacity: 0.16;
+}
+
+.bench__col--pool {
+  overflow: hidden;
+}
+
+.bench__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bench__counter {
+  color: var(--color-text-secondary);
+}
+
+.bench__counter--full {
+  color: var(--color-accent-text);
+}
+
+/*
+ * Yuva ızgarası oyuncu sayısına göre UZAMAZ: formatın gerektirdiği hücre kadar var ve
+ * `grid-auto-rows: 1fr` ile kalan yüksekliği paylaşıyorlar. Ekran kısaldıkça kart küçülür.
+ */
+/*
+ * `grid-auto-rows: 1fr` satırı 376px'e çıkarıyor ama kart 178px'te kalıyordu; artan alan
+ * satırların ORTASINDA ikiye bölünüyordu (Tur 5 · E3). Tavan 208px + `align-content: start`
+ * ile artan alan tek blok hâlinde ALTTA kalıyor — orada hat şeridi duruyor (E5).
+ */
+.slots {
+  display: grid;
+  grid-template-columns: repeat(var(--slot-cols, 7), minmax(0, 1fr));
+  // Satır kartın boyunda olsun: `1fr` satırı 322px'e çıkarıp kartı 196px'te bırakıyor, iki
+  // satır arasında 140px boşluk kalıyordu ve kartlar boşlukta yüzüyor gibi duruyordu (B4).
+  grid-auto-rows: min-content;
+  /*
+   * `safe center`: içerik kabından UZUNSA ortalama bırakılır, üstten başlanır. Düz `center`
+   * taşan içeriği İKİ uçtan kırpıyordu; telefonda ilk kart sırasının üst yarısı (reyting, mevki)
+   * başlığın altında kayboluyordu (QA K4). Taşan kısım artık kaydırılarak görülebiliyor.
+   */
+  align-content: safe center;
+  align-items: center;
+  column-gap: 14px;
+  row-gap: 28px;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden auto;
+}
+
+/* Kart ve kontrolleri tek kutuda: kontroller hücrenin değil KARTIN köşesine oturur (E2). */
+/*
+ * Düğmeler artık SLOTUN değil KARTIN kenarlarına bağlı: slot sütun genişliğinde, kart ondan
+ * dar olabiliyordu ve 7v7'de komşu kartın düğmesiyle arası 14px'e düşüyordu — ekranda 28 daire
+ * tek bir zincir oluşturup hangi düğmenin hangi oyuncuya ait olduğunu okunmaz hâle getiriyordu
+ * (Tur 7 · B2).
+ */
+.slot__inner {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  width: min(100%, 134px);
+  margin-inline: auto;
+  min-width: 0;
+  max-height: 208px;
+}
+
+.slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  min-width: 0;
+}
+
+/*
+ * `display: block` olan host sütunun tamamını kaplıyor, `justify-content: center` de kartı
+ * değil HOST'u ortalıyordu: 6v6'da sütun 150px'e çıkınca kart 134px'te kalıp sola yapışıyor,
+ * satır 16,1px sola kaçıyordu (Tur 7 · B1).
+ */
+.slot app-player-card {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+}
+
+/*
+ * Boş yuva DOLU kartla aynı silüette ve daha SESSİZ. Önceden `#F0F0F0` zemindeydi: sayfaya
+ * karşı 17,26:1 ile ekranın en parlak öğesi oluyordu — göz kadroya değil eksiğe gidiyordu.
+ * Ayrıca `clip-path: none` olduğu için dolu kartlar flama, boşlar dikdörtgendi (Tur 7 · A3).
+ */
+.slot--empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  max-width: 134px;
+  aspect-ratio: 134 / 208;
+  align-self: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-sm, 4px);
+  clip-path: polygon(0 7%, 7% 0, 93% 0, 100% 7%, 100% 80%, 50% 100%, 0 80%);
+  // Yuva KENDİ zeminini taşır (yarı saydam değil): altındaki fotoğraf etiketi yutuyordu.
+  // Açık temada beyaz kalkan beyaz zeminde kayboluyordu: orada hafif gri dolgu + kontur.
+  background: light-dark(rgba(232, 232, 238, 0.92), rgba(14, 14, 17, 0.86));
+  box-shadow: inset 0 0 0 1px light-dark(rgba(18, 18, 22, 0.14), rgba(255, 255, 255, 0.22));
+  color: light-dark(#7a7a85, #c9c9d2);
+  font: inherit;
+  cursor: pointer;
+}
+
+.slot--empty:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.slot--empty > * {
+  // Kalkanın daralan ucunun içine düşmesin.
+  margin-bottom: 14%;
+}
+
+.slot__plus {
+  font-size: 20px;
+  line-height: 1;
+  opacity: 0.85;
+}
+
+.slot__need {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  opacity: 1;
+}
+
+/* D2: karta gelince geri bildirim — kart tıklanabilir görünüyor, öyle davranmalı. */
+.slot:hover .card__face {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px light-dark(rgba(20, 20, 30, 0.15), rgba(0, 0, 0, 0.5));
+}
+
+.card__face {
+  transition:
+    transform 0.14s ease,
+    box-shadow 0.14s ease;
+}
+
+/* --- Denge paneli (sol kolonun dibi) --- */
+
+.balance__spread,
+.balance__keeper,
+
+/*
+ * "Sayfa kaymasın" kuralı uygulanırken iç kaydırma da kaldırılmış ama içerik kısaltılmamıştı:
+ * 834px'lik alanda 1107px içerik vardı ve son beş oyuncuya HİÇBİR yoldan ulaşılamıyordu
+ * (Tur 5 · L1). Sayfa yine kaymıyor; kayan şey tablonun kendisi.
+ */
+.liste {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 24px;
+}
+
+.liste app-rating-table {
+  flex: 1;
+  min-height: 0;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: 0 var(--space-6);
+  // Kenarlık yerine zemin farkı (Tur 4 · Ö2: render edilen çerçeve sayısını düşür).
+  background: var(--color-bg);
+}
+
+/*
+ * "← Menüye dön": e-posta + çıkış yerine (kullanıcı isteği). Biçimi /kura ve /saha
+ * topbar'larındaki `chip-btn--ghost` ile aynı — üç ekranın geri düğmesi tek dil.
+ */
+.topbar__back {
+  margin-left: auto;
+  min-height: 32px;
+  padding: 0 14px;
+  border: 1px solid light-dark(rgba(18, 18, 22, 0.22), rgba(233, 233, 238, 0.22));
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.topbar__back:hover,
+.topbar__back:focus-visible {
+  background: rgba(233, 233, 238, 0.12);
+  border-color: light-dark(rgba(18, 18, 22, 0.45), rgba(233, 233, 238, 0.45));
+  color: var(--color-text-primary);
+}
+
+.topbar__brand {
+  margin: 0;
+}
+
+.accent {
+  color: var(--color-accent-text);
+}
+
+@media (max-width: 640px) {
+  .topbar {
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .bench,
+  .liste,
+  .actionbar {
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+}
+
+.actionbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 0 var(--space-6);
+  background: var(--color-bg);
+}
+
+.actionbar__status {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.actionbar app-button {
+  margin-left: auto;
+}
+
+.tabs {
+  display: flex;
+  background: var(--color-panel);
+  border-radius: var(--radius-pill);
+  padding: 3px;
+  gap: 2px;
+}
+
+.tabs__btn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-pill);
+  padding: 6px 18px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.tabs__btn--active {
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+}
+
+/* Hover: uygulamanın tek vurgu yeşili (pasif sekmede yazı + hafif zemin, etkinde parlama). */
+.tabs__btn {
+  transition: background var(--duration-fast, 0.15s) ease, color var(--duration-fast, 0.15s) ease,
+    filter var(--duration-fast, 0.15s) ease;
+}
+
+.tabs__btn:not(.tabs__btn--active):hover {
+  background: rgba(0, 245, 122, 0.12);
+  color: var(--color-accent-text);
+}
+
+.tabs__btn--active:hover {
+  filter: brightness(1.08);
+}
+
+.actionbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-6);
+  border-top: 1px solid var(--color-divider);
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  background: var(--color-bg);
+}
+
+.actionbar__status {
+  color: var(--color-text-secondary);
+}
+
+.liste {
+  min-height: 0;
+  overflow: hidden;
+  padding: var(--space-4) var(--space-6);
+}
+
+/* Liste görünümünün üst çubuğu — Kart görünümündeki arama/ekleme yetenekleri burada da olsun (B3). */
+.liste__toolbar {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.liste__search {
+  flex: 1;
+  min-width: 0;
+  background: var(--color-surface, light-dark(#ffffff, #161618));
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 8px 16px;
+  /* 44px dokunma hedefi (QA O3: 34px'ti). */
+  min-height: 44px;
+  box-sizing: border-box;
+}
+
+.liste__add {
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.liste__add:hover {
+  border-color: var(--color-accent-line);
+}
+
+/*
+ * Mobil (≤900px): tezgâh tek kolona iner ve orta/sağ kolon iki SEKMEYE dönüşür — aynı anda
+ * tek ızgara ekranda olduğu için sayfa yine kaymaz, yalnızca aktif sekme içeride kayar
+ * (Tur 4 · Bölüm 4.4). Sol kolon (format + takımlar) zaten kendi içinde katlanabilir.
+ */
+.bench__tabs {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .bench {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .bench__tabs {
+    display: flex;
+    gap: 6px;
+  }
+
+  .bench__tab {
+    flex: 1;
+    height: 44px;
+    border: none;
+    border-radius: var(--radius-sharp);
+    background: var(--color-panel);
+    color: var(--color-text-secondary);
+    font-family: var(--font-body);
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .bench__tab--active {
+    background: var(--color-accent);
+    color: var(--color-accent-contrast);
+  }
+
+  .bench__col--squad[hidden],
+  .bench__col--pool[hidden] {
+    display: none;
+  }
+
+  .slots {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+}
+
+/* Fazla oyuncu: kuraya girmeyecek olanlar görünür şekilde işaretlenir (Tur 5 · E7). */
+.slot--excess .slot__inner {
+  opacity: 0.55;
+}
+
+.slot__excess {
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  transform: translateX(-50%);
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  background: #f5a623;
+  color: #1a1206;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/*
+ * Hat şeridi — yuva ızgarasının altında artan alanı değerlendirir (Tur 5 · E5).
+ * Kullanıcı dengeli kadro kurarken zaten hatlara bakıyor; bilgi ızgaranın dibinde duruyor.
+ */
+.lines-strip {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--radius-sharp);
+  background: var(--color-panel);
+}
+
+.lines-strip__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.lines-strip__label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--color-text-secondary);
+}
+
+.lines-strip__count {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.lines-strip__need {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.lines-strip__item--missing .lines-strip__count {
+  color: light-dark(#c42b2b, #f5a623);
+}
+
+/* E13: renk noktaları ve sekmeler için 44px dokunma hedefi. */
+.tabs__btn {
+  min-height: 44px;
+}
+
+/* E14: mobil sekmeleri masaüstünde erişilebilirlik ağacında kalmasın — genişliği sıfırlamak
+   yetmiyor, Tab tuşu ve ekran okuyucu görünmez sekmelere uğruyordu. */
+/*
+ * (Buradaki ikinci `.bench__tabs { display: none }` KALDIRILDI: medya sorgusundan sonra
+ * geldiği için mobil sekmeleri eziyor ve telefonda havuza ulaşmayı imkânsız kılıyordu.)
+ */
+
+/* Liste görünümünün denge şeridi (Tur 5 · E18). */
+.liste__balance {
+  margin: 0 0 12px;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sharp);
+  background: var(--color-panel);
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.liste__balance-gap {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.liste__balance-gap--good {
+  color: var(--color-accent-text);
+}
+
+.liste__balance-gap--ok {
+  color: light-dark(#c42b2b, #f5a623);
+}
+
+.liste__balance-gap--bad {
+  color: light-dark(#c42b2b, #ff6b6d);
+}
+
+.liste__balance-gap--pending {
+  color: var(--color-text-secondary);
+}
+
+.liste__balance-warn {
+  color: light-dark(#c42b2b, #f5a623);
+}
+
+/* Panelde eksik hat özeti ve her zaman açık "Neden dengeli?" (Tur 5 · R2/R4). */
+
+/* Boş yuva artık bir düğme: görünüşü korunuyor, tıklanabilirliği geliyor (G3). */
+.slot--empty {
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.slot--empty:hover {
+  background: rgba(0, 245, 122, 0.1);
+  color: var(--color-accent-text);
+}
+
+/* Kura önizlemesi: iki takımın öngörülen ortalaması (Tur 7 · B3). */
+
+/*
+ * Kart aksiyonları (düzenle / kadrodan çıkar). Kartın kenarlarına yapıştırılan iki daire
+ * hem kalkanın ucunda kırpılıyor hem de komşu kartın düğmeleriyle tek bir zincir oluşturup
+ * "hangi düğme kimin" sorusunu cevapsız bırakıyordu. Çözüm: aksiyonlar KARTIN ÜSTÜNDE,
+ * aynı kalkana kırpılmış bir perdede toplanıyor — perde tam olarak o kartı karartır,
+ * sahiplik tartışmasız olur.
+ */
+.slot__actions {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  clip-path: polygon(0 7%, 7% 0, 93% 0, 100% 7%, 100% 80%, 50% 100%, 0 80%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  // Ortada değil, biraz yukarıda: isim bandını ve reytingi kapatmadan portrenin üstüne oturur.
+  padding-bottom: 16%;
+  background: light-dark(rgba(255, 255, 255, 0.66), rgba(8, 8, 10, 0.66));
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--easing-standard);
+}
+
+.slot:hover .slot__actions,
+.slot:focus-within .slot__actions {
+  opacity: 1;
+}
+
+.slot__action {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border: 1px solid light-dark(rgba(18, 18, 22, 0.24), rgba(255, 255, 255, 0.24));
+  border-radius: 50%;
+  background: light-dark(rgba(18, 18, 22, 0.14), rgba(255, 255, 255, 0.14));
+  color: light-dark(#121216, #fff);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Görünür daire 32px, dokunma hedefi 44px. */
+.slot__action::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+.slot__action:hover {
+  background: light-dark(rgba(18, 18, 22, 0.26), rgba(255, 255, 255, 0.26));
+}
+
+.slot__action--remove:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+}
+
+/*
+ * Dokunmatikte hover yok: perde hiç açılmaz, düğmeler kartın ALTINDA sürekli görünür durur.
+ * Yuva ızgarasının 28px'lik satır aralığı bu şeride yetiyor.
+ */
+@media (hover: none) {
+  .slot__inner {
+    flex-direction: column;
+    align-items: center;
+    // Aksiyon şeridi akışa girdiği için yükseklik tavanı kalkar, yoksa şerit sıkışır.
+    max-height: none;
+  }
+
+  .slot__actions {
+    position: static;
+    inset: auto;
+    clip-path: none;
+    background: none;
+    opacity: 1;
+    padding: 6px 0 0;
+  }
+
+  .slot__action {
+    background: light-dark(rgba(18, 18, 22, 0.1), rgba(255, 255, 255, 0.1));
+    color: var(--color-text-primary);
+  }
+}
+
+
+
+/* Salt okunur uyarısı: üst çubukta, kehribar tonunda — hata değil, yetki bilgisi. */
+.readonly-note {
+  margin-left: auto;
+  padding: 5px 12px;
+  border: 1px solid rgba(245, 168, 0, 0.45);
+  border-radius: var(--radius-pill);
+  background: rgba(245, 168, 0, 0.1);
+  color: light-dark(#9a5a00, #f5c869);
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Şerit varken geri düğmesi kenara yapışmasın. */
+.readonly-note + .topbar__back {
+  margin-left: var(--space-3);
+}
+
+/* 44px dokunma hedefi (test raporu 9). */
+.topbar__back {
+  position: relative;
+}
+
+.topbar__back::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 46px);
+  height: max(100%, 46px);
+  transform: translate(-50%, -50%);
+}
+
+.liste__add {
+  position: relative;
+}
+
+.liste__add::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 46px);
+  height: max(100%, 46px);
+  transform: translate(-50%, -50%);
+}
+
+.tabs__btn {
+  position: relative;
+}
+
+.tabs__btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 46px);
+  height: max(100%, 46px);
+  transform: translate(-50%, -50%);
+}
+
+/*
+ * Logo menüdekiyle aynı tipografide: Saira Condensed italik + 0.02em aralıkla "SAHA 42"
+ * gibi ayrık okunuyordu, menüde ise "SAHA42" (test raporu 11). Marka tek biçimde yazılır.
+ */
+.topbar__brand {
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  letter-spacing: 0;
+}
+
+/* Devre dışı boş yuva hover'da parlamasın: tıklanabilir sanılıyordu (doğrulama raporu · ek not). */
+.slot--empty:disabled:hover {
+  background: light-dark(rgba(255, 255, 255, 0.86), rgba(14, 14, 17, 0.86));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+}
+
+/* ==========================================================================
+ * MOBİL (≤640px) — kadro tezgâhı
+ * Telefonda ekran tek kolon: üstte kimlik + format, sonra sekmeler, sonra seçilen sekme.
+ * Kadro ızgarası 4 kolona iner ve kartlar KÜÇÜLÜR; alt şerit sabit kalır.
+ * ========================================================================== */
+@media (max-width: 900px) {
+  .topbar__back {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 640px) {
+  .shell {
+    grid-template-rows: auto 1fr auto;
+    height: 100dvh;
+  }
+
+  .topbar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 12px;
+    height: auto;
+  }
+
+  .topbar__brand {
+    font-size: 20px;
+  }
+
+  .topbar__back {
+    min-height: 44px;
+  }
+
+  .bench {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .slots {
+    --slot-cols: 4;
+    gap: 8px;
+  }
+
+  .slot__inner {
+    width: min(100%, 96px);
+  }
+
+  .lines-strip {
+    padding: 8px 10px;
+  }
+
+  .actionbar {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .actionbar__status {
+    font-size: 12px;
+  }
+
+  .liste {
+    padding: 12px;
+  }
+}
+
+/* ==========================================================================
+ * Boş yuva — varsayılan YEŞİL (10 Ekim 2026, kullanıcı isteği). Eskiden sayfaya karışan koyu
+ * bir kalkandı ve "buraya oyuncu eklenir" demiyordu. Artık vurgu yeşilinin hafif dolgusu +
+ * yeşil kontur + daire içinde artı ve "Oyuncu ekle"; üzerine gelince DOLU yeşile döner ve
+ * yükselir (uygulamanın birincil düğme dili: yeşil dolgu + koyu mürekkep).
+ * Salt okunur (üye) yuvası bu kuralların dışında: nötr kalır, tıklanmaz.
+ * ========================================================================== */
+.slot--empty:not(:disabled) {
+  background:
+    linear-gradient(180deg, light-dark(rgba(15, 169, 91, 0.16), rgba(0, 245, 122, 0.2)), light-dark(rgba(15, 169, 91, 0.06), rgba(0, 245, 122, 0.06))),
+    light-dark(rgba(240, 250, 244, 0.95), rgba(10, 16, 13, 0.9));
+  box-shadow: inset 0 0 0 1.5px light-dark(rgba(15, 169, 91, 0.6), rgba(0, 245, 122, 0.55));
+  color: var(--color-accent-text);
+  transition:
+    background var(--duration-fast) var(--easing-standard),
+    color var(--duration-fast) var(--easing-standard),
+    transform var(--duration-fast) var(--easing-standard);
+}
+
+.slot--empty:not(:disabled):hover,
+.slot--empty:not(:disabled):focus-visible {
+  background: var(--color-accent);
+  box-shadow: none;
+  color: var(--color-accent-contrast, #05130a);
+  transform: translateY(-3px);
+  outline: none;
+}
+
+.slot--empty:not(:disabled):active {
+  transform: translateY(-1px);
+}
+
+.slot--empty:not(:disabled) .slot__plus {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  font-size: 20px;
+  font-weight: 600;
+  opacity: 1;
+  /* "Oyuncu ekle" etiketi altında: kalkan ucundan kaçma payını o taşıyor. */
+  margin-bottom: 0;
+  transition: transform var(--duration-fast) var(--easing-standard);
+}
+
+.slot--empty:not(:disabled):hover .slot__plus {
+  transform: rotate(90deg) scale(1.08);
+}
+
+.slot__add {
+  margin-top: 6px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slot--empty:not(:disabled),
+  .slot--empty:not(:disabled) .slot__plus {
+    transition: none;
+  }
+
+  .slot--empty:not(:disabled):hover,
+  .slot--empty:not(:disabled):hover .slot__plus {
+    transform: none;
+  }
+}
+
+/* Kullanıcılar sekmesi: eşlenmeyi bekleyen kart rozeti (kehribar = dikkat, eylem değil). */
+.tabs__btn--users {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tabs__badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #f0b429;
+  color: #1a1305;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* Sekme içeriği tezgâhla aynı yüksekliği doldurur; kendi içinde kayar. */
+.users-host {
+  flex: 1;
+  min-height: 0;
+}
+
+/* Üyede Kullanıcılar sekmesi kilitli: görünür ama basılamaz, sebebi title'da. */
+.tabs__btn--users:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/*
+ * Üye görünümünde telefonda TÜM EKRAN sağa taşıyordu (tarama, 10 Ekim 2026): tek satırlık
+ * (nowrap) salt-okunur notu 379px'ti, kabuğun ızgara sütunu da `auto` olduğu için içerik
+ * genişliğini alıp 541px'e çıkıyordu — Havuz sekmesi ve "Kuraya geç" ekran dışında kalıyordu.
+ * Sütun artık asla içerikten geniş olamaz; not dar ekranda sarar.
+ */
+.shell {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (max-width: 900px) {
+  .readonly-note {
+    white-space: normal;
+    flex: 1 1 100%;
+    order: 10;
+    margin-left: 0;
+    text-align: center;
+  }
+}
+
+/*
+ * Telefonda üst çubuk sarar; köşedeki sabit düğmeler (tema · dil) için ayrılan sağ pay
+ * (global `.topbar`, 150px) SARILAN HER SATIRA uygulanıyordu. Sekme grubu 228px'e sıkışıp
+ * Arapçada sol kenardan taşıyordu ("Kullanıcılar" sekmesi ekran dışında — tarama, 10 Ekim 2026).
+ * Pay artık yalnızca ilk satırda, logonun kendisinde; sekmeler satırın tamamını alır.
+ * Pay FİZİKSEL sağda: köşe düğmeleri RTL'de de sağda duruyor.
+ */
+@media (max-width: 640px) {
+  .topbar {
+    padding-right: var(--space-4) !important;
+  }
+
+  .topbar__brand {
+    flex: 1 1 100%;
+    padding-right: 138px;
+    /* Köşe düğmeleri 14..58px arasında: ilk satır onlar kadar uzun olmalı, yoksa sekmeler altına girer. */
+    /* flex DEĞİL: "42" ayrı esnek öğe olup RTL'de "42SAHA" diye ters diziliyordu. */
+    line-height: 46px;
+  }
+
+  .tabs {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .tabs__btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}
+
+/* "Arkadaşlarını puanla" — geri düğmesiyle aynı çip, ama bir EYLEM olduğu için yeşil kenarlı. */
+.topbar__rate {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  border-color: var(--color-accent-line, #00f57a) !important;
+  color: var(--color-accent-text, #00f57a) !important;
+}

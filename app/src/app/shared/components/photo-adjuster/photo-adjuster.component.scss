@@ -1,0 +1,124 @@
+:host {
+  display: block;
+}
+
+.adjuster {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.adjuster__title {
+  align-self: flex-start;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: light-dark(rgba(18, 18, 22, 0.75), rgba(233, 233, 238, 0.75));
+}
+
+/*
+ * Şeffaf portrelerde "boşluk mu, beyaz mı" ayrımı görünsün diye dama zemin; kart zemini koyu
+ * olduğu için ayrıca koyu bir taban da var.
+ */
+.frame {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid light-dark(#d9d9df, #2a2a30);
+  border-radius: var(--r-sm, 4px);
+  background:
+    repeating-conic-gradient(light-dark(rgba(18, 18, 22, 0.05), rgba(255, 255, 255, 0.05)) 0 25%, transparent 0 50%) 0 0 / 16px 16px,
+    light-dark(#ffffff, #17171b);
+  cursor: grab;
+  touch-action: none;
+}
+
+.frame:active {
+  cursor: grabbing;
+}
+
+.frame:focus-visible {
+  outline: 2px solid var(--color-accent-line);
+  outline-offset: 2px;
+}
+
+.frame__img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: center;
+  max-width: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+.zoom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.zoom__btn {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border: 1px solid light-dark(#d9d9df, #2a2a30);
+  border-radius: var(--r-sm, 4px);
+  background: light-dark(#ffffff, #17171b);
+  color: light-dark(#4a4a55, #e9e9ee);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.zoom__range {
+  flex: 1;
+  accent-color: var(--color-accent-text);
+}
+
+.zoom__value {
+  width: 48px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: right;
+  color: light-dark(rgba(18, 18, 22, 0.75), rgba(233, 233, 238, 0.75));
+}
+
+.adjuster__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.adjuster__spacer {
+  flex: 1;
+}
+
+.adjuster__ghost,
+.adjuster__apply {
+  min-height: 32px;
+  padding: 0 14px;
+  border-radius: var(--r-sm, 4px);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.adjuster__ghost {
+  border: 1px solid light-dark(#d9d9df, #2a2a30);
+  background: transparent;
+  color: light-dark(#4a4a55, #e9e9ee);
+}
+
+.adjuster__apply {
+  border: 0;
+  background: var(--color-accent, #00f57a);
+  color: #05130a;
+  font-weight: 600;
+}
+
+.adjuster__apply:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

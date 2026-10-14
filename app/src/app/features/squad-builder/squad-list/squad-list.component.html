@@ -1,0 +1,135 @@
+<div class="pool">
+  <div class="pool__head">
+    <h2 class="text-heading">{{ t('kadro.havuz') }}</h2>
+    <!-- "Havuz 0" derken altında "Kadroda — 3" yazması "sonuç yok" gibi okunuyordu (R5). -->
+    <span class="text-mono-data pool__counter">
+      {{ poolRest().length }}@if (squadMatches().length) { · {{ t('ui.kadrodaSayi', { sayi: squadMatches().length }) }} }
+    </span>
+
+  </div>
+
+  <input
+    class="pool__search"
+    type="text"
+    [attr.placeholder]="t('kadro.oyuncuAraIpucu')"
+    [value]="search()"
+    (input)="onSearchInput($event)"
+    [attr.aria-label]="t('kadro.oyuncuAra')"
+  />
+
+  @if (store.canEditSquad()) {
+    <button type="button" class="pool__add-new" (click)="addNew()">{{ t('ui.yeniOyuncuArti') }}</button>
+  }
+
+  <!-- "Rastgele" ve "Demo" düğmeleri KALDIRILDI (11 Ekim 2026, kullanıcı isteği; yayın öncesi). -->
+
+  <!-- Sayfadaki tek kayan alan burası (Tur 4 · Bölüm 4). Liste, kart ızgarasının aksine
+       oyuncu sayısıyla ölçekleniyor: 60 kişilik havuz da aynı kolonda duruyor. -->
+  <div class="pool__list">
+    @for (player of poolRest(); track player.id) {
+      <div class="pool__row">
+        <span
+            class="pool__avatar"
+            [style.background]="tierColor(player)"
+            [style.color]="tierInk(player)"
+            aria-hidden="true"
+          >
+          @if (player.input.photoImage) {
+            <img class="pool__photo" [src]="player.input.photoImage" alt="" />
+          } @else {
+            {{ initial(player) }}
+          }
+        </span>
+        <button type="button" class="pool__name" (click)="edit(player.id, $event)" [title]="t('ui.duzenleAd', { ad: player.input.name })">
+          {{ player.input.name }}
+        </button>
+        <!-- Rozet hücresi HER ZAMAN var: koşullu çocuk ızgarayı kaydırıyordu. -->
+        <span class="pool__marks">
+          @if (isJoined(player)) {
+            <span class="pool__joined" [attr.title]="t('kadro.kodlaKatildi')">⚯</span>
+          }
+          @if (canLink(player)) {
+            <button type="button" class="pool__dupe pool__dupe--esle" (click)="link(player, $event)" [attr.title]="t('kadro.esleIpucu')" [attr.aria-label]="t('kadro.esleIpucu')">⚠</button>
+          } @else if (isDuplicate(player)) {
+            <span class="pool__dupe" [attr.title]="t('kadro.ayniAd')">⚠</span>
+          }
+        </span>
+        <span class="pool__pos">{{ t('poz.' + player.ratings.position) }}</span>
+        <span class="pool__rating">{{ player.ratings.overall }}</span>
+        @if (store.canEditSquad()) {
+        <button
+          type="button"
+          class="pool__take"
+          [disabled]="store.atCapacity()"
+          (click)="toggle(player.id, false)"
+          [attr.aria-label]="t('ui.kadroyaEkleAd', { ad: player.input.name })"
+          [attr.title]="store.atCapacity() ? t('kadro.dolu') : t('kadro.ekle')"
+        >
+          +
+        </button>
+        }
+      </div>
+    }
+
+    @if (squadMatches().length > 0) {
+      <p class="pool__group">{{ t('ui.kadrodaGrup', { sayi: squadMatches().length }) }}</p>
+      @for (player of squadMatches(); track player.id) {
+        <div class="pool__row pool__row--in">
+          <span
+            class="pool__avatar"
+            [style.background]="tierColor(player)"
+            [style.color]="tierInk(player)"
+            aria-hidden="true"
+          >
+            @if (player.input.photoImage) {
+              <img class="pool__photo" [src]="player.input.photoImage" alt="" />
+            } @else {
+              {{ initial(player) }}
+            }
+          </span>
+          <button type="button" class="pool__name" (click)="edit(player.id, $event)" [title]="t('ui.duzenleAd', { ad: player.input.name })">
+            {{ player.input.name }}
+          </button>
+        <!-- Rozet hücresi HER ZAMAN var: koşullu çocuk ızgarayı kaydırıyordu. -->
+        <span class="pool__marks">
+          @if (isJoined(player)) {
+            <span class="pool__joined" [attr.title]="t('kadro.kodlaKatildi')">⚯</span>
+          }
+          @if (canLink(player)) {
+            <button type="button" class="pool__dupe pool__dupe--esle" (click)="link(player, $event)" [attr.title]="t('kadro.esleIpucu')" [attr.aria-label]="t('kadro.esleIpucu')">⚠</button>
+          } @else if (isDuplicate(player)) {
+            <span class="pool__dupe" [attr.title]="t('kadro.ayniAd')">⚠</span>
+          }
+        </span>
+        <span class="pool__pos">{{ t('poz.' + player.ratings.position) }}</span>
+          <span class="pool__rating">{{ player.ratings.overall }}</span>
+          @if (store.canEditSquad()) {
+          <button
+            type="button"
+            class="pool__take pool__take--out"
+            (click)="toggle(player.id, true)"
+            [attr.aria-label]="t('ui.kadrodanCikarAd', { ad: player.input.name })"
+            [attr.title]="t('kadro.cikar')"
+          >
+            −
+          </button>
+          }
+        </div>
+      }
+    }
+
+    @if (poolRest().length === 0 && squadMatches().length === 0) {
+      <p class="pool__empty">
+        @if (isEmpty()) {
+          {{ t('kadro.havuzBosIlk') }}
+        } @else if (search().trim()) {
+          {{ t('kadro.aramaSonucYok') }}
+        } @else {
+          <!-- Arama yokken havuz boşsa sebep: herkes kadroda (QA K6: "aramaya uyan yok" deniyordu). -->
+          {{ t('kadro.havuzHerkesKadroda') }}
+        }
+      </p>
+    }
+  </div>
+
+</div>

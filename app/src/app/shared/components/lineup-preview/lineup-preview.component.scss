@@ -1,0 +1,98 @@
+/*
+ * Kartın kalkan silüeti: hayalet yuva DOLU kartla aynı biçimde olmalı, yoksa "boş kart"
+ * değil "kutu" gibi okunuyor (menüde yaşanmıştı).
+ */
+$kalkan: polygon(0 7%, 7% 0, 93% 0, 100% 7%, 100% 80%, 50% 100%, 0 80%);
+
+:host {
+  display: block;
+  position: relative;
+  width: 100%;
+  /* Sahanın kendi oranı; kap yüksekliği vermezse kutu buradan doğar. */
+  aspect-ratio: 420 / 272;
+  color: rgba(0, 245, 122, 0.16);
+}
+
+.saha {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  /* Yuvaların kabı sahanın ÇİZİLDİĞİ alanla birebir olmalı (bkz. .saha__alan). */
+  container-type: size;
+}
+
+/*
+ * TUZAK (menüde iki eksende de yaşandı): SVG `meet` ile oranını koruyup ORTALANIYOR, yani
+ * çizim alanı kutudan küçük oluyor. Yuvaların kabı aynı mektupkutusu hesabıyla kurulmazsa
+ * kaleci sahanın DIŞINA düşüyor. 408/420 ve 260/272 çarpanları viewBox'taki 6px kenar payını
+ * düşer: %0 = kale çizgisi, %100 = rakip kale çizgisi.
+ */
+.saha__alan {
+  position: relative;
+  width: calc(min(100cqw, 100cqh * 420 / 272) * 408 / 420);
+  height: calc(min(100cqh, 100cqw * 272 / 420) * 260 / 272);
+}
+
+.saha__cizgi {
+  position: absolute;
+  /* Çizgi dikdörtgeni kabın kenarına denk gelsin: 6px'lik pay geri ekleniyor. */
+  left: calc(-6 / 408 * 100%);
+  top: calc(-6 / 260 * 100%);
+  width: calc(420 / 408 * 100%);
+  height: calc(272 / 260 * 100%);
+}
+
+.yuva {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.yuva--benim {
+  z-index: 2;
+}
+
+.yuva--benim app-player-card {
+  width: clamp(48px, 15cqw, 68px);
+  filter: drop-shadow(0 0 18px rgba(0, 245, 122, 0.35));
+}
+
+.hayalet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: clamp(30px, 9.5cqw, 44px);
+  aspect-ratio: 134 / 208;
+  clip-path: $kalkan;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.05) 0px,
+      rgba(255, 255, 255, 0.05) 2px,
+      rgba(0, 0, 0, 0) 2px,
+      rgba(0, 0, 0, 0) 7px
+    ),
+    linear-gradient(160deg, rgba(26, 26, 31, 0.95), rgba(13, 13, 16, 0.95));
+  box-shadow: 0 0 0 1px rgba(0, 245, 122, 0.3);
+}
+
+.hayalet__arti {
+  font-size: 13px;
+  line-height: 1;
+  color: rgba(0, 245, 122, 0.75);
+}
+
+/* 11px alt sınırı: bu etiket daha küçük olamaz (proje kuralı). */
+.hayalet__hat {
+  font-family: var(--font-mono, 'Space Mono', monospace);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.55);
+}

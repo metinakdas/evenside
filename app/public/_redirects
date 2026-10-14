@@ -1,0 +1,4 @@
+# Tek sayfalık uygulama (Netlify / Cloudflare Pages): bilinmeyen her yol index.html'e düşer,
+# yönlendirmeyi Angular yapar. Yoksa /kadro gibi bir adres doğrudan açılınca ya da sayfa
+# yenilenince barındırma 404 verir. Var olan dosyalar (görseller, js) bu kuraldan önce sunulur.
+/*    /index.html    200

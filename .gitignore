@@ -4,6 +4,7 @@
 !/README.md
 !/app/
 !/tools/
+!/docs/
 
 app/node_modules/
 app/dist/
